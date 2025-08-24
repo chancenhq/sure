@@ -55,6 +55,14 @@ Rails.application.routes.draw do
     end
   end
 
+  resource :chancen_onboarding, only: :show, controller: "chancen_onboardings", path: "onb-chancen" do
+    collection do
+      get :preferences
+      get :goals
+      get :trial
+    end
+  end
+
   namespace :settings do
     resource :profile, only: [ :show, :destroy ]
     resource :preferences, only: :show
