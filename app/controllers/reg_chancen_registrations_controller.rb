@@ -13,7 +13,7 @@ class RegChancenRegistrationsController < RegistrationsController
     if @user.save
       @invitation&.update!(accepted_at: Time.current)
       @session = create_session_for(@user)
-      redirect_to root_path, notice: t("registrations.create.success")
+      redirect_to chancen_onboarding_path, notice: t("registrations.create.success")
     else
       render :new, status: :unprocessable_entity, alert: t("registrations.create.failure")
     end

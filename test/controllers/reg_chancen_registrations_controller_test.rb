@@ -7,12 +7,12 @@ class RegChancenRegistrationsControllerTest < ActionDispatch::IntegrationTest
     assert_template "reg_chancen_registrations/new"
   end
 
-  test "create sets special fields and redirects to root" do
+  test "create sets special fields and redirects to chancen onboarding" do
     post reg_chancen_url, params: { user: {
       email: "john@example.com",
       password: "Password1!" } }
 
-    assert_redirected_to root_url
+    assert_redirected_to chancen_onboarding_url
     user = User.order(created_at: :desc).first
     assert_equal "kenya", user.pei
     assert_equal "choice", user.bank
@@ -38,7 +38,7 @@ class RegChancenRegistrationsControllerTest < ActionDispatch::IntegrationTest
           email: "john@example.com",
           password: "Password1!",
           invite_code: InviteCode.generate! } }
-        assert_redirected_to root_url
+        assert_redirected_to chancen_onboarding_url
         user = User.order(created_at: :desc).first
         assert_equal "kenya", user.pei
         assert_equal "choice", user.bank
