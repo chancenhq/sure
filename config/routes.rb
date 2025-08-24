@@ -36,6 +36,7 @@ Rails.application.routes.draw do
   resource :current_session, only: %i[update]
 
   resource :registration, only: %i[new create]
+  resource :reg_chancen, only: %i[new create], controller: "reg_chancen_registrations", path: "reg-chancen"
   resources :sessions, only: %i[new create destroy]
   resource :password_reset, only: %i[new create edit update]
   resource :password, only: %i[edit update]
