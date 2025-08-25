@@ -59,14 +59,20 @@ class UsersController < ApplicationController
       case user_params[:redirect_to]
       when "onboarding_preferences"
         redirect_to preferences_onboarding_path
+      when "chancen_onboarding_preferences"
+        redirect_to preferences_chancen_onboarding_path
       when "home"
         redirect_to root_path
       when "preferences"
         redirect_to settings_preferences_path, notice: notice
       when "goals"
         redirect_to goals_onboarding_path
+      when "chancen_onboarding_goals"
+        redirect_to goals_chancen_onboarding_path
       when "trial"
         redirect_to trial_onboarding_path
+      when "chancen_onboarding_trial"
+        redirect_to trial_chancen_onboarding_path
       else
         redirect_to settings_profile_path, notice: notice
       end

@@ -27,4 +27,18 @@ class OnboardableTest < ActionDispatch::IntegrationTest
     get root_path
     assert_response :success
   end
+
+  test "chancen user must complete chancen onboarding before any other action" do
+    @user.update!(onboarded_at: nil, pei: "kenya", bank: "choice")
+
+    get root_path
+    assert_redirected_to chancen_onboarding_path
+  end
+
+  test "chancen user must have subscription to visit dashboard" do
+    @user.update!(onboarded_at: 1.day.ago, pei: "kenya", bank: "choice")
+
+    get root_path
+    assert_redirected_to trial_chancen_onboarding_path
+  end
 end
