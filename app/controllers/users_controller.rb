@@ -61,6 +61,8 @@ class UsersController < ApplicationController
         redirect_to preferences_onboarding_path
       when "chancen_onboarding_preferences"
         redirect_to preferences_chancen_onboarding_path
+      when "chancen_onboarding_kyc"
+        redirect_to kyc_chancen_onboarding_path
       when "home"
         redirect_to root_path
       when "preferences"

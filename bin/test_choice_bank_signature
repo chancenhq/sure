@@ -1,0 +1,115 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Test script for Choice Bank API signature generation
+# Usage: bin/test_choice_bank_signature
+
+require 'json'
+require 'digest'
+require 'securerandom'
+
+class SignatureTester
+  def test_signature_generation
+    puts "Testing Choice Bank API Signature Generation"
+    puts "=" * 50
+    
+    # Example from the error message
+    private_key = "test_key_123"
+    sender_id = "sure_finance"
+    
+    # Build a simple test request
+    request_body = {
+      requestId: "APPREQ1234567890abc",
+      sender: sender_id,
+      locale: "en_KE",
+      timestamp: 1756410995983,
+      salt: "test_salt_1",
+      params: {
+        firstName: "Test",
+        lastName: "User",
+        email: "test@example.com"
+      }
+    }
+    
+    puts "\n1. Original Request Body:"
+    puts JSON.pretty_generate(request_body)
+    
+    # Method 1: Current implementation
+    signing_data1 = request_body.dup
+    signing_data1[:senderKey] = private_key
+    sorted_json1 = sort_hash_alphabetically(signing_data1).to_json
+    signature1 = Digest::SHA256.hexdigest(sorted_json1)
+    
+    puts "\n2. Method 1 - Current Implementation:"
+    puts "   Sorted Keys: #{sort_hash_alphabetically(signing_data1).keys.join(', ')}"
+    puts "   JSON Length: #{sorted_json1.length}"
+    puts "   Signature: #{signature1[0..20]}..."
+    
+    # Method 2: Alternative - sorting with symbols converted to strings
+    signing_data2 = stringify_keys(request_body)
+    signing_data2["senderKey"] = private_key
+    sorted_json2 = sort_hash_alphabetically_strings(signing_data2).to_json
+    signature2 = Digest::SHA256.hexdigest(sorted_json2)
+    
+    puts "\n3. Method 2 - String Keys:"
+    puts "   Sorted Keys: #{sort_hash_alphabetically_strings(signing_data2).keys.join(', ')}"
+    puts "   JSON Length: #{sorted_json2.length}"
+    puts "   Signature: #{signature2[0..20]}..."
+    
+    # Method 3: Concatenation method (common in some APIs)
+    concat_string = [
+      request_body[:requestId],
+      request_body[:sender],
+      request_body[:locale],
+      request_body[:timestamp],
+      request_body[:salt],
+      JSON.generate(request_body[:params]),
+      private_key
+    ].join("")
+    signature3 = Digest::SHA256.hexdigest(concat_string)
+    
+    puts "\n4. Method 3 - Concatenation:"
+    puts "   Concat Length: #{concat_string.length}"
+    puts "   Signature: #{signature3[0..20]}..."
+    
+    # Show actual sorted JSON for debugging
+    puts "\n5. Debug - Actual Sorted JSON (Method 1):"
+    puts sorted_json1[0..200] + "..."
+    
+    puts "\n6. Debug - Actual Sorted JSON (Method 2):"
+    puts sorted_json2[0..200] + "..."
+  end
+  
+  private
+  
+  def sort_hash_alphabetically(hash)
+    sorted = {}
+    hash.keys.sort.each do |key|
+      value = hash[key]
+      sorted[key] = value.is_a?(Hash) ? sort_hash_alphabetically(value) : value
+    end
+    sorted
+  end
+  
+  def sort_hash_alphabetically_strings(hash)
+    sorted = {}
+    hash.keys.sort.each do |key|
+      value = hash[key]
+      sorted[key] = value.is_a?(Hash) ? sort_hash_alphabetically_strings(value) : value
+    end
+    sorted
+  end
+  
+  def stringify_keys(hash)
+    result = {}
+    hash.each do |key, value|
+      string_key = key.to_s
+      result[string_key] = value.is_a?(Hash) ? stringify_keys(value) : value
+    end
+    result
+  end
+end
+
+# Run the test
+tester = SignatureTester.new
+tester.test_signature_generation

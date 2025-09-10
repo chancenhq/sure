@@ -1,0 +1,163 @@
+<%= content_for :previous_path, preferences_chancen_onboarding_path %>
+
+<%= content_for :header_nav do %>
+  <%= render "chancen_onboardings/onboarding_nav", user: @user %>
+<% end %>
+
+<%= content_for :cancel_action do %>
+  <%= render "chancen_onboardings/logout" %>
+<% end %>
+
+<div class="grow max-w-lg w-full mx-auto bg-surface flex flex-col justify-center md:py-0 py-6 px-4 md:px-0" data-controller="kyc-photo-upload">
+  <div>
+    <div class="space-y-1 mb-6">
+      <h1 class="text-2xl font-medium">Open a Choice Bank Account</h1>
+      <p class="text-secondary text-sm">Provide your information to open a Choice Bank account. As a Chancen ISA holder this step is (not) optional (and can be completed later).</p>
+    </div>
+
+    <%= styled_form_with url: kyc_chancen_onboarding_path, method: :post, data: { turbo: false }, html: { id: "kyc-form" } do |form| %>
+      <div class="space-y-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <%= form.text_field :firstName, 
+              label: "First Name", 
+              required: true, 
+              value: @kyc_data[:firstName],
+              placeholder: "Enter your first name" %>
+
+          <%= form.text_field :middleName, 
+              label: "Middle Name", 
+              placeholder: "Enter your middle name (optional)" %>
+
+          <%= form.text_field :lastName, 
+              label: "Last Name", 
+              required: true, 
+              value: @kyc_data[:lastName],
+              placeholder: "Enter your last name" %>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <%= form.date_field :birthday, 
+              label: "Date of Birth", 
+              required: true,
+              max: Date.today - 18.years,
+              placeholder: "Select your date of birth" %>
+
+          <%= form.select :gender,
+              [["Male", "M"], ["Female", "F"], ["Other", "O"]],
+              { label: "Gender", required: true },
+              { placeholder: "Select gender" } %>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <%= form.text_field :countryCode, 
+              label: "Country Code", 
+              value: @kyc_data[:countryCode],
+              readonly: true,
+              class: "bg-alpha-black-25" %>
+
+          <%= form.text_field :mobilePhone, 
+              label: "Mobile Phone", 
+              required: true,
+              placeholder: "e.g., 0712345678",
+              pattern: "[0-9]{10}",
+              title: "Please enter a valid 10-digit phone number",
+              type: "tel" %>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <%= form.select :idType,
+              [["Kenyan National ID", "101"], ["Kenyan Alien ID", "102"], ["Passport", "103"]],
+              { label: "ID Type", required: true, selected: @kyc_data[:idType] },
+              { data: { action: "change->kyc-photo-upload#updateIdLabels" } } %>
+
+          <%= form.text_field :idNumber, 
+              label: "ID Number", 
+              required: true,
+              placeholder: "Enter your ID number" %>
+        </div>
+
+        <div class="space-y-4">
+          <div class="border border-primary rounded-lg p-4 bg-alpha-black-25">
+            <h3 class="text-sm font-medium mb-3">Document Upload</h3>
+            
+            <div class="space-y-3">
+              <div>
+                <label for="frontSidePhoto" class="block text-sm font-medium text-primary mb-1">
+                  <span data-kyc-photo-upload-target="frontLabel">ID Front Side</span> *
+                </label>
+                <%= form.file_field :frontSidePhoto, 
+                    required: true,
+                    accept: "image/*",
+                    class: "block w-full text-sm text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100",
+                    data: { action: "change->kyc-photo-upload#previewFront", kyc_photo_upload_target: "frontInput" } %>
+                <div data-kyc-photo-upload-target="frontPreview" class="mt-2 hidden">
+                  <img class="h-24 w-auto rounded border border-primary" />
+                </div>
+              </div>
+
+              <div>
+                <label for="backSidePhoto" class="block text-sm font-medium text-primary mb-1">
+                  <span data-kyc-photo-upload-target="backLabel">ID Back Side</span> *
+                </label>
+                <%= form.file_field :backSidePhoto, 
+                    required: true,
+                    accept: "image/*",
+                    class: "block w-full text-sm text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100",
+                    data: { action: "change->kyc-photo-upload#previewBack", kyc_photo_upload_target: "backInput" } %>
+                <div data-kyc-photo-upload-target="backPreview" class="mt-2 hidden">
+                  <img class="h-24 w-auto rounded border border-primary" />
+                </div>
+              </div>
+
+              <div>
+                <label for="selfiePhoto" class="block text-sm font-medium text-primary mb-1">
+                  Selfie Photo *
+                </label>
+                <%= form.file_field :selfiePhoto, 
+                    required: true,
+                    accept: "image/*",
+                    class: "block w-full text-sm text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100",
+                    data: { action: "change->kyc-photo-upload#previewSelfie", kyc_photo_upload_target: "selfieInput" } %>
+                <div data-kyc-photo-upload-target="selfiePreview" class="mt-2 hidden">
+                  <img class="h-24 w-auto rounded border border-primary" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <%= form.text_field :kraPin, 
+              label: "KRA PIN", 
+              required: true,
+              placeholder: "Enter your KRA PIN",
+              pattern: "[A-Z][0-9]{9}[A-Z]",
+              title: "KRA PIN should be in format like A123456789B" %>
+
+          <%= form.email_field :email, 
+              label: "Email Address", 
+              required: true,
+              value: @kyc_data[:email],
+              readonly: true,
+              class: "bg-alpha-black-25" %>
+        </div>
+
+        <%= form.text_area :address, 
+            label: "Address (Optional)", 
+            rows: 2,
+            placeholder: "Enter your address (optional)",
+            value: @kyc_data[:address] %>
+      </div>
+
+      <div class="flex gap-3">
+        <%= link_to "Skip", goals_chancen_onboarding_path, 
+            class: "flex-1 inline-flex justify-center items-center px-4 py-2 border border-primary text-sm font-medium rounded-md text-primary bg-container hover:bg-alpha-black-25 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
+            data: { turbo: false } %>
+        
+        <%= form.submit "Open ChoiceBank Account", 
+            class: "flex-1",
+            data: { disable_with: "Processing..." } %>
+      </div>
+    <% end %>
+  </div>
+</div>

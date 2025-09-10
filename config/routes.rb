@@ -58,6 +58,8 @@ Rails.application.routes.draw do
   resource :chancen_onboarding, only: :show, controller: "chancen_onboardings", path: "onb-chancen" do
     collection do
       get :preferences
+      get :kyc
+      post :kyc, to: "chancen_onboardings#submit_kyc"
       get :goals
       get :trial
     end
