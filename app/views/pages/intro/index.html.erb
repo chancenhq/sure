@@ -1,0 +1,15 @@
+<%= tag.div id: "chat-container", class: "relative h-full", data: { controller: "chat hotkey", turbo_permanent: true } do %>
+  <div class="flex flex-col h-full justify-between shrink-0">
+    <%= turbo_frame_tag chat_frame, src: chat_view_path(@chat), loading: "lazy", class: "h-full" do %>
+      <div class="flex justify-center items-center h-full">
+        <%= icon("loader-circle", class: "animate-spin") %>
+      </div>
+    <% end %>
+  </div>
+
+  <% unless Current.user.ai_enabled? %>
+    <div class="absolute backdrop-blur-lg inset-0 h-full w-full flex flex-col justify-center items-center pl-0.5 pr-4">
+      <%= render "chats/ai_consent" %>
+    </div>
+  <% end %>
+<% end %>

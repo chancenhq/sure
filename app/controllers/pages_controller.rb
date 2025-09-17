@@ -4,6 +4,12 @@ class PagesController < ApplicationController
   skip_authentication only: :redis_configuration_error
 
   def dashboard
+    if Current.user&.intro?
+      @breadcrumbs = [ [ "Home", nil ] ]
+      render "pages/intro/index"
+      return
+    end
+
     @balance_sheet = Current.family.balance_sheet
     @accounts = Current.family.accounts.visible.with_attached_logo
 

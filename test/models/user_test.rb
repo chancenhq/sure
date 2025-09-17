@@ -9,6 +9,10 @@ class UserTest < ActiveSupport::TestCase
     assert @user.valid?, @user.errors.full_messages.to_sentence
   end
 
+  test "ui layout defaults to intro" do
+    assert_equal "intro", User.new.ui_layout
+  end
+
   # email
   test "email must be present" do
     potential_user = User.new(

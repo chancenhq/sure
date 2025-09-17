@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_08_08_143007) do
+ActiveRecord::Schema[7.2].define(version: 2025_08_08_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -845,6 +845,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_08_143007) do
     t.boolean "show_ai_sidebar", default: true
     t.boolean "ai_enabled", default: false, null: false
     t.string "theme", default: "system"
+    t.string "ui_layout", default: "intro", null: false
     t.boolean "rule_prompts_disabled", default: false
     t.datetime "rule_prompt_dismissed_at"
     t.text "goals", default: [], array: true
