@@ -1,0 +1,68 @@
+<%= content_for :sidebar do %>
+  <div class="h-full flex flex-col justify-center items-center px-4 text-center">
+    <div class="space-y-6">
+      <div>
+        <%= image_tag "logomark-color.svg", class: "w-16 h-16 mx-auto mb-4" %>
+        <h2 class="text-xl font-medium text-primary mb-2">Welcome to Maybe Finance</h2>
+        <p class="text-sm text-secondary">Your personal finance assistant is ready to help you get started.</p>
+      </div>
+      
+      <div class="space-y-3">
+        <p class="text-xs text-secondary">Ask me anything about:</p>
+        <div class="space-y-2 text-xs text-tertiary">
+          <div>• Setting up your first account</div>
+          <div>• Tracking expenses and income</div>
+          <div>• Understanding your financial health</div>
+          <div>• Creating budgets and goals</div>
+        </div>
+      </div>
+
+      <div class="pt-4">
+        <%= link_to "Switch to Full Dashboard", 
+            pages_switch_to_dashboard_path, 
+            method: :patch, 
+            class: "inline-flex items-center px-3 py-1.5 text-xs font-medium bg-surface-hover text-secondary rounded-lg hover:bg-surface-active transition-colors" %>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<div class="w-full h-full flex flex-col justify-center items-center px-4 text-center">
+  <div class="max-w-2xl space-y-8">
+    <div>
+      <h1 class="text-2xl lg:text-4xl font-medium text-primary mb-4">
+        Hi <%= Current.user.first_name || Current.user.email.split('@').first.capitalize %>! 👋
+      </h1>
+      <p class="text-base lg:text-lg text-secondary">
+        I'm your AI finance assistant. I'm here to help you understand your money, 
+        set up accounts, track spending, and reach your financial goals.
+      </p>
+    </div>
+
+    <div class="bg-container rounded-xl p-6 shadow-border-xs">
+      <h3 class="text-lg font-medium text-primary mb-4">Let's get started</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <div class="text-left">
+          <h4 class="font-medium text-primary mb-2">Try asking me:</h4>
+          <ul class="space-y-1 text-secondary">
+            <li>• "How do I add my first account?"</li>
+            <li>• "What's the best way to track expenses?"</li>
+            <li>• "Help me create a budget"</li>
+          </ul>
+        </div>
+        <div class="text-left">
+          <h4 class="font-medium text-primary mb-2">I can help you:</h4>
+          <ul class="space-y-1 text-secondary">
+            <li>• Set up and organize accounts</li>
+            <li>• Understand your spending patterns</li>
+            <li>• Create financial goals</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-sm text-tertiary">
+      <p>Use the chat panel on the right to get started, or explore the sidebar for quick actions.</p>
+    </div>
+  </div>
+</div>

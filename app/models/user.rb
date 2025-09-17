@@ -16,6 +16,7 @@ class User < ApplicationRecord
   validate :ensure_valid_profile_image
   validates :default_period, inclusion: { in: Period::PERIODS.keys }
   validates :default_account_order, inclusion: { in: AccountOrder::ORDERS.keys }
+  validates :ui_mode, inclusion: { in: %w[intro dashboard] }
   normalizes :email, with: ->(email) { email.strip.downcase }
   normalizes :unconfirmed_email, with: ->(email) { email&.strip&.downcase }
 
@@ -93,6 +94,14 @@ class User < ApplicationRecord
 
   def ai_enabled?
     ai_enabled && ai_available?
+  end
+
+  def intro_mode?
+    ui_mode == "intro"
+  end
+
+  def dashboard_mode?
+    ui_mode == "dashboard"
   end
 
   # Deactivation

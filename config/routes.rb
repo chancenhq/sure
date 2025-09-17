@@ -30,6 +30,10 @@ Rails.application.routes.draw do
     end
   end
 
+  get "intro", to: "pages#intro"
+  patch "pages/switch_to_dashboard", to: "pages#switch_to_dashboard"
+  patch "pages/switch_to_intro", to: "pages#switch_to_intro"
+  
   get "changelog", to: "pages#changelog"
   get "feedback", to: "pages#feedback"
 

@@ -4,6 +4,11 @@ class PagesController < ApplicationController
   skip_authentication only: :redis_configuration_error
 
   def dashboard
+    # Redirect to intro if user is in intro mode
+    if Current.user.intro_mode?
+      redirect_to intro_path
+      return
+    end
     @balance_sheet = Current.family.balance_sheet
     @accounts = Current.family.accounts.visible.with_attached_logo
 
@@ -25,6 +30,26 @@ class PagesController < ApplicationController
     @cashflow_sankey_data = build_cashflow_sankey_data(income_totals, expense_totals, family_currency)
 
     @breadcrumbs = [ [ "Home", root_path ], [ "Dashboard", nil ] ]
+  end
+
+  def intro
+    # Redirect to dashboard if user is in dashboard mode
+    if Current.user.dashboard_mode?
+      redirect_to root_path
+      return
+    end
+
+    @breadcrumbs = [ [ "Home", root_path ], [ "Getting Started", nil ] ]
+  end
+
+  def switch_to_dashboard
+    Current.user.update!(ui_mode: "dashboard")
+    redirect_to root_path, notice: "Switched to full dashboard view"
+  end
+
+  def switch_to_intro
+    Current.user.update!(ui_mode: "intro")
+    redirect_to intro_path, notice: "Switched to intro view"
   end
 
   def changelog

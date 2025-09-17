@@ -35,6 +35,14 @@
             { label: t(".default_account_order") },
             { data: { auto_submit_form_target: "auto" } } %>
 
+        <%= form.select :ui_mode,
+            [
+              ["Intro View - Simplified interface with AI assistant", "intro"],
+              ["Full Dashboard - Complete financial overview", "dashboard"]
+            ],
+            { label: "Interface Mode" },
+            { data: { auto_submit_form_target: "auto" } } %>
+
         <%= family_form.select :country,
             country_options,
             { label: t(".country") },

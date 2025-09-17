@@ -23,6 +23,9 @@ class RegistrationsController < ApplicationController
       @user.role = :admin
     end
 
+    # Ensure new users start in intro mode (migration default handles this, but being explicit)
+    @user.ui_mode = "intro" if @user.ui_mode.blank?
+
     if @user.save
       @invitation&.update!(accepted_at: Time.current)
       @session = create_session_for(@user)

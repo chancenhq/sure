@@ -39,6 +39,9 @@ module Api
         family = Family.new
         user.family = family
         user.role = :admin
+        
+        # Ensure new users start in intro mode
+        user.ui_mode = "intro"
 
         if user.save
           # Claim invite code if provided
