@@ -8,11 +8,12 @@ class Demo::Generator
   #   will also be seeded so that *all* random behaviour inside this object –
   #   including library helpers that rely on Ruby's global RNG – follow the
   #   same deterministic sequence.
-  def initialize(seed: ENV.fetch("DEMO_DATA_SEED", nil))
+  def initialize(seed: ENV.fetch("DEMO_DATA_SEED", nil), allow_production: Demo::DataCleaner.override_enabled?)
     # Convert the seed to an Integer if one was provided, otherwise fall back
     # to a random, but memoised, seed so the generator instance can report it
     # back to callers when needed (e.g. for debugging a specific run).
     @seed = seed.present? ? seed.to_i : Random.new_seed
+    @allow_production = allow_production
 
     # Internal PRNG instance – use this instead of the global RNG wherever we
     # explicitly call `rand` inside the class.  We override `rand` below so
@@ -144,12 +145,16 @@ class Demo::Generator
 
 
 
+    def allow_production?
+      @allow_production
+    end
+
     def clear_all_data!
       family_count = Family.count
-      if family_count > 50
+      if family_count > 50 && !allow_production?
         raise "Too much data to clear efficiently (#{family_count} families). Run 'rails db:reset' instead."
       end
-      Demo::DataCleaner.new.destroy_everything!
+      Demo::DataCleaner.new(force: allow_production?).destroy_everything!
     end
 
     def create_family_and_users!(family_name, email, onboarded:, subscribed:, currency: "USD", locale: "en", country: "US", timezone: "America/New_York", date_format: "%m-%d-%Y")
