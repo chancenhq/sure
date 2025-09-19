@@ -86,3 +86,14 @@ namespace :demo_data do
     end
   end
 end
+
+namespace :prod_demo_data do
+  desc "Load full demo dataset in production mode"
+  task default: :environment do
+    ENV[Demo::DataCleaner::OVERRIDE_ENV_VAR] = "true"
+    Rake::Task["demo_data:default"].reenable
+    Rake::Task["demo_data:default"].invoke
+  ensure
+    ENV.delete(Demo::DataCleaner::OVERRIDE_ENV_VAR)
+  end
+end
