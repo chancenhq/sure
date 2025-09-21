@@ -2,7 +2,6 @@
 tr:
   defaults:
     product: "%{product}"
-    product_plus: "%{product_plus}"
   activerecord:
     errors:
       messages:

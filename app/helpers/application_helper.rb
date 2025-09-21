@@ -9,10 +9,6 @@ module ApplicationHelper
     Rails.configuration.x.product_name
   end
 
-  def product_plus
-    Rails.configuration.x.product_plus
-  end
-
   def styled_form_with(**options, &block)
     options[:builder] = StyledFormBuilder
     form_with(**options, &block)

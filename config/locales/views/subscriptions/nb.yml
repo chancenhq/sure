@@ -1,4 +1,0 @@
----
-nb:
-  subscriptions:
-    self_hosted_alert: "%{product_plus} er ikke tilgjengelig i selvhostet modus."

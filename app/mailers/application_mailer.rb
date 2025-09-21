@@ -13,8 +13,4 @@ class ApplicationMailer < ActionMailer::Base
     def product_name
       Rails.configuration.x.product_name
     end
-
-    def product_plus
-      Rails.configuration.x.product_plus
-    end
 end
