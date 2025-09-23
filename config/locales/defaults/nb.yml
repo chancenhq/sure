@@ -1,5 +1,7 @@
 ---
 nb:
+  defaults:
+    product: "%{product}"
   activerecord:
     errors:
       messages:

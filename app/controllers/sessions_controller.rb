@@ -42,6 +42,42 @@ class SessionsController < ApplicationController
   end
 
   private
+    def auth_from_request
+      raw_auth = request.env["omniauth.auth"]
+      return {} if raw_auth.blank?
+
+      auth_hash = raw_auth.respond_to?(:to_h) ? raw_auth.to_h : raw_auth
+      auth_hash.deep_symbolize_keys
+    end
+
+    def create_user_from_oidc!(email:, uid:)
+      User.transaction do
+        family = Family.create!
+        password = SecureRandom.base58(24)
+
+        family.users.create!(
+          email: email,
+          oidc_subject: uid,
+          role: :admin,
+          password: password
+        )
+      end
+    end
+
+    def complete_oidc_sign_in(user)
+      if user.otp_required?
+        session[:mfa_user_id] = user.id
+        redirect_to verify_mfa_path
+      else
+        @session = create_session_for(user)
+        redirect_to user.needs_onboarding? ? onboarding_path : root_path
+      end
+    end
+
+    def redirect_with_oidc_alert(key)
+      redirect_to new_session_path, alert: t(".#{key}")
+    end
+
     def set_session
       @session = Current.user.sessions.find(params[:id])
     end
