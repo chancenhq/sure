@@ -22,46 +22,6 @@ class SessionsController < ApplicationController
     end
   end
 
-  def openid_connect
-    auth = auth_from_request
-
-    if auth.blank?
-      redirect_with_oidc_alert(:failure)
-      return
-    end
-
-    info = auth[:info] || {}
-
-    unless ActiveModel::Type::Boolean.new.cast(info[:email_verified])
-      redirect_with_oidc_alert(:email_not_verified)
-      return
-    end
-
-    uid = auth[:uid].to_s
-    email = info[:email].to_s.strip.downcase
-
-    if uid.blank? || email.blank?
-      redirect_with_oidc_alert(:failure)
-      return
-    end
-
-    if (user = User.find_by(oidc_subject: uid))
-      complete_oidc_sign_in(user)
-      return
-    end
-
-    if User.exists?(email: email)
-      redirect_with_oidc_alert(:email_taken)
-      return
-    end
-
-    user = create_user_from_oidc!(email: email, uid: uid)
-    complete_oidc_sign_in(user)
-  rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved => error
-    Rails.logger.error("OIDC sign-in failed: #{error.class}: #{error.message}")
-    redirect_with_oidc_alert(:failure)
-  end
-
   def destroy
     @session.destroy
     redirect_to new_session_path, notice: t(".logout_successful")
