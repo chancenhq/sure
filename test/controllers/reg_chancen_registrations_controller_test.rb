@@ -10,7 +10,7 @@ class RegChancenRegistrationsControllerTest < ActionDispatch::IntegrationTest
   test "privacy" do
     get privacy_reg_chancen_url
     assert_response :success
-    assert_select "a[href='#{new_reg_chancen_path}']", text: I18n.t("reg_chancen_registrations.privacy.agree_cta")
+    assert_select "a[href='#{new_session_path(reg_flow: "reg-chancen")}']", text: I18n.t("reg_chancen_registrations.privacy.agree_cta")
     assert_select "a[href='about:blank']", text: I18n.t("reg_chancen_registrations.privacy.learn_more_cta")
   end
 

@@ -2,6 +2,8 @@
 en:
   reg_chancen_registrations:
     new:
+      title: "Almost There!"
+      body: "Use your Google account below or register with your email to get started, it is quick and secure."
       google_auth_connect: "Sign in with Google"
     welcome:
       heading: "Meet Your Financial Companion"

@@ -2,6 +2,10 @@
   header_title @invitation ? t(".join_family_title", family: @invitation.family.name) : t(".title")
 %>
 
+<% unless @invitation || self_hosted_first_login? %>
+  <p class="text-secondary text-center mb-6"><%= t(".body") %></p>
+<% end %>
+
 <% if self_hosted_first_login? %>
   <div class="fixed inset-0 w-full h-fit bg-container p-5 border-b border-secondary flex flex-col gap-3 items-center text-center mb-12">
     <h2 class="font-bold text-primary text-xl"><%= t(".welcome_title") %></h2>
