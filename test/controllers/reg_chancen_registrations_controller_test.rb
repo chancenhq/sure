@@ -11,7 +11,7 @@ class RegChancenRegistrationsControllerTest < ActionDispatch::IntegrationTest
     get new_reg_chancen_url
     assert_response :success
     assert_select "form[action='#{reg_chancen_path}']"
-    assert_select "button.gsi-material-button span.gsi-material-button-contents", text: I18n.t('reg_chancen_registrations.new.google_auth_connect')
+    assert_select "button.gsi-material-button span.gsi-material-button-contents", text: I18n.t("reg_chancen_registrations.new.google_auth_connect")
   end
 
   test "create sets special fields and redirects to chancen onboarding" do
