@@ -1,10 +1,17 @@
 require "test_helper"
 
 class RegChancenRegistrationsControllerTest < ActionDispatch::IntegrationTest
+  test "welcome" do
+    get welcome_reg_chancen_url
+    assert_response :success
+    assert_select "a", text: I18n.t("reg_chancen_registrations.welcome.cta")
+  end
+
   test "new" do
     get new_reg_chancen_url
     assert_response :success
-    assert_template "reg_chancen_registrations/new"
+    assert_select "form[action='#{reg_chancen_path}']"
+    assert_select "button.gsi-material-button span.gsi-material-button-contents", text: I18n.t('reg_chancen_registrations.new.google_auth_connect')
   end
 
   test "create sets special fields and redirects to chancen onboarding" do

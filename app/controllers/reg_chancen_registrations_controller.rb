@@ -1,4 +1,7 @@
 class RegChancenRegistrationsController < RegistrationsController
+  def welcome
+  end
+
   def create
     if @invitation
       @user.family = @invitation.family
@@ -20,6 +23,12 @@ class RegChancenRegistrationsController < RegistrationsController
   end
 
   private
+    def claim_invite_code
+      unless InviteCode.claim!(params.dig(:user, :invite_code))
+        redirect_to new_reg_chancen_path, alert: t("registrations.create.invalid_invite_code")
+      end
+    end
+
     def set_user
       super
       @user.pei = "kenya"

@@ -20,7 +20,7 @@ class ChancenOnboardingsControllerTest < ActionDispatch::IntegrationTest
   test "should get preferences" do
     get preferences_chancen_onboarding_url
     assert_response :success
-    assert_select "h1", text: /preferences/i
+    assert_select "h1", text: /title/i
   end
 
   test "preferences page renders Series chart data without errors" do

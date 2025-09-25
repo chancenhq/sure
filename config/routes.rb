@@ -36,7 +36,9 @@ Rails.application.routes.draw do
   resource :current_session, only: %i[update]
 
   resource :registration, only: %i[new create]
-  resource :reg_chancen, only: %i[new create], controller: "reg_chancen_registrations", path: "reg-chancen"
+  resource :reg_chancen, only: %i[new create], controller: "reg_chancen_registrations", path: "reg-chancen" do
+    get :welcome
+  end
   resources :sessions, only: %i[new create destroy]
   match "/auth/:provider/callback", to: "sessions#openid_connect", via: %i[get post]
   match "/auth/failure", to: "sessions#failure", via: %i[get post]
@@ -294,6 +296,8 @@ Rails.application.routes.draw do
 
   get "privacy", to: redirect("about:blank")
   get "terms", to: redirect("about:blank")
+
+  get "/", to: redirect("/reg-chancen/welcome"), constraints: ->(req) { req.cookie_jar.signed[:session_token].blank? }
 
   # Defines the root path route ("/")
   root "pages#dashboard"

@@ -1,0 +1,15 @@
+---
+en:
+  reg_chancen_registrations:
+    new:
+      google_auth_connect: "Sign in with Google"
+    welcome:
+      heading: "Meet Your Financial Companion"
+      subheading: "I am here to help you navigate your finances, understand your ISA, and build smart money habits."
+      body: "Think of me as your personal finance buddy. I will answer your questions, help you budget like a pro, and support you on your journey to financial confidence."
+      key_points_heading: "Key Points"
+      points:
+        isa: "Get instant answers about your ISA"
+        budgeting: "Learn budgeting that actually works"
+        skills: "Build financial skills for life"
+      cta: "Let's Get Started"
