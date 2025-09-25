@@ -18,3 +18,9 @@ run_security_health_checks:
   class: "SecurityHealthCheckJob"
   queue: "scheduled"
   description: "Runs security health checks to detect issues with security data"
+
+refresh_demo_data:
+  cron: "0 8 * * *" # 3:00 AM EST / 4:00 AM EDT (NY time) daily
+  class: "DemoDataRefreshJob"
+  queue: "scheduled"
+  description: "Refreshes the demo dataset every night"

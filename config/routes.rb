@@ -37,6 +37,8 @@ Rails.application.routes.draw do
 
   resource :registration, only: %i[new create]
   resources :sessions, only: %i[new create destroy]
+  match "/auth/:provider/callback", to: "sessions#openid_connect", via: %i[get post]
+  match "/auth/failure", to: "sessions#failure", via: %i[get post]
   resource :password_reset, only: %i[new create edit update]
   resource :password, only: %i[edit update]
   resource :email_confirmation, only: :new
@@ -266,6 +268,7 @@ Rails.application.routes.draw do
     post "plaid"
     post "plaid_eu"
     post "stripe"
+    post "choice"
   end
 
   get "redis-configuration-error", to: "pages#redis_configuration_error"
