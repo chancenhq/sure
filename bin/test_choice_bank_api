@@ -1,0 +1,307 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Test script for Choice Bank API integration
+# Usage: bin/test_choice_bank_api [--production]
+
+require 'net/http'
+require 'json'
+require 'digest'
+require 'securerandom'
+require 'date'
+require 'base64'
+require 'optparse'
+
+# Parse command line options
+options = {}
+OptionParser.new do |opts|
+  opts.banner = "Usage: bin/test_choice_bank_api [options]"
+  
+  opts.on("-v", "--verbose", "Verbose output") do
+    options[:verbose] = true
+  end
+  
+  opts.on("-h", "--help", "Show this help") do
+    puts opts
+    exit
+  end
+end.parse!
+
+class ChoiceBankAPITester
+  BASE_URL = ENV.fetch("CHOICE_BANK_API_URL", "https://baas-pilot.choicebankapi.com")
+  PRIVATE_KEY = ENV.fetch("CHOICE_BANK_PRIVATE_KEY", "")
+  SENDER_ID = ENV.fetch("CHOICE_BANK_SENDER_ID", "sure_finance")
+  ONBOARDING_ENDPOINT = "/onboarding/v3/submitEasyOnboardingRequest"
+  
+  def initialize(verbose: false)
+    @verbose = verbose
+    
+    if PRIVATE_KEY.nil? || PRIVATE_KEY.empty?
+      puts "❌ ERROR: CHOICE_BANK_PRIVATE_KEY environment variable is required"
+      puts ""
+      puts "Please set the following environment variables:"
+      puts "  export CHOICE_BANK_PRIVATE_KEY='your_private_key'"
+      puts "  export CHOICE_BANK_SENDER_ID='your_sender_id' (optional, defaults to 'sure_finance')"
+      puts "  export CHOICE_BANK_API_URL='api_url' (optional, defaults to pilot URL)"
+      exit 1
+    end
+  end
+  
+  def run
+    puts "🏦 Choice Bank API Test Script"
+    puts "================================"
+    puts "API URL: #{BASE_URL}"
+    puts "Sender ID: #{SENDER_ID}"
+    puts "Endpoint: #{ONBOARDING_ENDPOINT}"
+    puts "Private Key: #{PRIVATE_KEY[0..10]}..." if PRIVATE_KEY.length > 10
+    puts ""
+    
+    # Generate test data
+    test_data = generate_test_data
+    
+    if @verbose
+      puts "📋 Test Data:"
+      puts JSON.pretty_generate(test_data)
+      puts ""
+    end
+    
+    # Build request
+    request_body = build_request(test_data)
+    
+    if @verbose
+      puts "📦 Request Structure (without signature):"
+      display_request = request_body.dup
+      display_request[:signature] = "[GENERATED]"
+      display_request[:params][:frontSidePhoto] = "[BASE64_IMAGE_DATA]" if display_request[:params][:frontSidePhoto]
+      display_request[:params][:backSidePhoto] = "[BASE64_IMAGE_DATA]" if display_request[:params][:backSidePhoto]
+      display_request[:params][:selfiePhoto] = "[BASE64_IMAGE_DATA]" if display_request[:params][:selfiePhoto]
+      puts JSON.pretty_generate(display_request)
+      puts ""
+    end
+    
+    # Make API request
+    puts "⚠️  WARNING: About to make a REAL API call to Choice Bank!"
+    print "Continue? (yes/no): "
+    confirmation = gets.chomp.downcase
+    unless confirmation == 'yes'
+      puts "❌ Aborted by user"
+      exit 0
+    end
+    
+    puts "\n🚀 Sending request to Choice Bank API..."
+    response = make_api_request(request_body)
+    
+    # Display results
+    display_response(response)
+  end
+  
+  private
+  
+  def generate_test_data
+    {
+      firstName: "Test",
+      middleName: "User",
+      lastName: "Kenya",
+      birthday: "1990-01-15",
+      gender: "M",
+      countryCode: "KE",
+      mobilePhone: "0712345678",
+      idType: "101", # Kenyan National ID
+      idNumber: "12345678",
+      kraPin: "A123456789B",
+      email: "test.user@example.com",
+      address: "123 Test Street, Nairobi, Kenya",
+      frontSidePhoto: generate_dummy_image_base64,
+      backSidePhoto: generate_dummy_image_base64,
+      selfiePhoto: generate_dummy_image_base64,
+      externalUserId: "test_user_#{SecureRandom.hex(4)}"
+    }
+  end
+  
+  def generate_dummy_image_base64
+    # Generate a tiny 1x1 pixel PNG as base64
+    # This is a valid PNG but obviously not a real ID photo
+    png_data = [
+      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,  # PNG signature
+      0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,  # IHDR chunk
+      0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+      0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53,
+      0xDE, 0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41,  # IDAT chunk
+      0x54, 0x08, 0x99, 0x63, 0xF8, 0x0F, 0x00, 0x00,
+      0x01, 0x01, 0x01, 0x00, 0x27, 0xDF, 0xD6, 0x8B,
+      0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44,  # IEND chunk
+      0xAE, 0x42, 0x60, 0x82
+    ].pack('C*')
+    
+    Base64.strict_encode64(png_data)
+  end
+  
+  def build_request(params)
+    request_id = generate_request_id
+    salt = generate_salt
+    timestamp = (Time.now.to_f * 1000).to_i
+    
+    request_body = {
+      requestId: request_id,
+      sender: SENDER_ID,
+      locale: "en_KE",
+      timestamp: timestamp,
+      salt: salt,
+      params: params
+    }
+    
+    # Generate signature
+    signature = generate_signature(request_body)
+    request_body[:signature] = signature
+    
+    request_body
+  end
+  
+  def generate_signature(request_body)
+    signing_data = request_body.dup
+    signing_data[:senderKey] = PRIVATE_KEY
+    
+    sorted_json = sort_hash_alphabetically(signing_data).to_json
+    
+    if @verbose
+      puts "🔐 Signature Generation:"
+      puts "  Salt: #{request_body[:salt]}"
+      puts "  Private Key: #{PRIVATE_KEY[0..10]}..." if PRIVATE_KEY.length > 10
+      puts "  Sorted JSON length: #{sorted_json.length} characters"
+    end
+    
+    signature = Digest::SHA256.hexdigest(sorted_json)
+    
+    if @verbose
+      puts "  Generated Signature: #{signature[0..20]}..."
+      puts ""
+    end
+    
+    signature
+  end
+  
+  def sort_hash_alphabetically(hash)
+    sorted = {}
+    hash.keys.sort.each do |key|
+      value = hash[key]
+      sorted[key] = value.is_a?(Hash) ? sort_hash_alphabetically(value) : value
+    end
+    sorted
+  end
+  
+  def generate_request_id
+    # Unix millisecond timestamp
+    timestamp = (Time.now.to_f * 1000).to_i
+    random_hex = SecureRandom.hex(4)
+    "APPREQ#{timestamp}#{random_hex}"
+  end
+  
+  def generate_salt
+    SecureRandom.alphanumeric(10)
+  end
+  
+  def make_api_request(request_body)
+    uri = URI("#{BASE_URL}#{ONBOARDING_ENDPOINT}")
+    
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.read_timeout = 30
+    http.open_timeout = 10
+    
+    if @verbose
+      puts "📡 HTTP Request Details:"
+      puts "  URL: #{uri}"
+      puts "  Method: POST"
+      puts "  Headers:"
+      puts "    Content-Type: application/json"
+      puts "    Accept: application/json"
+      puts ""
+    end
+    
+    request = Net::HTTP::Post.new(uri)
+    request["Content-Type"] = "application/json"
+    request["Accept"] = "application/json"
+    request.body = request_body.to_json
+    
+    response = http.request(request)
+    
+    {
+      code: response.code,
+      body: response.body,
+      headers: response.to_hash,
+      parsed_body: JSON.parse(response.body)
+    }
+  rescue => e
+    {
+      error: e.message,
+      backtrace: e.backtrace.first(5)
+    }
+  end
+  
+  def display_response(response)
+    puts ""
+    puts "📨 Response:"
+    puts "=" * 50
+    
+    if response[:error]
+      puts "❌ Request Failed!"
+      puts "Error: #{response[:error]}"
+      if @verbose && response[:backtrace]
+        puts "Backtrace:"
+        response[:backtrace].each { |line| puts "  #{line}" }
+      end
+    else
+      status_code = response[:code].to_i
+      
+      if status_code == 200 || status_code == 201
+        puts "✅ Request Successful!"
+      else
+        puts "⚠️  Request completed with status: #{status_code}"
+      end
+      
+      puts "HTTP Status: #{response[:code]}"
+      
+      if @verbose
+        puts "\nResponse Headers:"
+        response[:headers].each do |key, value|
+          puts "  #{key}: #{value.join(', ')}"
+        end
+      end
+      
+      puts "\nResponse Body:"
+      if response[:parsed_body]
+        puts JSON.pretty_generate(response[:parsed_body])
+        
+        # Extract and display key information if available
+        if response[:parsed_body]["success"] || response[:parsed_body]["status"] == "success"
+          account_id = response[:parsed_body]["accountId"] || response[:parsed_body]["data"]&.dig("accountId")
+          puts "\n🎉 SUCCESS: Account Created!"
+          puts "   Account ID: #{account_id}" if account_id
+        elsif response[:parsed_body]["error"] || response[:parsed_body]["message"]
+          error_msg = response[:parsed_body]["error"] || response[:parsed_body]["message"]
+          puts "\n⚠️  API Error: #{error_msg}"
+        end
+      else
+        puts response[:body]
+      end
+    end
+    
+    puts "=" * 50
+  end
+end
+
+# Run the test
+tester = ChoiceBankAPITester.new(
+  verbose: options[:verbose] || false
+)
+
+begin
+  tester.run
+rescue Interrupt
+  puts "\n\n❌ Interrupted by user"
+  exit 1
+rescue => e
+  puts "\n❌ Unexpected error: #{e.message}"
+  puts e.backtrace.first(5) if options[:verbose]
+  exit 1
+end
