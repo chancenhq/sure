@@ -38,6 +38,7 @@ Rails.application.routes.draw do
   resource :registration, only: %i[new create]
   resource :reg_chancen, only: %i[new create], controller: "reg_chancen_registrations", path: "reg-chancen" do
     get :welcome
+    get :privacy
   end
   resources :sessions, only: %i[new create destroy]
   match "/auth/:provider/callback", to: "sessions#openid_connect", via: %i[get post]

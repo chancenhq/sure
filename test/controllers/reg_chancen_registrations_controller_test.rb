@@ -4,7 +4,14 @@ class RegChancenRegistrationsControllerTest < ActionDispatch::IntegrationTest
   test "welcome" do
     get welcome_reg_chancen_url
     assert_response :success
-    assert_select "a", text: I18n.t("reg_chancen_registrations.welcome.cta")
+    assert_select "a[href='#{privacy_reg_chancen_path}']", text: I18n.t("reg_chancen_registrations.welcome.cta")
+  end
+
+  test "privacy" do
+    get privacy_reg_chancen_url
+    assert_response :success
+    assert_select "a[href='#{new_reg_chancen_path}']", text: I18n.t("reg_chancen_registrations.privacy.agree_cta")
+    assert_select "a[href='about:blank']", text: I18n.t("reg_chancen_registrations.privacy.learn_more_cta")
   end
 
   test "new" do

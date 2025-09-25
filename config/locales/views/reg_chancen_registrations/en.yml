@@ -13,3 +13,15 @@ en:
         budgeting: "Learn budgeting that actually works"
         skills: "Build financial skills for life"
       cta: "Let's Get Started"
+    privacy:
+      heading: "Your Privacy Comes First"
+      subheading: "We take protecting your data seriously, it is not just talk, it is how we are built."
+      body: "Here is our promise: Your data stays anonymous while we personalise your experience. We are setting up everything to meet the highest legal standards."
+      key_points_heading: "Key Assurance Points"
+      points:
+        anonymised: "Your data is anonymised and secure"
+        personalised: "Personalised help without compromising privacy"
+        no_sharing: "No sharing, no selling to external parties"
+      agreement: "By continuing, you agree to participate in this preview version."
+      agree_cta: "I Agree & Continue"
+      learn_more_cta: "Learn More"

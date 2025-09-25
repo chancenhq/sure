@@ -2,6 +2,9 @@ class RegChancenRegistrationsController < RegistrationsController
   def welcome
   end
 
+  def privacy
+  end
+
   def create
     if @invitation
       @user.family = @invitation.family
