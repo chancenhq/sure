@@ -78,7 +78,7 @@ APPEND=true EMAIL=kenya@example.com rake demo_data:kenya
 Visit http://localhost:3000 to view the app. You can log in with these demo credentials (from the DB seed):
 
 - Email: `user@example.com`
-- Password: `password`
+- Password: `Password1!`
 
 For further instructions, see guides below.
 
