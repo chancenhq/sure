@@ -1,27 +1,27 @@
-<%
+<% 
   header_title t(".heading")
 %>
-<br />
-<br />
-<div class="max-w-xl mx-auto space-y-8 bg-surface-inset border border-secondary rounded-2xl p-8 text-primary">
-  <div class="space-y-4 text-center">
-    <p class="text-secondary text-base leading-relaxed"><%= t(".subheading") %></p>
-    <p class="text-secondary leading-relaxed"><%= t(".body") %></p>
-  </div>
+<div class="mt-6 sm:mt-10">
+  <div class="max-w-xl mx-auto space-y-8 bg-surface-inset border border-secondary rounded-2xl p-6 text-primary">
+    <div class="space-y-2 text-center">
+      <p class="text-secondary text-base leading-relaxed"><%= t(".subheading") %></p>
+      <p class="text-secondary leading-relaxed"><%= t(".body") %></p>
+    </div>
 
-  <div class="space-y-3 text-left">
-    <h3 class="text-lg font-medium text-primary"><%= t(".key_points_heading") %></h3>
-    <ul class="list-disc space-y-2 text-secondary pl-6">
-      <li><%= t(".points.anonymised") %></li>
-      <li><%= t(".points.personalised") %></li>
-      <li><%= t(".points.no_sharing") %></li>
-    </ul>
-  </div>
+    <div class="space-y-3 text-left">
+      <h3 class="text-lg font-medium text-primary"><%= t(".key_points_heading") %></h3>
+      <ul class="list-disc space-y-2 text-secondary pl-6">
+        <li><%= t(".points.anonymised") %></li>
+        <li><%= t(".points.personalised") %></li>
+        <li><%= t(".points.no_sharing") %></li>
+      </ul>
+    </div>
 
-  <p class="text-secondary leading-relaxed"><%= t(".agreement") %></p>
+    <p class="text-secondary leading-relaxed"><%= t(".agreement") %></p>
 
-  <div class="flex flex-col gap-3 pt-4 sm:flex-row">
-    <%= render DS::Link.new(text: t(".agree_cta"), href: new_session_path(reg_flow: "reg-chancen"), variant: :primary, full_width: true, class: "sm:w-1/2") %>
-    <%= render DS::Link.new(text: t(".learn_more_cta"), href: "about:blank", variant: :primary, full_width: true, class: "sm:w-1/2") %>
+    <div class="flex flex-col gap-3 pt-4 sm:flex-row">
+      <%= render DS::Link.new(text: t(".agree_cta"), href: new_session_path(reg_flow: "reg-chancen"), variant: :primary, full_width: true, class: "sm:w-1/2") %>
+      <%= render DS::Link.new(text: t(".learn_more_cta"), href: "about:blank", variant: :primary, full_width: true, class: "sm:w-1/2") %>
+    </div>
   </div>
 </div>
