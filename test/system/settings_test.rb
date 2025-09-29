@@ -52,6 +52,29 @@ class SettingsTest < ApplicationSystemTestCase
     assert_selector 'span[data-clipboard-target="iconSuccess"]', visible: true, count: 1 # text copied and icon changed to checkmark
   end
 
+  test "can update AI system prompt" do
+    begin
+      Setting.assistant_system_prompt_template = nil
+
+      open_settings_from_sidebar
+      click_link "AI Prompts"
+      assert_current_path settings_ai_prompts_path
+
+      new_prompt = "You are helpful. Today is {{current_date}}."
+      fill_in "setting_assistant_system_prompt_template", with: new_prompt
+      click_button "Save prompt"
+
+      assert_text "System prompt updated successfully."
+      assert_equal new_prompt, Setting.assistant_system_prompt_template
+
+      within "[data-testid=system-prompt-preview]" do
+        assert_text Date.current.to_s
+      end
+    ensure
+      Setting.assistant_system_prompt_template = nil
+    end
+  end
+
   test "does not show billing link if self hosting" do
     Rails.application.config.app_mode.stubs(:self_hosted?).returns(true)
     open_settings_from_sidebar

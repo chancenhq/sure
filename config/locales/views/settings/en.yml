@@ -9,12 +9,30 @@ en:
         main_system_prompt:
           title: Main System Prompt
           subtitle: Core instructions that define how the AI assistant behaves in all chat conversations
+          instructions_label: Instructions
+          instructions_hint: Customize the system prompt that Sure sends to the AI assistant. Leave this blank to restore the default instructions.
+          save_button: Save prompt
+          preview_title: Preview (with your current settings)
+          available_tokens:
+            title: Available variables
+            description: Use these placeholders to automatically insert each user's preferences into the prompt.
+            items:
+              preferred_currency_symbol: User's preferred currency symbol
+              preferred_currency_iso_code: User's preferred currency ISO code
+              preferred_currency_default_precision: Default precision for the user's preferred currency
+              preferred_currency_default_format: Default format string for the user's preferred currency
+              preferred_currency_separator: Decimal separator for the user's preferred currency
+              preferred_currency_delimiter: Thousands delimiter for the user's preferred currency
+              preferred_date_format: Date format selected by the household
+              current_date: Today's date
         transaction_categorizer:
           title: Transaction Categorizer
           subtitle: AI automatically categorizes your transactions based on your defined categories
         merchant_detector:
           title: Merchant Detector
           subtitle: AI identifies and enriches transaction data with merchant information
+      update:
+        success: System prompt updated successfully.
     billings:
       show:
         page_title: Billing
