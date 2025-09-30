@@ -58,7 +58,7 @@ class SettingsTest < ApplicationSystemTestCase
 
       open_settings_from_sidebar
       click_link "AI Prompts"
-      click_link("PROMPT INSTRUCTIONS", match: :first)
+      find("summary", text: I18n.t("settings.ai_prompts.show.prompt_instructions"), match: :first).click
       assert_current_path settings_ai_prompts_path
 
       new_prompt = "You are helpful. Today is {{current_date}}."
