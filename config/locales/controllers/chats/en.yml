@@ -1,0 +1,5 @@
+---
+en:
+  chats:
+    create:
+      blank_content: Please enter a message to start the chat.

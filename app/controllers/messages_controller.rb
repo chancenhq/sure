@@ -4,9 +4,17 @@ class MessagesController < ApplicationController
   before_action :set_chat
 
   def create
+    content = message_params[:content].to_s.strip
+
+    if content.blank?
+      flash[:alert] = t(".blank_content")
+      redirect_to chat_path(@chat)
+      return
+    end
+
     @message = UserMessage.create!(
       chat: @chat,
-      content: message_params[:content],
+      content: content,
       ai_model: message_params[:ai_model]
     )
 

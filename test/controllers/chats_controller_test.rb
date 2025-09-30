@@ -20,6 +20,15 @@ class ChatsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to chat_path(Chat.order(created_at: :desc).first, thinking: true)
   end
 
+  test "does not create chat when content is blank" do
+    assert_no_difference("Chat.count") do
+      post chats_url, params: { chat: { content: "   ", ai_model: "gpt-4.1" } }
+    end
+
+    assert_redirected_to new_chat_path
+    assert_equal I18n.t("chats.create.blank_content"), flash[:alert]
+  end
+
   test "shows chat" do
     get chat_url(chats(:one))
     assert_response :success

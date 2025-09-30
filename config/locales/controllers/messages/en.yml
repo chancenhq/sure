@@ -1,0 +1,5 @@
+---
+en:
+  messages:
+    create:
+      blank_content: Please enter a message before sending.
