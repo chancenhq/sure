@@ -36,6 +36,7 @@ Rails.application.routes.draw do
   resource :current_session, only: %i[update]
 
   resource :registration, only: %i[new create]
+  resource :reg_chancen, only: %i[new create], controller: "reg_chancen_registrations", path: "reg-chancen"
   resources :sessions, only: %i[new create destroy]
   resource :password_reset, only: %i[new create edit update]
   resource :password, only: %i[edit update]
@@ -50,6 +51,16 @@ Rails.application.routes.draw do
   resource :onboarding, only: :show do
     collection do
       get :preferences
+      get :goals
+      get :trial
+    end
+  end
+
+  resource :chancen_onboarding, only: :show, controller: "chancen_onboardings", path: "onb-chancen" do
+    collection do
+      get :preferences
+      get :kyc
+      post :kyc, to: "chancen_onboardings#submit_kyc"
       get :goals
       get :trial
     end
@@ -267,6 +278,7 @@ Rails.application.routes.draw do
     post "plaid"
     post "plaid_eu"
     post "stripe"
+    post "choice"
   end
 
   get "redis-configuration-error", to: "pages#redis_configuration_error"

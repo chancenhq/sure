@@ -1,0 +1,246 @@
+---
+description: API documentation to interact with Choice BaaS (Banking-as-a-Service) Onboarding platform
+globs:
+alwaysApply: false
+---
+
+Personal Onboarding Workflow
+
+Last updated: Jan 28
+
+# Personal Onboarding Workflow​
+
+Modified January 28
+
+Backgroud​
+
+There are two types of individual accounts:​
+
+1\. Wallet account​
+
+2\. Current account​
+
+The difference in an onboarding sense is the type of KYC required, the current account requires more documents to be submitted.​
+
+This guide is to walk you through opening both accounts.​
+
+​
+
+Wallet Account.​
+
+​
+
+Additional information here on our verification checks​[Smile-PRD](https://q4ydyb1s6iw.sg.larksuite.com/docx/Xus0ds9Y2oOHMYxQ1Btl6iiWgQe?from=from_copylink)​
+
+1.
+
+The first step is to submit the data required using:​
+
+​
+
+​
+
+|     |     |     |     |
+| --- | --- | --- | --- |
+| Definition​ | Submit personal information (KYC) for wallet account opening.​<br>In version 3, ID photos and selfie photo have been made a mandatory requirement.​<br>The system will not automatically send otp, please submit an otp request through the endpoint /common/sendOtp endpoint.​ | ​ | ​ |
+| URL Suffix​ | /onboarding/v3/submitEasyOnboardingRequest​ | ​ | ​ |
+| Version​ | v3.0​ | ​ | ​ |
+| Request Params​ | ​ | ​ | ​ |
+| Fields​ | Data Type​ | Description​ | Requirement​ |
+| userId​<br>​ | String​ | User ID in your system. It should be the unique identity of the user in your system.​ | Mandatory​ |
+| firstName​ | String​ | First name of the customer.​ | Mandatory​ |
+| middleName​ | String​ | Middle name of the customer.​ | Optional​ |
+| lastName​ | String​ | Last Name of the customer.​ | Mandatory​ |
+| birthday​ | String ​ | Birthday, date format "yyyy-MM-dd"​ | Mandatory​ |
+| gender​ | Integer​ | 0 - Female, 1 - Male​ | Mandatory​ |
+| countryCode​ | String​ | Country code of the mobile e.g 254​ | Mandatory​ |
+| mobile​ | String​ | Mobile Number​ | Mandatory​ |
+| idType​<br>​ | String​ | Identification type​<br>Kenyan ID (101) , Kenyan Alien ID (102), passport (103)​ | Mandatory​<br>​ |
+| idNumber​ | String​ | Identification number ​ | Mandatory​ |
+| frontSidePhoto ​ | String​ | Base64 string representation of Front side of ID document​ | Mandatory​ |
+| backSidePhoto​ | String​ | Base64 string representation of Back side of ID document​ | Conditional​ |
+| selfiePhoto​ | String​ | Selfie photo represented as a Base64 string​ | Mandatory​ |
+| kraPin​ | String​ | KRA pin of the customer​ | Optional​ |
+| address​<br>​ | String​ | It is not mandatory to provide a detailed address. Just place an empty string if you don't have address information.​ | Optional​<br>​ |
+| email​ | String​ | Email address of the customer​ | Optional​ |
+| Response Data​ | ​ | ​ | ​ |
+| Fields​ | Data Type​ | Description​ | ​ |
+| onboardingRequestId​ | String​ | When the request is accepted successfully, the onboarding request ID will be returned.​ | ​ |
+
+​
+
+​
+
+​
+
+Universal send OTP ​
+
+2.
+
+After receiving the OTP, confirm the code with the same businessId(onboardingId) from above.​
+
+​
+
+​
+
+|     |     |     |     |
+| --- | --- | --- | --- |
+| Definition​ | This api will support OTP validation operations for onboarding, accounts and transaction operations.​ | ​ | ​ |
+| URL Suffix​ | /common/confirmOperation​ | ​ | ​ |
+| Version​ | v1.0​ | ​ | ​ |
+| Request Params​ | ​ | ​ | ​ |
+| Fields​ | Data Type​ | Description​ | Requirement​ |
+| businessId​ | String​<br>​ | BaaS ID that needs to be confirmed​ | Mandatory​ |
+| otpCode​<br>​ | String​ | Verification code​<br>​ | Mandatory​<br>​ |
+| Response Data​ | ​ | ​ | ​ |
+| There is no field in response data. Please check the return code of the response. "00000" indicates OTP is valid.​ | ​ | ​ | ​ |
+| ​ | ​ | ​ | ​ |
+
+​
+
+​
+
+💡
+
+Where the businessId is the onboardingRequestId.​
+
+​
+
+You have successfully opened a wallet account. You will receive a webhook notification (0001) more on that here ​[Setup Webhook to receive notification](https://n05mxbyps1.feishu.cn/docx/doxcnYWjEjBWhRugj8dpIaUBXve?from=from_copylink)​
+
+Note: if you cannot get the onboarding status webhook use ​
+
+/onboarding/getOnboardingStatus​
+
+To query onboarding status​
+
+​
+
+Document ressubmision​
+
+​
+
+When step one is successful, the next step that happens is document verification - where we selfie on the Id is compared to selfie submitted id checked and validated. ​
+
+If this step fails, the partner may need to resubmit the docs again.​
+
+Below is the endpoint to do so: ​
+
+​
+
+​
+
+|     |     |     |     |
+| --- | --- | --- | --- |
+| Definition​ | This api will support resubmission of V3 onboarding files.​ | ​ | ​ |
+| URL Suffix​ | /onboarding/uploadSupplementaryDocs​ | ​ | ​ |
+| Version​ | v1.0​ | ​ | ​ |
+| Request Params​ | ​ | ​ | ​ |
+| Fields​ | Data Type​ | Description​ | Requirement​ |
+| onboardingRequestId​ | String​<br>​ | BaaS ID that needs to be confirmed​ | Mandatory​ |
+| frontSidePhoto​<br>​ | Base64​ | File upload in base64 format​<br>​ | Mandatory​<br>​ |
+| backSidePhoto​ | Base64​ | File upload in base64 format​ | Mandatory​ |
+| selfiePhoto​ | Base64​ | File upload in base64 format​ | Mandatory​ |
+| Response Data​ | ​ | ​ | ​ |
+| fileId​ | String​ | The unique Id of the files in the BaaS sytem​ | N/A​ |
+
+​
+
+Current Account​
+
+​
+
+1.
+
+Just like a wallet account, the first step will be to send us the personal information of the customer:​
+
+​
+
+​
+
+|     |     |     |     |
+| --- | --- | --- | --- |
+| Definition​ | Submit personal information for KYC​ | ​ | ​ |
+| URL Suffix​ | /onboarding/submitOnboardingRequest​ | ​ | ​ |
+| Version​ | v1.0​ | ​ | ​ |
+| Request Params​ | ​ | ​ | ​ |
+| Fields​ | Data Type​ | Description​ | Requirement​ |
+| userId​ | String​ | User ID in your system. It should be the unique identity of the user in your system.​ | Mandatory​ |
+| firstName​ | String​ | First name of the customer.​ | Mandatory​ |
+| middleName​ | String​ | Middle name of the customer.​ | Optional​ |
+| lastName​ | String​ | Last Name of the customer.​ | Mandatory​ |
+| birthday​ | String​ | Birthday, date format "yyyy-MM-dd"​ | Mandatory​ |
+| address​<br>​ | String​<br>​ | Address, it is not necessary to provide detailed address. Just place the city and district. For example, “Embakasi, Nairobi”.​ | Mandatory​ |
+| gender​ | Integer​ | 0 - Female, 1 - Male​ | Mandatory​ |
+| countryCode​ | String​ | Country code of the mobile​ | Mandatory​ |
+| mobile​ | String​ | Mobile Number​ | Mandatory​ |
+| email​ | String​ | Email address of the customer. We strongly suggest customer also provide the email because it can be used for receive OTP when mobile is not working.​ | Optional​ |
+| idType​ | String​ | Identification type. Please refer to [ID document definition](https://n05mxbyps1.feishu.cn/docx/TuTrd3TfboFXKwxKI7IclvrZnlc#part-VU1vdxRxmovz1rxspIlc4lDen5c) for the proper document type id.​ | Mandatory​<br>​ |
+| idNumber​ | String​ | number of the personal identify document​ | Mandatory​ |
+| kraPin​ | String​ | KRA pin of the customer​ | Mandatory​ |
+| employmentStatus​<br>​ | String​ | The enumeration of the employment status is:​<br>A - Employee​<br>B - Self employed​<br>C - Unemployed​<br>D - Employer​<br>E - Student​<br>F - Others​<br>Please submit the ID of the employment type which the customer selected. For example, a customer chooses "Employer", submit the ID - "D".​ | Mandatory​ |
+| monthlyIncome​<br>​ | String​ | The enumeration of the monthly income is:​<br>A - Less than 5000 ksh​<br>B - 5001 - 10000 ksh​<br>C - 10001 - 15000 ksh​<br>D - 15000 - 25000 ksh​<br>E - Above 25000 ksh​<br>Please submit the ID of the monthly income which the customer selected. For example, a customer chooses "15000 - 25000", submit the ID - "D".​ | Mandatory​ |
+| Response Data​ | ​ | ​ | ​ |
+| Fields​ | Data Type​ | Description​ | ​ |
+| onboardingRequestId​ | String​<br>​ | When the request is accepted successfully, the onboarding request ID will be returned.​ | ​ |
+
+​
+
+2.
+
+After doing this successfully, you need to now submit the photos of the ID and a selfie video of the customer:​
+
+​
+
+​
+
+|     |     |     |     |
+| --- | --- | --- | --- |
+| Definition​ | Interface to upload the required document for onboarding. ​ | ​ | ​ |
+| URL Suffix​ | /onboarding/uploadMedia​ | ​ | ​ |
+| Version​ | v1.0​ | ​ | ​ |
+| Request Params​ | ​ | ​ | ​ |
+| Fields​ | Data Type​ | Description​ | Requirement​ |
+| onboardingRequestId​ | String​ | Onboarding request ID you get when submitting the onboarding request.​ | Mandatory​ |
+| mediaType​ | String​ | Type of the document i.e document code. Please refer to [onboarding media type definition](https://n05mxbyps1.feishu.cn/docx/TuTrd3TfboFXKwxKI7IclvrZnlc#part-DUWDdfClFoBZ9lxcDWmcLP1vn1f).​ | Mandatory​ |
+| mediaBase64​ | String​ | BASE64 text of the document file.​ | Mandatory​ |
+| contentType​ | String​ | File type of the media, pdf or image.​<br>When it is absent, system will use default file type to resolve the uploaded media.​ | Optional​ |
+| Response Data​ | ​ | ​ | ​ |
+| No return data of this API. Please check the "code" field of the response. "00000" indicates upload is successful.​ | ​ | ​ | ​ |
+| ​ | ​ | ​ | ​ |
+
+​
+
+Below is a screenshot of all the codes:​
+
+​
+
+​
+
+![Feishu Docs - Image](blob:https://q4ydyb1s6iw.sg.larksuite.com/b0fa35fd-991a-4146-908c-8de857d43f02)
+
+​
+
+​
+
+💡
+
+You do not need to submit a selfie photo, the system grabs a screenshot from the submitted selfie video.​
+
+​
+
+After all documents are successfully uploaded, the system will automatically process the documents. This will either pass successfully or go to manual review. You will receive a 0001 webhook notification confirming the status.​
+
+​
+
+💡
+
+No OTP confirmation is needed for the current account​
+
+​
+
+Conclusion​
+
+You're now familiar with our individual account onboarding. You're now free to play with all other endpoints to perform operation on this account. ​
+
+Happy coding!!​
