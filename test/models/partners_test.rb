@@ -16,13 +16,16 @@ class PartnersTest < ActiveSupport::TestCase
   end
 
   test "partner configuration provides default metadata" do
-    partner = Partners.find(:chancen)
+    partner = Partners.find("chancen-ke")
 
     assert_not_nil partner
     assert_equal({
       "key" => "chancen-ke",
       "name" => "Chancen Kenya",
-      "type" => "financial"
+      "type" => "financial",
+      "country" => "ke",
+      "pei_array" => [],
+      "bank_array" => [ "Choice Bank" ]
     }, partner.default_metadata)
   end
 
