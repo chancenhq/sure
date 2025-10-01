@@ -1,0 +1,128 @@
+<%= content_for :previous_path, goals_partner_onboarding_path(partner_key: active_partner_key) %>
+
+<%= content_for :header_nav do %>
+  <%= render "partner_onboardings/onboarding_nav", user: @user %>
+<% end %>
+
+<%= content_for :cancel_action do %>
+  <%= render "partner_onboardings/logout" %>
+<% end %>
+
+<%= content_for :footer do %>
+  <%= render "layouts/shared/footer" %>
+<% end %>
+
+<% heading = current_partner&.translation(:onboarding, :trial, :heading, product: product_name, default: t("partner_onboardings.trial.heading", product: product_name)) %>
+<% subheading = current_partner&.translation(:onboarding, :trial, :subheading, default: t("partner_onboardings.trial.subheading")) %>
+<% body = current_partner&.translation(:onboarding, :trial, :body, product: product_name, default: t("partner_onboardings.trial.body", product: product_name)) %>
+<% start_cta = current_partner&.translation(:onboarding, :trial, :cta, :start, product: product_name, default: t("partner_onboardings.trial.cta.start", product: product_name)) %>
+<% continue_cta = current_partner&.translation(:onboarding, :trial, :cta, :continue, default: t("partner_onboardings.trial.cta.continue")) %>
+<% upgrade_cta = current_partner&.translation(:onboarding, :trial, :cta, :upgrade, default: t("partner_onboardings.trial.cta.upgrade")) %>
+
+<div class="grow flex flex-col gap-12 items-center justify-center">
+  <div class="max-w-sm mx-auto flex flex-col items-center">
+    <%= image_tag "logo-color.png", class: "w-16 mb-6" %>
+
+    <p class="text-xl lg:text-3xl text-primary font-display font-medium">
+      <%= heading %>
+    </p>
+
+    <h2 class="text-xl lg:text-3xl font-display text-secondary font-medium mb-2">
+      <%= subheading %>
+    </h2>
+
+    <p class="text-sm text-secondary text-center mb-8">
+      <%= body %>
+    </p>
+
+    <div class="w-full">
+      <% if Current.family.can_start_trial? %>
+        <%= render DS::Button.new(
+          text: start_cta,
+          href: subscription_path,
+          full_width: true,
+          data: { turbo: false }
+        ) %>
+      <% elsif Current.family.trialing? %>
+        <%= render DS::Link.new(
+          text: continue_cta,
+          href: root_path,
+          full_width: true,
+        ) %>
+      <% else %>
+        <%= render DS::Link.new(
+          text: upgrade_cta,
+          href: upgrade_subscription_path,
+          full_width: true,
+        ) %>
+      <% end %>
+    </div>
+  </div>
+
+  <% timeline_heading = current_partner&.translation(:onboarding, :trial, :timeline, :heading, default: t("partner_onboardings.trial.timeline.heading")) %>
+  <% timeline_steps = [
+    {
+      title: current_partner&.translation(:onboarding, :trial, :timeline, :today, :title, default: t("partner_onboardings.trial.timeline.today.title")),
+      description: current_partner&.translation(:onboarding, :trial, :timeline, :today, :description, product: product_name, default: t("partner_onboardings.trial.timeline.today.description", product: product_name))
+    },
+    {
+      title: current_partner&.translation(:onboarding, :trial, :timeline, :day13, :title, date: 13.days.from_now.strftime("%B %d"), default: t("partner_onboardings.trial.timeline.day13.title", date: 13.days.from_now.strftime("%B %d"))),
+      description: current_partner&.translation(:onboarding, :trial, :timeline, :day13, :description, default: t("partner_onboardings.trial.timeline.day13.description"))
+    },
+    {
+      title: current_partner&.translation(:onboarding, :trial, :timeline, :day14, :title, date: 14.days.from_now.strftime("%B %d"), default: t("partner_onboardings.trial.timeline.day14.title", date: 14.days.from_now.strftime("%B %d"))),
+      description: current_partner&.translation(:onboarding, :trial, :timeline, :day14, :description, product: product_name, default: t("partner_onboardings.trial.timeline.day14.description", product: product_name))
+    }
+  ] %>
+
+  <div class="space-y-8">
+    <h2 class="text-center text-lg lg:text-2xl font-medium text-primary"><%= timeline_heading %></h2>
+
+    <div class="flex gap-3">
+      <div class="rounded-xl p-1 bg-gray-400/20 theme-dark:bg-gray-500/20 flex flex-col justify-between items-center text-secondary">
+        <%= render DS::FilledIcon.new(icon: "unlock-keyhole", variant: :inverse) %>
+        <%= render DS::FilledIcon.new(icon: "bell", variant: :inverse) %>
+        <%= render DS::FilledIcon.new(icon: "credit-card", variant: :inverse) %>
+      </div>
+
+      <div class="space-y-12">
+        <% timeline_steps.each do |step| %>
+          <div class="space-y-1.5 text-sm">
+            <p class="text-primary font-medium"><%= step[:title] %></p>
+            <p class="text-secondary"><%= step[:description] %></p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <% features_heading = current_partner&.translation(:onboarding, :trial, :features, :heading, default: t("partner_onboardings.trial.features.heading")) %>
+  <% feature_items = [
+    { icon: "landmark", key: :institutions },
+    { icon: "layers", key: :accounts },
+    { icon: "line-chart", key: :performance },
+    { icon: "credit-card", key: :transactions },
+    { icon: nil, key: :ai, partial: "chats/ai_avatar" },
+    { icon: "keyboard", key: :manual_tracking },
+    { icon: "globe-2", key: :currencies },
+    { icon: "ship", key: :early_access },
+    { icon: "messages-square", key: :support }
+  ] %>
+
+  <div class="space-y-8 max-w-2xl mx-auto">
+    <h2 class="text-center text-lg lg:text-2xl font-medium text-primary"><%= features_heading %></h2>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-x-12 gap-y-6 text-secondary">
+      <% feature_items.each do |item| %>
+        <div class="flex flex-col gap-4 items-center">
+          <% if item[:partial] %>
+            <%= render item[:partial] %>
+          <% else %>
+            <%= render DS::FilledIcon.new(icon: item[:icon], variant: :surface) %>
+          <% end %>
+          <p class="text-sm text-primary text-center"><%= current_partner&.translation(:onboarding, :trial, :features, :items, item[:key], default: t("partner_onboardings.trial.features.items.#{item[:key]}")) %></p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

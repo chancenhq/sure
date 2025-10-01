@@ -5,6 +5,30 @@ class UserTest < ActiveSupport::TestCase
     @user = users(:family_admin)
   end
 
+  test "partner metadata defaults to empty hash" do
+    @user.update!(partner_metadata: nil)
+
+    assert_equal({}, @user.partner_metadata)
+  end
+
+  test "assigning partner metadata normalizes hashes and parameters" do
+    params = ActionController::Parameters.new(key: "foo", name: "Foo")
+
+    @user.partner_metadata = params
+
+    assert_equal({ "key" => "foo", "name" => "Foo" }, @user.partner_metadata)
+  end
+
+  test "partner metadata helpers expose typed accessors" do
+    @user.partner_metadata = { key: "example", name: "Example", type: "pilot", region: "us" }
+
+    assert_equal "Example", @user.partner_name
+    assert_equal "pilot", @user.partner_type
+    assert_equal "example", @user.partner_key
+    assert_equal "us", @user.partner_attribute(:region)
+    assert_equal "us", @user.partner_metadata_value(:region)
+  end
+
   test "should be valid" do
     assert @user.valid?, @user.errors.full_messages.to_sentence
   end
