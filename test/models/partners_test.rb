@@ -9,10 +9,10 @@ class PartnersTest < ActiveSupport::TestCase
     partner = Partners.default
 
     assert_not_nil partner
-    assert_equal "chancen", partner.key
-    assert_equal "Chancen", partner.name
-    assert_equal "education", partner.type
-    assert_equal %w[key name pei bank type], partner.required_metadata_keys
+    assert_equal "chancen-ke", partner.key
+    assert_equal "Chancen Kenya", partner.name
+    assert_equal "financial", partner.type
+    assert_equal %w[key name type], partner.required_metadata_keys
   end
 
   test "partner configuration provides default metadata" do
@@ -20,11 +20,9 @@ class PartnersTest < ActiveSupport::TestCase
 
     assert_not_nil partner
     assert_equal({
-      "key" => "chancen",
-      "name" => "Chancen",
-      "pei" => "kenya",
-      "bank" => "choice",
-      "type" => "education"
+      "key" => "chancen-ke",
+      "name" => "Chancen Kenya",
+      "type" => "financial"
     }, partner.default_metadata)
   end
 
