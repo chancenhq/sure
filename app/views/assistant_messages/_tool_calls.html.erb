@@ -3,17 +3,23 @@
 <details class="my-2 group mb-4">
   <summary class="text-secondary text-xs cursor-pointer flex items-center gap-2">
     <%= icon("chevron-right", class: "group-open:transform group-open:rotate-90") %>
-    <p>Tool Calls</p>
+    <p>Tool Calls (<%= message.tool_calls.size %>)</p>
   </summary>
 
   <div class="mt-2">
-    <% message.tool_calls.each do |tool_call| %>
-      <div class="bg-blue-50 border-blue-200 px-3 py-2 rounded-lg border mb-2">
-        <p class="text-secondary text-xs">Function:</p>
-        <p class="text-primary text-sm font-mono"><%= tool_call.function_name %></p>
-        <p class="text-secondary text-xs mt-2">Arguments:</p>
-        <pre class="text-primary text-sm font-mono whitespace-pre-wrap"><%= tool_call.function_arguments %></pre>
+    <% if message.tool_calls.empty? %>
+      <div class="border border-tertiary rounded-lg px-3 py-2">
+        <p class="text-secondary text-xs">No tool calls were made for this response.</p>
       </div>
+    <% else %>
+      <% message.tool_calls.each do |tool_call| %>
+        <div class="bg-blue-50 border-blue-200 px-3 py-2 rounded-lg border mb-2">
+          <p class="text-secondary text-xs">Function:</p>
+          <p class="text-primary text-sm font-mono"><%= tool_call.function_name %></p>
+          <p class="text-secondary text-xs mt-2">Arguments:</p>
+          <pre class="text-primary text-sm font-mono whitespace-pre-wrap"><%= tool_call.function_arguments %></pre>
+        </div>
+      <% end %>
     <% end %>
   </div>
 </details>

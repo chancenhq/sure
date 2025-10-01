@@ -51,8 +51,18 @@ class Assistant
       if data[:function_tool_calls].present?
         assistant_message.tool_calls = data[:function_tool_calls]
         latest_response_id = data[:id]
+        if chat.debug_mode?
+          Rails.logger.info(
+            "[AI DEBUG] Tool calls for response=#{latest_response_id} count=#{assistant_message.tool_calls.size} params=#{assistant_message.tool_calls.map(&:function_arguments).to_json}"
+          )
+        end
       else
         chat.update_latest_response!(data[:id])
+        if chat.debug_mode?
+          Rails.logger.info(
+            "[AI DEBUG] Tool calls for response=#{data[:id]} count=0 params=[]"
+          )
+        end
       end
     end
 
