@@ -36,9 +36,19 @@ Rails.application.routes.draw do
   resource :current_session, only: %i[update]
 
   resource :registration, only: %i[new create]
-  resource :reg_chancen, only: %i[new create], controller: "reg_chancen_registrations", path: "reg-chancen" do
-    get :welcome
-    get :privacy
+  scope "partners/:partner_key", as: :partner do
+    resource :registration, only: %i[new create], controller: "partner_registrations" do
+      get :welcome
+      get :privacy
+    end
+
+    resource :onboarding, only: :show, controller: "partner_onboardings" do
+      collection do
+        get :preferences
+        get :goals
+        get :trial
+      end
+    end
   end
   resources :sessions, only: %i[new create destroy]
   match "/auth/:provider/callback", to: "sessions#openid_connect", via: %i[get post]
@@ -54,14 +64,6 @@ Rails.application.routes.draw do
   end
 
   resource :onboarding, only: :show do
-    collection do
-      get :preferences
-      get :goals
-      get :trial
-    end
-  end
-
-  resource :chancen_onboarding, only: :show, controller: "chancen_onboardings", path: "onb-chancen" do
     collection do
       get :preferences
       get :goals
@@ -298,7 +300,14 @@ Rails.application.routes.draw do
   get "privacy", to: redirect("about:blank")
   get "terms", to: redirect("about:blank")
 
-  get "/", to: redirect("/reg-chancen/welcome"), constraints: ->(req) { req.cookie_jar.signed[:session_token].blank? }
+  get "/", to: redirect { |_params, _request|
+    default_partner = Partners.default
+    if default_partner.present?
+      "/partners/#{default_partner.key}/registration/welcome"
+    else
+      "/registration/new"
+    end
+  }, constraints: ->(req) { req.cookie_jar.signed[:session_token].blank? }
 
   # Defines the root path route ("/")
   root "pages#dashboard"

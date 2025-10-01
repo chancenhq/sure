@@ -28,17 +28,19 @@ class OnboardableTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "chancen user must complete chancen onboarding before any other action" do
-    @user.update!(onboarded_at: nil, pei: "kenya", bank: "choice")
+  test "partner user must complete partner onboarding before any other action" do
+    partner = Partners.default
+    @user.update!(onboarded_at: nil, partner_metadata: partner.default_metadata)
 
     get root_path
-    assert_redirected_to chancen_onboarding_path
+    assert_redirected_to partner_onboarding_path(partner_key: partner.key)
   end
 
-  test "chancen user must have subscription to visit dashboard" do
-    @user.update!(onboarded_at: 1.day.ago, pei: "kenya", bank: "choice")
+  test "partner user must have subscription to visit dashboard" do
+    partner = Partners.default
+    @user.update!(onboarded_at: 1.day.ago, partner_metadata: partner.default_metadata)
 
     get root_path
-    assert_redirected_to trial_chancen_onboarding_path
+    assert_redirected_to trial_partner_onboarding_path(partner_key: partner.key)
   end
 end

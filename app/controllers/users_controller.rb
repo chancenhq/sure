@@ -64,20 +64,29 @@ class UsersController < ApplicationController
       case user_params[:redirect_to]
       when "onboarding_preferences"
         redirect_to preferences_onboarding_path
-      when "chancen_onboarding_preferences"
-        redirect_to preferences_chancen_onboarding_path
+      when "partner_onboarding_preferences", "chancen_onboarding_preferences"
+        partner_key = active_partner_key
+        return redirect_to settings_profile_path, notice: notice if partner_key.blank?
+
+        redirect_to preferences_partner_onboarding_path(partner_key: partner_key)
       when "home"
         redirect_to root_path
       when "preferences"
         redirect_to settings_preferences_path, notice: notice
       when "goals"
         redirect_to goals_onboarding_path
-      when "chancen_onboarding_goals"
-        redirect_to goals_chancen_onboarding_path
+      when "partner_onboarding_goals", "chancen_onboarding_goals"
+        partner_key = active_partner_key
+        return redirect_to settings_profile_path, notice: notice if partner_key.blank?
+
+        redirect_to goals_partner_onboarding_path(partner_key: partner_key)
       when "trial"
         redirect_to trial_onboarding_path
-      when "chancen_onboarding_trial"
-        redirect_to trial_chancen_onboarding_path
+      when "partner_onboarding_trial", "chancen_onboarding_trial"
+        partner_key = active_partner_key
+        return redirect_to settings_profile_path, notice: notice if partner_key.blank?
+
+        redirect_to trial_partner_onboarding_path(partner_key: partner_key)
       else
         redirect_to settings_profile_path, notice: notice
       end
@@ -101,7 +110,8 @@ class UsersController < ApplicationController
         :first_name, :last_name, :email, :profile_image, :redirect_to, :delete_profile_image, :onboarded_at,
         :show_sidebar, :default_period, :default_account_order, :show_ai_sidebar, :ai_enabled, :theme, :set_onboarding_preferences_at, :set_onboarding_goals_at,
         family_attributes: [ :name, :currency, :country, :locale, :date_format, :timezone, :id ],
-        goals: []
+        goals: [],
+        partner_metadata: {}
       )
     end
 

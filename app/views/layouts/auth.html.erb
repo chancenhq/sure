@@ -6,13 +6,8 @@
           <div class="flex justify-center mt-2 md:mb-6">
             <%= image_tag "logo-color.png", class: "w-16 mb-6" %>
           </div>
-          <% sign_up_path =
-               case params[:reg_flow]
-               when "reg-chancen"
-                 new_reg_chancen_path
-               else
-                 new_registration_path
-               end %>
+          <% partner_key = params[:partner_key] || active_partner_key %>
+          <% sign_up_path = partner_key.present? ? new_partner_registration_path(partner_key: partner_key) : new_registration_path %>
           <% sign_up_active = current_page?(sign_up_path) %>
 
           <div class="space-y-2">

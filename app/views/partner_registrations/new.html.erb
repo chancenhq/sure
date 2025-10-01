@@ -1,22 +1,31 @@
 <%
-  header_title @invitation ? t(".join_family_title", family: @invitation.family.name) : t(".title")
+  header_title(
+    if @invitation
+      current_partner&.translation(:registration, :new, :join_family_title, family: @invitation.family.name, default: t(".join_family_title", family: @invitation.family.name))
+    else
+      current_partner&.translation(:registration, :new, :title, default: t(".title"))
+    end
+  )
 %>
 
 <% unless @invitation || self_hosted_first_login? %>
-  <p class="text-secondary text-center mb-6"><%= t(".body") %></p>
+  <p class="text-secondary text-center mb-6"><%= current_partner&.translation(:registration, :new, :body, default: t(".body")) %></p>
 <% end %>
 
 <% if self_hosted_first_login? %>
   <div class="fixed inset-0 w-full h-fit bg-container p-5 border-b border-secondary flex flex-col gap-3 items-center text-center mb-12">
-    <h2 class="font-bold text-primary text-xl"><%= t(".welcome_title") %></h2>
-    <p class="text-secondary text-secondary text-sm"><%= t(".welcome_body") %></p>
+    <h2 class="font-bold text-primary text-xl"><%= current_partner&.translation(:registration, :new, :welcome_title, default: t(".welcome_title")) %></h2>
+    <p class="text-secondary text-secondary text-sm"><%= current_partner&.translation(:registration, :new, :welcome_body, default: t(".welcome_body")) %></p>
   </div>
 <% elsif @invitation %>
   <div class="space-y-1 mb-6 text-center">
     <p class="text-secondary">
-      <%= t(".invitation_message",
+      <%= current_partner&.translation(:registration, :new, :invitation_message,
             inviter: @invitation.inviter.display_name,
-            role: t(".role_#{@invitation.role}")) %>
+            role: t(".role_#{@invitation.role}"),
+            default: t(".invitation_message",
+              inviter: @invitation.inviter.display_name,
+              role: t(".role_#{@invitation.role}"))) %>
     </p>
   </div>
 <% end %>
@@ -28,7 +37,7 @@
   </div>
 <% end %>
 
-<%= styled_form_with model: @user, url: reg_chancen_path, class: "space-y-4" do |form| %>
+<%= styled_form_with model: @user, url: partner_registration_path(partner_key: @partner.key), class: "space-y-4" do |form| %>
   <%= form.email_field :email,
       autofocus: false,
       autocomplete: "email",
@@ -43,12 +52,18 @@
 
   <%= form.hidden_field :invitation, value: @invitation&.token %>
 
+  <%= form.fields_for :partner_metadata, @user.partner_metadata do |metadata_fields| %>
+    <% Array(@partner&.required_metadata_keys).each do |key| %>
+      <%= metadata_fields.hidden_field key, value: @user.partner_metadata_value(key) %>
+    <% end %>
+  <% end %>
+
   <div data-controller="password-validator">
     <div data-controller="password-visibility" class="relative">
       <%= form.password_field :password,
           autocomplete: "new-password",
           required: "required",
-          placeholder: t(".password_placeholder"),
+          placeholder: current_partner&.translation(:registration, :new, :password_placeholder, default: t(".password_placeholder")),
           label: true,
           maxlength: 72,
           data: {
@@ -95,7 +110,7 @@
     </div>
   </div>
 
-  <%= form.submit t(".submit") %>
+  <%= form.submit current_partner&.translation(:registration, :new, :submit, default: t(".submit")) %>
 <% end %>
 
 <div class="mt-6 text-center">
@@ -111,8 +126,8 @@
           <path fill="none" d="M0 0h48v48H0z"></path>
         </svg>
       </div>
-      <span class="gsi-material-button-contents"><%= t(".google_auth_connect") %></span>
-      <span style="display: none;"><%= t(".google_auth_connect") %></span>
+      <span class="gsi-material-button-contents"><%= current_partner&.translation(:registration, :new, :google_auth_connect, default: t(".google_auth_connect")) %></span>
+      <span style="display: none;"><%= current_partner&.translation(:registration, :new, :google_auth_connect, default: t(".google_auth_connect")) %></span>
     </div>
   <% end %>
 </div>
