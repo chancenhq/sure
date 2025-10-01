@@ -1,7 +1,7 @@
 ---
 en:
   partners:
-    chancen:
+    chancen-ke:
       registration:
         new:
           title: "Almost There!"
@@ -90,6 +90,120 @@ en:
           body: "Starting the trial activates your account for Maybe. You won't need to enter payment details."
           cta:
             start: "Try Maybe for 14 days"
+            continue: "Continue trial"
+            upgrade: "Upgrade"
+          timeline:
+            heading: "How your trial will work"
+            today:
+              title: "Today"
+              description: "You'll get free access to Maybe for 14 days"
+            day13:
+              title: "In 13 days (%{date})"
+              description: "We'll notify you to remind you when your trial will end."
+            day14:
+              title: "In 14 days (%{date})"
+              description: "Your trial ends — subscribe to continue using Maybe"
+          features:
+            heading: "Here's what's included"
+            items:
+              institutions: "More than 10,000 institutions to connect to"
+              accounts: "Connect unlimited accounts and account types"
+              performance: "Performance and investment returns across portfolio"
+              transactions: "Comprehensive transaction tracking experience"
+              ai: "Unlimited access and chats with Maybe AI"
+              manual_tracking: "Manual account tracking that works well"
+              currencies: "Multiple currencies and near global coverage"
+              early_access: "Early access to newly released features"
+              support: "Priority human support from team"
+    chancen-rw:
+      registration:
+        new:
+          title: "[rw] Almost There!"
+          join_family_title: "Join %{family} on Maybe"
+          body: "Use your Google account below or register with your email to get started, it is quick and secure."
+          welcome_title: "Welcome to Maybe"
+          welcome_body: "This is the first step to getting the most out of your finances."
+          invitation_message: "%{inviter} invited you to join as %{role}."
+          role_admin: "admin"
+          role_member: "member"
+          password_placeholder: "Create a secure password"
+          submit: "Create account"
+          google_auth_connect: "Sign in with Google"
+        welcome:
+          heading: "[rw] Meet Your Financial Companion"
+          subheading: "I am here to help you navigate your finances, understand your ISA, and build smart money habits."
+          body: "Think of me as your personal finance buddy. I will answer your questions, help you budget like a pro, and support you on your journey to financial confidence."
+          key_points_heading: "Key Points"
+          points:
+            isa: "Get instant answers about your ISA"
+            budgeting: "Learn budgeting that actually works"
+            skills: "Build financial skills for life"
+          cta: "Let's Get Started"
+        privacy:
+          heading: "[rw] Your Privacy Comes First"
+          subheading: "We take protecting your data seriously, it is not just talk, it is how we are built."
+          body: "Here is our promise: Your data stays anonymous while we personalise your experience. We are setting up everything to meet the highest legal standards."
+          key_points_heading: "Key Assurance Points"
+          points:
+            anonymised: "Your data is anonymised and secure"
+            personalised: "Personalised help without compromising privacy"
+            no_sharing: "No sharing, no selling to external parties"
+          agreement: "By continuing, you agree to participate in this preview version."
+          agree_cta: "I Agree & Continue"
+          learn_more_cta: "Learn More"
+      onboarding:
+        header:
+          sign_out: "[rw] Sign out"
+        nav:
+          setup: "Setup"
+          preferences: "Preferences"
+          goals: "Goals"
+          trial: "Start"
+        setup:
+          heading: "[rw] Let's set up your account"
+          subheading: "First things first, let's get your profile set up."
+          submit: "Continue"
+          first_name_label: "First name"
+          first_name_placeholder: "First name"
+          last_name_label: "Last name"
+          last_name_placeholder: "Last name"
+          household_label: "Household name"
+          household_placeholder: "Household name"
+          country_label: "Country"
+        preferences:
+          title: "[rw] Configure your preferences"
+          subtitle: "Let's configure your preferences."
+          example: "Example account"
+          example_timestamp: "as of %{date}"
+          preview: "Preview how data displays based on preferences."
+          locale: "Language"
+          currency: "Currency"
+          date_format: "Date format"
+          submit: "Complete"
+          theme:
+            label: "Color theme"
+            system: "System"
+            light: "Light"
+            dark: "Dark"
+        goals:
+          heading: "[rw] What brings you to %{product}?"
+          subheading: "Select one or more goals to personalize your experience."
+          submit: "Next"
+          options:
+            unified_accounts: "See all my accounts in one place"
+            cashflow: "Understand cashflow and expenses"
+            budgeting: "Manage financial plans and budgeting"
+            partner: "Manage finances with a partner"
+            investments: "Track investments"
+            ai_insights: "Let AI help me understand my finances"
+            optimization: "Analyze and optimize accounts"
+            reduce_stress: "Reduce financial stress or anxiety"
+        trial:
+          heading: "[rw] Try Sure for 14 days."
+          subheading: "No credit card required"
+          body: "Starting the trial activates your account for %{product}. You won't need to enter payment details."
+          cta:
+            start: "Try %{product} for 14 days"
             continue: "Continue trial"
             upgrade: "Upgrade"
           timeline:

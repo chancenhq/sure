@@ -64,7 +64,7 @@ class UsersController < ApplicationController
       case user_params[:redirect_to]
       when "onboarding_preferences"
         redirect_to preferences_onboarding_path
-      when "partner_onboarding_preferences", "chancen_onboarding_preferences"
+      when "partner_onboarding_preferences", "chancen-ke_onboarding_preferences"
         partner_key = active_partner_key
         return redirect_to settings_profile_path, notice: notice if partner_key.blank?
 
@@ -75,14 +75,14 @@ class UsersController < ApplicationController
         redirect_to settings_preferences_path, notice: notice
       when "goals"
         redirect_to goals_onboarding_path
-      when "partner_onboarding_goals", "chancen_onboarding_goals"
+      when "partner_onboarding_goals", "chancen-ke_onboarding_goals"
         partner_key = active_partner_key
         return redirect_to settings_profile_path, notice: notice if partner_key.blank?
 
         redirect_to goals_partner_onboarding_path(partner_key: partner_key)
       when "trial"
         redirect_to trial_onboarding_path
-      when "partner_onboarding_trial", "chancen_onboarding_trial"
+      when "partner_onboarding_trial", "chancen-ke_onboarding_trial"
         partner_key = active_partner_key
         return redirect_to settings_profile_path, notice: notice if partner_key.blank?
 
