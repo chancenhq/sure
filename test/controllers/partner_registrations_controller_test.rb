@@ -35,9 +35,9 @@ class PartnerRegistrationsControllerTest < ActionDispatch::IntegrationTest
 
     user = User.order(created_at: :desc).first
     assert_redirected_to partner_onboarding_url(partner_key: @partner_key)
-    assert_equal "chancen", user.partner_key
-    assert_equal "kenya", user.partner_metadata_value(:pei)
-    assert_equal "choice", user.partner_metadata_value(:bank)
+    assert_equal "chancen-ke", user.partner_key
+    assert_equal "ke", user.partner_metadata_value(:country)
+    assert_equal [ "Choice Bank" ], user.partner_metadata_value(:bank_array)
   end
 
   test "create when hosted requires an invite code" do
@@ -65,7 +65,7 @@ class PartnerRegistrationsControllerTest < ActionDispatch::IntegrationTest
         } }
         user = User.order(created_at: :desc).first
         assert_redirected_to partner_onboarding_url(partner_key: @partner_key)
-        assert_equal "chancen", user.partner_key
+        assert_equal "chancen-ke", user.partner_key
       end
     end
   end
