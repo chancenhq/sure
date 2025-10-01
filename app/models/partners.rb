@@ -26,28 +26,27 @@ module Partners
     end
 
     private
+      def load_config
+        Rails.application.config_for(:partners)
+      rescue KeyError
+        {}
+      end
 
-    def load_config
-      Rails.application.config_for(:partners)
-    rescue KeyError
-      {}
-    end
-
-    def deep_normalize(value)
-      case value
-      when Hash
-        value.each_with_object({}) do |(key, nested), memo|
-          memo[key.to_s] = deep_normalize(nested)
-        end
-      when Array
-        value.map { |item| deep_normalize(item) }
-      else
-        if value.respond_to?(:to_h)
-          deep_normalize(value.to_h)
+      def deep_normalize(value)
+        case value
+        when Hash
+          value.each_with_object({}) do |(key, nested), memo|
+            memo[key.to_s] = deep_normalize(nested)
+          end
+        when Array
+          value.map { |item| deep_normalize(item) }
         else
-          value
+          if value.respond_to?(:to_h)
+            deep_normalize(value.to_h)
+          else
+            value
+          end
         end
       end
-    end
   end
 end
