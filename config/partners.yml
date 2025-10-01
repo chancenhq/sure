@@ -1,0 +1,62 @@
+default: &default
+  partners:
+    chancen-ke:
+      name: Chancen Kenya
+      type: financial
+      metadata:
+        required:
+          - key
+          - name
+          - type
+        defaults:
+          key: chancen-ke
+          name: Chancen Kenya
+          type: financial
+          country: ke
+          pei_array: []
+          bank_array: ["Choice Bank"]
+      onboarding:   # TODO: implement in onboarding navigation partials
+        default:
+          - setup
+          - preferences
+          - goals
+          - trial
+        steps:
+          - setup
+          - preferences
+          - kyc   # TODO: implement KYC flow that is partner-specific (via Choice Bank BaaS)
+          - goals
+          - trial
+    chancen-rw:
+      name: Chancen Rwanda
+      type: financial
+      metadata:
+        required:
+          - key
+          - name
+          - type
+        defaults:
+          key: chancen-rw
+          name: Chancen Rwanda
+          type: financial
+          country: rw
+          pei_array: []
+          bank_array: ["Equity Bank"]
+      onboarding:   # TODO: implement in onboarding navigation partials
+        default:
+          - setup
+          - preferences
+          - goals
+          - trial
+        steps:
+          - setup
+          - preferences
+          - kyc   # TODO: implement KYC flow that is partner-specific (manual in Rwanda?)
+          - goals
+          - trial
+development:
+  <<: *default
+test:
+  <<: *default
+production:
+  <<: *default

@@ -6,6 +6,10 @@
           <div class="flex justify-center mt-2 md:mb-6">
             <%= image_tag "logo-color.png", class: "w-16 mb-6" %>
           </div>
+          <% partner_key = params[:partner_key] || active_partner_key %>
+          <% sign_up_path = partner_key.present? ? new_partner_registration_path(partner_key: partner_key) : new_registration_path %>
+          <% sign_up_active = current_page?(sign_up_path) %>
+
           <div class="space-y-2">
             <h2 class="text-3xl font-medium text-primary text-center">
               <%= content_for?(:header_title) ? yield(:header_title).html_safe : t(".your_account") %>
@@ -17,8 +21,8 @@
       class: "w-1/2 px-2 py-1 rounded-md text-sm text-center font-medium #{current_page?(new_session_path) ? 'bg-surface shadow-sm text-primary' : 'text-secondary'}" do %>
                     <%= t("layouts.auth.sign_in") %>
                   <% end %>
-                  <%= link_to new_registration_path,
-      class: "w-1/2 px-2 py-1 rounded-md text-sm text-center font-medium #{!current_page?(new_session_path) ? 'bg-surface shadow-sm text-primary' : 'text-secondary'}" do %>
+                  <%= link_to sign_up_path,
+      class: "w-1/2 px-2 py-1 rounded-md text-sm text-center font-medium #{sign_up_active ? 'bg-surface shadow-sm text-primary' : 'text-secondary'}" do %>
                     <%= t("layouts.auth.sign_up") %>
                   <% end %>
                 </div>
@@ -26,7 +30,7 @@
             <% end %>
             <% if controller_name == "sessions" %>
               <p class="text-sm text-center hidden md:block">
-                <%= tag.span t(".no_account", product: product_name), class: "text-secondary" %> <%= link_to t(".sign_up"), new_registration_path, class: "font-medium text-primary hover:underline transition" %>
+                <%= tag.span t(".no_account", product: product_name), class: "text-secondary" %> <%= link_to t(".sign_up"), sign_up_path, class: "font-medium text-primary hover:underline transition" %>
               </p>
             <% elsif controller_name == "registrations" %>
               <p class="text-sm text-center text-gray-600 hidden md:block">
