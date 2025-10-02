@@ -24,6 +24,7 @@ class User < ApplicationRecord
   attribute :partner_metadata, :jsonb, default: {}
 
   enum :role, { member: "member", admin: "admin", super_admin: "super_admin" }, validate: true
+  enum :ui_layout, { dashboard: "dashboard", intro: "intro" }, validate: true
 
   has_one_attached :profile_image do |attachable|
     attachable.variant :thumbnail, resize_to_fill: [ 300, 300 ], convert: :webp, saver: { quality: 80 }
@@ -31,6 +32,10 @@ class User < ApplicationRecord
   end
 
   validate :profile_image_size
+
+  before_validation :set_default_ui_layout, on: :create
+
+  attr_reader :ui_layout_assigned
 
   generates_token_for :password_reset, expires_in: 15.minutes do
     password_salt&.last(10)
@@ -134,6 +139,18 @@ class User < ApplicationRecord
 
   def partner_attribute(key)
     partner_metadata_value(key)
+  end
+
+  def ui_layout=(value)
+    unless @setting_default_ui_layout
+      @ui_layout_assigned = true if value.present?
+    end
+
+    super(value)
+  end
+
+  def ui_layout_assigned?
+    !!@ui_layout_assigned
   end
 
   # Deactivation
@@ -253,5 +270,18 @@ class User < ApplicationRecord
 
     def generate_backup_codes
       8.times.map { SecureRandom.hex(4) }
+    end
+
+    def set_default_ui_layout
+      return if ui_layout_assigned?
+
+      layout = partner_metadata_value(:ui_layout)
+      layout ||= Partners.default&.default_metadata&.dig("ui_layout")
+      layout = layout.presence || "dashboard"
+
+      @setting_default_ui_layout = true
+      self.ui_layout = layout
+    ensure
+      @setting_default_ui_layout = false
     end
 end

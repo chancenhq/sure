@@ -1,9 +1,22 @@
-<% mobile_nav_items = [
-  { name: "Home", path: root_path, icon: "pie-chart", icon_custom: false, active: page_active?(root_path) },
-  { name: "Transactions", path: transactions_path, icon: "credit-card", icon_custom: false, active: page_active?(transactions_path) },
-  { name: "Budgets", path: budgets_path, icon: "map", icon_custom: false, active: page_active?(budgets_path) },
-  { name: "Assistant", path: chats_path, icon: "icon-assistant", icon_custom: true, active: page_active?(chats_path), mobile_only: true }
-] %>
+<% current_ui_layout = Current.user&.ui_layout || "dashboard" %>
+<% companion_target_path = if defined?(@chat) && @chat.present?
+    chat_path(@chat)
+  else
+    chats_path
+  end %>
+<% mobile_nav_items = if current_ui_layout == "intro"
+    [
+      { name: "Companion", path: companion_target_path, icon: "icon-assistant", icon_custom: true, active: page_active?(companion_target_path), mobile_only: true },
+      { name: "Insights*", path: intro_path, icon: "pie-chart", icon_custom: false, active: page_active?(intro_path) }
+    ]
+  else
+    [
+      { name: "Home", path: dashboard_path, icon: "pie-chart", icon_custom: false, active: page_active?(dashboard_path) },
+      { name: "Transactions", path: transactions_path, icon: "credit-card", icon_custom: false, active: page_active?(transactions_path) },
+      { name: "Budgets", path: budgets_path, icon: "map", icon_custom: false, active: page_active?(budgets_path) },
+      { name: "Assistant", path: chats_path, icon: "icon-assistant", icon_custom: true, active: page_active?(chats_path), mobile_only: true }
+    ]
+  end %>
 
 <% desktop_nav_items = mobile_nav_items.reject { |item| item[:mobile_only] } %>
 <% expanded_sidebar_class = "w-full" %>
@@ -33,9 +46,13 @@
 
     <%# MOBILE - Top nav %>
     <nav class="lg:hidden flex justify-between items-center p-3">
-      <%= icon("panel-left", as_button: true, data: { action: "app-layout#openMobileSidebar"}) %>
+      <% if current_ui_layout == "intro" %>
+        <!-- TODO: revisit <div class="w-9 h-9" aria-hidden="true"></div> -->
+      <% else %>
+        <%= icon("panel-left", as_button: true, data: { action: "app-layout#openMobileSidebar"}) %>
+      <% end %>
 
-      <%= link_to root_path, class: "block" do %>
+      <%= link_to(current_ui_layout == "intro" ? intro_path : dashboard_path, class: "block") do %>
         <%= image_tag "logomark-color.svg", class: "w-9 h-9 mx-auto" %>
       <% end %>
 

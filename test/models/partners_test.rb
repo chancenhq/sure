@@ -24,6 +24,7 @@ class PartnersTest < ActiveSupport::TestCase
       "name" => "Chancen Kenya",
       "type" => "financial",
       "country" => "ke",
+      "ui_layout" => "intro",
       "pei_array" => [],
       "bank_array" => [ "Choice Bank" ]
     }, partner.default_metadata)

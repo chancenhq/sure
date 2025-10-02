@@ -57,6 +57,9 @@ class PartnerRegistrationsController < RegistrationsController
 
       metadata = default_partner_metadata
       metadata.merge!(partner_metadata_params) if params[:user].present?
+      if (layout = metadata["ui_layout"].presence)
+        user.ui_layout = layout
+      end
       user.partner_metadata = metadata if metadata.present?
     end
 

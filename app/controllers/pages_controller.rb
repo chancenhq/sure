@@ -3,6 +3,16 @@ class PagesController < ApplicationController
 
   skip_authentication only: :redis_configuration_error
 
+  def home
+    target_path = if Current.user&.ui_layout == "intro"
+      @chat.present? ? chat_path(@chat) : chats_path
+    else
+      dashboard_path
+    end
+
+    redirect_to target_path, params: request.query_parameters
+  end
+
   def dashboard
     @balance_sheet = Current.family.balance_sheet
     @accounts = Current.family.accounts.visible.with_attached_logo
@@ -25,6 +35,17 @@ class PagesController < ApplicationController
     @cashflow_sankey_data = build_cashflow_sankey_data(income_totals, expense_totals, family_currency)
 
     @breadcrumbs = [ [ "Home", root_path ], [ "Dashboard", nil ] ]
+  end
+
+  def intro
+    @breadcrumbs = [ [ "Insights*", nil ] ]
+    @intro_prompts = [
+      { title: "Evaluate investment portfolio", description: "Get a quick health check of your accounts." },
+      { title: "Show spending insights", description: "Spot trends without diving into every transaction." },
+      { title: "Find unusual patterns", description: "Let Companion watch for anything that needs attention." }
+    ]
+
+    render "pages/intro/index"
   end
 
   def changelog

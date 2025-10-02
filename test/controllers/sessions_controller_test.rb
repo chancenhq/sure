@@ -16,6 +16,9 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     assert Session.exists?(user_id: @user.id)
 
     get root_url
+    assert_redirected_to dashboard_path
+
+    follow_redirect!
     assert_response :success
   end
 

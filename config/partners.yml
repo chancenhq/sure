@@ -13,6 +13,7 @@ default: &default
           name: Chancen Kenya
           type: financial
           country: ke
+          ui_layout: intro
           pei_array: []
           bank_array: ["Choice Bank"]
       onboarding:   # TODO: implement in onboarding navigation partials
@@ -40,6 +41,7 @@ default: &default
           name: Chancen Rwanda
           type: financial
           country: rw
+          ui_layout: intro
           pei_array: []
           bank_array: ["Equity Bank"]
       onboarding:   # TODO: implement in onboarding navigation partials
