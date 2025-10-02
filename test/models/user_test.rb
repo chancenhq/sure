@@ -78,6 +78,19 @@ class UserTest < ActiveSupport::TestCase
     Partners.unstub(:default)
   end
 
+  test "intro layout hides both sidebars by default" do
+    user = users(:family_admin)
+    user.update!(ui_layout: :intro, show_sidebar: true, show_ai_sidebar: true)
+
+    assert_not user.show_sidebar?
+    assert_not user.show_ai_sidebar?
+
+    user.reload
+
+    assert_not user.read_attribute(:show_sidebar)
+    assert_not user.read_attribute(:show_ai_sidebar)
+  end
+
   test "should be valid" do
     assert @user.valid?, @user.errors.full_messages.to_sentence
   end

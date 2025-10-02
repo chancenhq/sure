@@ -34,6 +34,7 @@ class User < ApplicationRecord
   validate :profile_image_size
 
   before_validation :set_default_ui_layout, on: :create
+  before_save :enforce_intro_layout_preferences
 
   attr_reader :ui_layout_assigned
 
@@ -90,8 +91,16 @@ class User < ApplicationRecord
     end
   end
 
+  def show_ai_sidebar
+    return false if intro?
+
+    super
+  end
+
   def show_ai_sidebar?
-    show_ai_sidebar
+    return false if intro?
+
+    super
   end
 
   def ai_available?
@@ -153,9 +162,28 @@ class User < ApplicationRecord
     !!@ui_layout_assigned
   end
 
+  def show_sidebar
+    return false if intro?
+
+    super
+  end
+
+  def show_sidebar?
+    return false if intro?
+
+    super
+  end
+
   # Deactivation
   validate :can_deactivate, if: -> { active_changed? && !active }
   after_update_commit :purge_later, if: -> { saved_change_to_active?(from: true, to: false) }
+
+  def enforce_intro_layout_preferences
+    if intro?
+      self.show_sidebar = false
+      self.show_ai_sidebar = false
+    end
+  end
 
   def deactivate
     update active: false, email: deactivated_email
