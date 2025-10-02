@@ -11,7 +11,7 @@ class Settings::ProfilesControllerTest < ActionDispatch::IntegrationTest
     get settings_profile_path
 
     assert_response :success
-    assert_select '#mobile-settings-nav'
+    assert_select "#mobile-settings-nav"
     assert_select 'div[data-controller="app-layout"]', count: 0
   end
 
@@ -23,7 +23,7 @@ class Settings::ProfilesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select 'div[data-controller="app-layout"]'
-    assert_select '#mobile-settings-nav', count: 0
+    assert_select "#mobile-settings-nav", count: 0
   end
 
   test "admin can remove a family member" do
