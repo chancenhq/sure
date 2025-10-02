@@ -15,6 +15,7 @@ default: &default
           country: ke
           ui_layout: intro
           pei_array: []
+          vector_store_id_array: []
           bank_array: ["Choice Bank"]
       onboarding:   # TODO: implement in onboarding navigation partials
         default:
@@ -43,6 +44,7 @@ default: &default
           country: rw
           ui_layout: intro
           pei_array: []
+          vector_store_id_array: []
           bank_array: ["Equity Bank"]
       onboarding:   # TODO: implement in onboarding navigation partials
         default:

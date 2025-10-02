@@ -13,6 +13,9 @@
         <p class="text-primary text-sm font-mono"><%= tool_call.function_name %></p>
         <p class="text-secondary text-xs mt-2">Arguments:</p>
         <pre class="text-primary text-sm font-mono whitespace-pre-wrap"><%= tool_call.function_arguments %></pre>
+        <p class="text-secondary text-xs mt-2">Response:</p>
+        <pre class="text-primary text-sm font-mono whitespace-pre-wrap"><%= tool_call.function_result %></pre>
+
       </div>
     <% end %>
   </div>
