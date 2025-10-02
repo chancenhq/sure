@@ -74,7 +74,7 @@ class PartnerOnboardingsControllerTest < ActionDispatch::IntegrationTest
   test "should get goals" do
     get goals_partner_onboarding_url(partner_key: @partner.key)
     assert_response :success
-    assert_select "h1", text: /What brings you to/i
+    assert_select "h1", text: /What would you like to achieve?/i
   end
 
   test "should get trial" do
