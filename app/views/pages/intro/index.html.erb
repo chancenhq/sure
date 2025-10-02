@@ -1,0 +1,40 @@
+<% companion_path = if defined?(@chat) && @chat.present?
+    chat_path(@chat)
+  else
+    chats_path
+  end %>
+
+<div class="max-w-xl mx-auto space-y-8 py-6">
+  <section class="space-y-4">
+    <h1 class="text-2xl font-semibold text-primary">Welcome back, <%= Current.user.display_name %>!</h1>
+    <p class="text-base text-secondary">
+      Companion can help you make sense of your finances without the clutter. Ask a question to get personalized insights or pick one of the quick ideas below to get started.
+    </p>
+  </section>
+
+  <section class="space-y-3">
+    <h2 class="text-sm font-semibold text-tertiary tracking-wide uppercase">Quick ideas</h2>
+    <div class="space-y-2">
+      <% @intro_prompts.each do |prompt| %>
+        <div class="bg-container border border-tertiary rounded-2xl p-4 space-y-1">
+          <p class="font-medium text-primary"><%= prompt[:title] %></p>
+          <p class="text-sm text-secondary"><%= prompt[:description] %></p>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <section class="bg-container rounded-2xl p-6 space-y-4 border border-transparent shadow-border-xs">
+    <div class="space-y-2">
+      <h2 class="text-xl font-semibold text-primary">Ready when you are</h2>
+      <p class="text-secondary">
+        Ask anything and Companion will use your accounts, budgets, and spending history to answer.
+      </p>
+    </div>
+
+    <%= link_to companion_path, class: "inline-flex w-full justify-center items-center gap-2 px-4 py-3 rounded-xl bg-primary hover:bg-primary-hover text-inverse font-medium transition-colors" do %>
+      <%= icon("icon-assistant", custom: true) %>
+      <span>Open Companion</span>
+    <% end %>
+  </section>
+</div>

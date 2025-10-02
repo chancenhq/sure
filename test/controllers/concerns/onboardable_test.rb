@@ -25,6 +25,9 @@ class OnboardableTest < ActionDispatch::IntegrationTest
     @user.family.start_trial_subscription!
 
     get root_path
+    assert_redirected_to dashboard_path
+
+    follow_redirect!
     assert_response :success
   end
 

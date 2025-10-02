@@ -310,5 +310,7 @@ Rails.application.routes.draw do
   }, constraints: ->(req) { req.cookie_jar.signed[:session_token].blank? }
 
   # Defines the root path route ("/")
-  root "pages#dashboard"
+  get "dashboard", to: "pages#dashboard"
+  get "intro", to: "pages#intro"
+  root "pages#home"
 end

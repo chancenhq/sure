@@ -12,6 +12,9 @@ class RegistrationsControllerTest < ActionDispatch::IntegrationTest
       password: "Password1!" } }
 
     assert_redirected_to root_url
+
+    user = User.order(created_at: :desc).first
+    assert_equal "intro", user.ui_layout
   end
 
   test "create when hosted requires an invite code" do
@@ -35,6 +38,9 @@ class RegistrationsControllerTest < ActionDispatch::IntegrationTest
           password: "Password1!",
           invite_code: InviteCode.generate! } }
         assert_redirected_to root_url
+
+        user = User.order(created_at: :desc).first
+        assert_equal "intro", user.ui_layout
       end
     end
   end

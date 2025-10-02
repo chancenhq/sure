@@ -29,6 +29,68 @@ class UserTest < ActiveSupport::TestCase
     assert_equal "us", @user.partner_metadata_value(:region)
   end
 
+  test "ui layout defaults to partner configuration when available" do
+    Partners.stubs(:default).returns(stub(default_metadata: { "ui_layout" => "intro" }))
+
+    user = User.new(
+      email: "intro-default@example.com",
+      password: "Password1!",
+      password_confirmation: "Password1!",
+      family: families(:empty)
+    )
+
+    assert user.valid?
+    assert_equal "intro", user.ui_layout
+  ensure
+    Partners.unstub(:default)
+  end
+
+  test "ui layout prefers partner metadata over defaults" do
+    Partners.stubs(:default).returns(nil)
+
+    user = User.new(
+      email: "metadata@example.com",
+      password: "Password1!",
+      password_confirmation: "Password1!",
+      family: families(:empty)
+    )
+    user.partner_metadata = { ui_layout: "intro" }
+
+    assert user.valid?
+    assert_equal "intro", user.ui_layout
+  ensure
+    Partners.unstub(:default)
+  end
+
+  test "ui layout falls back to dashboard when nothing configured" do
+    Partners.stubs(:default).returns(nil)
+
+    user = User.new(
+      email: "fallback@example.com",
+      password: "Password1!",
+      password_confirmation: "Password1!",
+      family: families(:empty)
+    )
+
+    assert user.valid?
+    assert_equal "dashboard", user.ui_layout
+  ensure
+    Partners.unstub(:default)
+  end
+
+  test "intro layout hides both sidebars by default" do
+    user = users(:family_admin)
+    user.update!(ui_layout: :intro, show_sidebar: true, show_ai_sidebar: true)
+
+    assert_not user.show_sidebar?
+    assert_not user.show_ai_sidebar?
+
+    user.reload
+
+    assert_not user.read_attribute(:show_sidebar)
+    assert_not user.read_attribute(:show_ai_sidebar)
+  end
+
   test "should be valid" do
     assert @user.valid?, @user.errors.full_messages.to_sentence
   end
