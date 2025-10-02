@@ -190,6 +190,6 @@ class OnboardingsTest < ApplicationSystemTestCase
       end
 
       # Wait for successful login
-      assert_current_path root_path
+      assert_current_path dashboard_path
     end
 end
