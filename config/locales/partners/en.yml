@@ -5,29 +5,32 @@ en:
       registration:
         new:
           title: "Almost There!"
-          join_family_title: "Join %{family} on Maybe"
-          body: "Use your Google account below or register with your email to get started, it is quick and secure."
-          welcome_title: "Welcome to Maybe"
-          welcome_body: "This is the first step to getting the most out of your finances."
-          invitation_message: "%{inviter} invited you to join as %{role}."
-          role_admin: "admin"
-          role_member: "member"
-          password_placeholder: "Create a secure password"
-          submit: "Create account"
-          google_auth_connect: "Sign in with Google"
+          join_family_title: "Join %{family} on Maybe" # TODO: remove string
+          body: "Use your Google account or email to get started. It is quick and secure."
+          welcome_title: "Welcome to Maybe" # TODO: remove string
+          welcome_body: "This is the first step to getting the most out of your finances." # TODO: remove string
+          invitation_message: "%{inviter} invited you to join as %{role}." # TODO: remove string
+          role_admin: "admin" # TODO: remove string
+          role_member: "member" # TODO: remove string
+          password_placeholder: "Create a secure password" # TODO: remove string
+          submit: "Create account" # TODO: remove string
+          google_auth_connect: "Sign in with Google" # TODO: remove string
+          subheading: "Log in to start your financial journey with us."
+          continue_with_google: "Continue with Google"
+          continue_with_email: "Continue with Email"
         welcome:
-          heading: "Meet Your Financial Companion"
-          subheading: "I am here to help you navigate your finances, understand your ISA, and build smart money habits."
+          heading: "Meet Your Chancen Companion"
+          subheading: "I am here to help you navigate your finances, understand your Chancen ISA, and build smart money habits."
           body: "Think of me as your personal finance buddy. I will answer your questions, help you budget like a pro, and support you on your journey to financial confidence."
           key_points_heading: "Key Points"
           points:
-            isa: "Get instant answers about your ISA"
+            isa: "Get instant answers about your Chancen ISA"
             budgeting: "Learn budgeting that actually works"
             skills: "Build financial skills for life"
           cta: "Let's Get Started"
         privacy:
           heading: "Your Privacy Comes First"
-          subheading: "We take protecting your data seriously, it is not just talk, it is how we are built."
+          subheading: "We take protecting your data seriously; it is not just talk, it is how we are built."
           body: "Here is our promise: Your data stays anonymous while we personalise your experience. We are setting up everything to meet the highest legal standards."
           key_points_heading: "Key Assurance Points"
           points:
@@ -39,82 +42,134 @@ en:
           learn_more_cta: "Learn More"
       onboarding:
         header:
-          sign_out: "Sign out"
+          sign_out: "Sign out" # TODO: remove string
         nav:
-          setup: "Setup"
-          preferences: "Preferences"
-          goals: "Goals"
-          trial: "Start"
+          setup: "Setup" # TODO: remove string
+          preferences: "Preferences" # TODO: remove string
+          goals: "Goals" # TODO: remove string
+          trial: "Start" # TODO: remove string
         setup:
-          heading: "Let's set up your account"
-          subheading: "First things first, let's get your profile set up."
-          submit: "Continue"
-          first_name_label: "First name"
-          first_name_placeholder: "First name"
-          last_name_label: "Last name"
-          last_name_placeholder: "Last name"
-          household_label: "Household name"
-          household_placeholder: "Household name"
-          country_label: "Country"
+          heading: "Let's set up your account" # TODO: remove string
+          subheading: "First things first, let's get your profile set up." # TODO: remove string
+          submit: "Continue" # TODO: remove string
+          first_name_label: "First name" # TODO: remove string
+          first_name_placeholder: "First name" # TODO: remove string
+          last_name_label: "Last name" # TODO: remove string
+          last_name_placeholder: "Last name" # TODO: remove string
+          household_label: "Household name" # TODO: remove string
+          household_placeholder: "Household name" # TODO: remove string
+          country_label: "Country" # TODO: remove string
         preferences:
-          title: "Configure your preferences"
-          subtitle: "Let's configure your preferences."
-          example: "Example account"
-          example_timestamp: "as of %{date}"
-          preview: "Preview how data displays based on preferences."
-          locale: "Language"
-          currency: "Currency"
-          date_format: "Date format"
-          submit: "Complete"
+          title: "Configure your preferences" # TODO: remove string
+          subtitle: "Let's configure your preferences." # TODO: remove string
+          example: "Example account" # TODO: remove string
+          example_timestamp: "as of %{date}" # TODO: remove string
+          preview: "Preview how data displays based on preferences." # TODO: remove string
+          locale: "Language" # TODO: remove string
+          currency: "Currency" # TODO: remove string
+          date_format: "Date format" # TODO: remove string
+          submit: "Complete" # TODO: remove string
           theme:
-            label: "Color theme"
-            system: "System"
-            light: "Light"
-            dark: "Dark"
+            label: "Color theme" # TODO: remove string
+            system: "System" # TODO: remove string
+            light: "Light" # TODO: remove string
+            dark: "Dark" # TODO: remove string
         goals:
-          heading: "What brings you to %{product}?"
-          subheading: "Select one or more goals to personalize your experience."
-          submit: "Next"
+          heading: "What would you like to achieve?"
+          subheading: "Select one or more goals so I can better support your financial journey and provide personalised guidance."
+          submit: "Let's Start Learning"
           options:
-            unified_accounts: "See all my accounts in one place"
-            cashflow: "Understand cashflow and expenses"
-            budgeting: "Manage financial plans and budgeting"
-            partner: "Manage finances with a partner"
-            investments: "Track investments"
+            isa: "Understand my Chancen ISA better"
+            budgeting: "Learn smart budgeting habits"
+            spending: "Track my spending patterns"
+            emergency_fund: "Build an emergency fund"
             ai_insights: "Let AI help me understand my finances"
-            optimization: "Analyze and optimize accounts"
-            reduce_stress: "Reduce financial stress or anxiety"
+            graduation: "Plan for life after graduation"
+            investing: "Start saving and investing"
+            reduce_stress: "Reduce financial stress"
+            unified_accounts: "See all my accounts in one place" # TODO: remove string
+            cashflow: "Understand cashflow and expenses" # TODO: remove string
+            partner: "Manage finances with a partner" # TODO: remove string
+            investments: "Track investments" # TODO: remove string
+            optimization: "Analyze and optimize accounts" # TODO: remove string
+            reduce_stress_old: "Reduce financial stress or anxiety" # TODO: remove string
+          footer_note: "Do not worry, you will be able to change these later as your goals evolve!"
         trial:
-          heading: "Try Maybe for 14 days."
-          subheading: "No credit card required"
-          body: "Starting the trial activates your account for Maybe. You won't need to enter payment details."
+          heading: "Try Maybe for 14 days." # TODO: remove string
+          subheading: "No credit card required" # TODO: remove string
+          body: "Starting the trial activates your account for Maybe. You won't need to enter payment details." # TODO: remove string
           cta:
-            start: "Try Maybe for 14 days"
-            continue: "Continue trial"
-            upgrade: "Upgrade"
+            start: "Try Maybe for 14 days" # TODO: remove string
+            continue: "Continue trial" # TODO: remove string
+            upgrade: "Upgrade" # TODO: remove string
           timeline:
-            heading: "How your trial will work"
+            heading: "How your trial will work" # TODO: remove string
             today:
-              title: "Today"
-              description: "You'll get free access to Maybe for 14 days"
+              title: "Today" # TODO: remove string
+              description: "You'll get free access to Maybe for 14 days" # TODO: remove string
             day13:
-              title: "In 13 days (%{date})"
-              description: "We'll notify you to remind you when your trial will end."
+              title: "In 13 days (%{date})" # TODO: remove string
+              description: "We'll notify you to remind you when your trial will end." # TODO: remove string
             day14:
-              title: "In 14 days (%{date})"
-              description: "Your trial ends — subscribe to continue using Maybe"
+              title: "In 14 days (%{date})" # TODO: remove string
+              description: "Your trial ends — subscribe to continue using Maybe" # TODO: remove string
           features:
-            heading: "Here's what's included"
+            heading: "Here's what's included" # TODO: remove string
             items:
-              institutions: "More than 10,000 institutions to connect to"
-              accounts: "Connect unlimited accounts and account types"
-              performance: "Performance and investment returns across portfolio"
-              transactions: "Comprehensive transaction tracking experience"
-              ai: "Unlimited access and chats with Maybe AI"
-              manual_tracking: "Manual account tracking that works well"
-              currencies: "Multiple currencies and near global coverage"
-              early_access: "Early access to newly released features"
-              support: "Priority human support from team"
+              institutions: "More than 10,000 institutions to connect to" # TODO: remove string
+              accounts: "Connect unlimited accounts and account types" # TODO: remove string
+              performance: "Performance and investment returns across portfolio" # TODO: remove string
+              transactions: "Comprehensive transaction tracking experience" # TODO: remove string
+              ai: "Unlimited access and chats with Maybe AI" # TODO: remove string
+              manual_tracking: "Manual account tracking that works well" # TODO: remove string
+              currencies: "Multiple currencies and near global coverage" # TODO: remove string
+              early_access: "Early access to newly released features" # TODO: remove string
+              support: "Priority human support from team" # TODO: remove string
+
+  # New screens
+  add_to_home_screen:
+    heading: "Add Chancen Companion to Your Home Screen"
+    instruction: "Tap \"Add to Home Screen\""
+    description: "Quick access anytime, open your financial companion with just one tap."
+    cta: "Maybe Later"
+
+  chatbot:
+    welcome:
+      greeting: "Hey! I am your financial companion, ready to help you learn and grow your money skills."
+      subtext: "I can explain your Chancen ISA, help you understand budgeting, and teach you about finances. Just ask!"
+      suggested_prompts:
+        isa_basic: "💰 What is a Chancen ISA?"
+        isa_future: "📈 How does Chancen ISA impact my future income?"
+        isa_repay: "💸 Can I repay my Chancen ISA all at once?"
+        budgeting: "📊 How to budget in volatile situations?"
+      input_placeholder: "What would you like to learn about today?"
+      disclaimer: "I am here to educate and help you learn, always double-check important information and make decisions that feel right for you!"
+      helpful_yes: "Yes"
+      helpful_no: "No"
+
+  Insignts:
+    preview:
+      heading: "Insignts - Coming Soon"
+      subheading: "See how average students in Nairobi spend their money."
+      data_display:
+        housing: "Housing: 10,000 KES (25%)"
+        food: "Food: 12,000 KES (30%)"
+        education: "Education: 3,000 KES (13%)"
+        transport: "Transport: 6,000 KES (10%)"
+        data: "Data: 1,500 KES (5%)"
+        healthcare: "Healthcare: 2,000 KES (3%)"
+        uncategorised: "Uncategorised: 2,000 KES (9%)"
+        savings: "Savings: 1,000 KES (5%)"
+      summary: "Transport costs keep changing, making budgeting tricky. You can save 5% by cutting back on uncategorised spending to build a buffer. Most of your money goes to essentials, housing and food take up over half your budget."
+      weekly_update_note: "We update this data weekly with fresh insights. Coming Soon Box"
+      your_turn: "💡 Your Turn Soon\nYou will soon be able to get personalised insights just like this!"
+      feedback_question: "Was this helpful?"
+      feedback_yes: "Yes"
+      feedback_no: "Not Yet"
+      response_yes: "Awesome! We are working hard to bring this personalisation to your expenses. Keep using the app and asking questions; the more engaged you are, the better we can tailor everything for you."
+      response_no: "No worries! We are still perfecting this feature. Tell us what would make this more useful."
+      cta: "Back to Companion ChatBot"
+
     chancen-rw:
       registration:
         new:
