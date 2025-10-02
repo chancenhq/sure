@@ -11,18 +11,38 @@ module Assistant::Configurable
       {
         instructions: instructions_config[:content],
         instructions_prompt: instructions_config[:prompt],
-        functions: default_functions
+        functions: default_functions(chat)
       }
     end
 
     private
-      def default_functions
-        [
+      def default_functions(chat)
+        functions = [
           Assistant::Function::GetTransactions,
           Assistant::Function::GetAccounts,
           Assistant::Function::GetBalanceSheet,
           Assistant::Function::GetIncomeStatement
         ]
+
+        if partner_vector_store_ids(chat.user).present?
+          functions << Assistant::Function::GetInfoFromFileSearch
+        end
+
+        functions
+      end
+
+      def partner_vector_store_ids(user)
+        partner_metadata_ids = Array(user.partner_metadata["vector_store_id_array"]).compact_blank
+
+        return partner_metadata_ids if partner_metadata_ids.present?
+
+        partner_key = user.partner_key
+        return [] if partner_key.blank?
+
+        partner_definition = Partners.find(partner_key)
+        return [] unless partner_definition
+
+        Array(partner_definition.default_metadata["vector_store_id_array"]).compact_blank
       end
 
       def default_instructions(preferred_currency, preferred_date_format)
