@@ -1,14 +1,12 @@
 <%# locals: (user:) %>
 
-<% steps = [
-  { name: "Setup", path: chancen_onboarding_path, is_complete: user.first_name.present?, step_number: 1 },
-  { name: "Preferences", path: preferences_chancen_onboarding_path, is_complete: user.set_onboarding_preferences_at.present?, step_number: 2 },
-  { name: "Goals", path: goals_chancen_onboarding_path , is_complete: user.set_onboarding_goals_at.present?, step_number: 3 },
-  { name: "Start", path: trial_chancen_onboarding_path, is_complete: user.onboarded?, step_number: 4 },
-] %>
-
-<%# Don't show last step if self hosted %>
-<% steps.pop if self_hosted? %>
+<% partner_params = { partner_key: active_partner_key } %>
+<% steps = Partners::OnboardingSteps.build_steps(
+     partner: current_partner,
+     user: user,
+     view_context: self,
+     route_params: partner_params
+   ) %>
 
 <ul class="hidden md:flex items-center gap-2">
   <% steps.each_with_index do |step, idx| %>

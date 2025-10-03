@@ -1,0 +1,30 @@
+default: &default
+  partners:
+    chancen:
+      name: Chancen
+      type: education
+      metadata:
+        required:
+          - key
+          - name
+          - pei
+          - bank
+          - type
+        defaults:
+          key: chancen
+          name: Chancen
+          pei: kenya
+          bank: choice
+          type: education
+      onboarding:
+        steps:
+          - setup
+          - preferences
+          - goals
+          - trial
+development:
+  <<: *default
+test:
+  <<: *default
+production:
+  <<: *default

@@ -21,6 +21,8 @@ class User < ApplicationRecord
 
   normalizes :first_name, :last_name, with: ->(value) { value.strip.presence }
 
+  attribute :partner_metadata, :jsonb, default: {}
+
   enum :role, { member: "member", admin: "admin", super_admin: "super_admin" }, validate: true
 
   has_one_attached :profile_image do |attachable|
@@ -93,6 +95,45 @@ class User < ApplicationRecord
 
   def ai_enabled?
     ai_enabled && ai_available?
+  end
+
+  def partner_metadata
+    value = super
+    value.present? ? value : {}
+  end
+
+  def partner_metadata=(value)
+    normalized =
+      case value
+      when ->(val) { defined?(ActionController::Parameters) && val.is_a?(ActionController::Parameters) }
+        value.to_unsafe_h
+      when Hash
+        value
+      else
+        {}
+      end
+
+    super(normalized.deep_stringify_keys)
+  end
+
+  def partner_metadata_value(key)
+    partner_metadata[key.to_s]
+  end
+
+  def partner_name
+    partner_metadata_value(:name)
+  end
+
+  def partner_type
+    partner_metadata_value(:type)
+  end
+
+  def partner_key
+    partner_metadata_value(:key)
+  end
+
+  def partner_attribute(key)
+    partner_metadata_value(key)
   end
 
   # Deactivation
