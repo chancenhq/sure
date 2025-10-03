@@ -1,4 +1,21 @@
-<%= content_for :previous_path, goals_partner_onboarding_path(partner_key: active_partner_key) %>
+<%
+  partner = current_partner
+  route_params = { partner_key: active_partner_key }
+  previous_path = Partners::OnboardingSteps.previous_step_path(
+    partner: partner,
+    current_key: :trial,
+    view_context: self,
+    route_params: route_params
+  )
+  previous_path ||= Partners::OnboardingSteps.first_step_path(
+    partner: partner,
+    view_context: self,
+    route_params: route_params
+  )
+  previous_path ||= partner_onboarding_path(route_params) if route_params[:partner_key].present?
+  previous_path ||= root_path
+%>
+<%= content_for :previous_path, previous_path %>
 
 <%= content_for :header_nav do %>
   <%= render "partner_onboardings/onboarding_nav", user: @user %>

@@ -10,6 +10,44 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_url
   end
 
+  test "partner onboarding redirect skips disabled steps" do
+    original_metadata = @user.partner_metadata
+
+    Partners.reset!
+    Partners.configure(
+      "partners" => {
+        "custom" => {
+          "name" => "Custom",
+          "metadata" => {
+            "defaults" => {
+              "key" => "custom",
+              "name" => "Custom",
+              "type" => "education"
+            }
+          },
+          "onboarding" => {
+            "steps" => %w[setup goals]
+          }
+        }
+      }
+    )
+
+    partner = Partners.default
+    @user.update!(partner_metadata: partner.default_metadata)
+
+    patch user_url(@user), params: { user: { redirect_to: "partner_onboarding_next_step:setup" } }
+    assert_redirected_to goals_partner_onboarding_url(partner_key: partner.key)
+
+    patch user_url(@user), params: { user: { redirect_to: "partner_onboarding_next_step:goals" } }
+    assert_redirected_to root_url
+
+    patch user_url(@user), params: { user: { redirect_to: "partner_onboarding_preferences" } }
+    assert_redirected_to goals_partner_onboarding_url(partner_key: partner.key)
+  ensure
+    @user.update!(partner_metadata: original_metadata)
+    Partners.reset!
+  end
+
   test "can update user profile" do
     patch user_url(@user), params: {
       user: {

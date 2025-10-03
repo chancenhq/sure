@@ -19,9 +19,7 @@ default: &default
       onboarding:
         steps:
           - setup
-          - preferences
           - goals
-          - trial
 development:
   <<: *default
 test:

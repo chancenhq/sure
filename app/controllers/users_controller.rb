@@ -61,35 +61,106 @@ class UsersController < ApplicationController
 
   private
     def handle_redirect(notice)
-      case user_params[:redirect_to]
+      redirect_token = user_params[:redirect_to]
+
+      return if handle_partner_redirect(redirect_token, notice)
+
+      case redirect_token
       when "onboarding_preferences"
         redirect_to preferences_onboarding_path
-      when "partner_onboarding_preferences", "chancen_onboarding_preferences"
-        partner_key = active_partner_key
-        return redirect_to settings_profile_path, notice: notice if partner_key.blank?
-
-        redirect_to preferences_partner_onboarding_path(partner_key: partner_key)
       when "home"
         redirect_to root_path
       when "preferences"
         redirect_to settings_preferences_path, notice: notice
       when "goals"
         redirect_to goals_onboarding_path
-      when "partner_onboarding_goals", "chancen_onboarding_goals"
-        partner_key = active_partner_key
-        return redirect_to settings_profile_path, notice: notice if partner_key.blank?
-
-        redirect_to goals_partner_onboarding_path(partner_key: partner_key)
       when "trial"
         redirect_to trial_onboarding_path
-      when "partner_onboarding_trial", "chancen_onboarding_trial"
-        partner_key = active_partner_key
-        return redirect_to settings_profile_path, notice: notice if partner_key.blank?
-
-        redirect_to trial_partner_onboarding_path(partner_key: partner_key)
       else
         redirect_to settings_profile_path, notice: notice
       end
+    end
+
+    def handle_partner_redirect(token, notice)
+      return false if token.blank?
+
+      if (match = token.match(/\A(chancen|partner)_onboarding_next_step:(?<current>[a-z_]+)\z/))
+        redirect_partner_to_next_step(match[:current], notice)
+        return true
+      end
+
+      if (match = token.match(/\A(chancen|partner)_onboarding_(?<target>[a-z_]+)\z/))
+        redirect_partner_to_step(match[:target], notice)
+        return true
+      end
+
+      false
+    end
+
+    def redirect_partner_to_next_step(current_step, notice)
+      partner, route_params = partner_for_redirect(notice)
+      return true unless partner
+
+      next_path = Partners::OnboardingSteps.next_step_path(
+        partner: partner,
+        current_key: current_step,
+        view_context: self,
+        route_params: route_params
+      )
+
+      if next_path.present?
+        redirect_to next_path
+      else
+        redirect_to root_path
+      end
+
+      true
+    end
+
+    def redirect_partner_to_step(target_step, notice)
+      partner, route_params = partner_for_redirect(notice)
+      return true unless partner
+
+      if Partners::OnboardingSteps.include?(partner, target_step)
+        path = Partners::OnboardingSteps.path_for(
+          partner: partner,
+          key: target_step,
+          view_context: self,
+          route_params: route_params
+        )
+
+        if path.present?
+          redirect_to path
+          return true
+        end
+      end
+
+      next_path = Partners::OnboardingSteps.next_step_path(
+        partner: partner,
+        current_key: target_step,
+        view_context: self,
+        route_params: route_params
+      )
+
+      if next_path.present?
+        redirect_to next_path
+      else
+        redirect_to root_path
+      end
+
+      true
+    end
+
+    def partner_for_redirect(notice)
+      partner_key = active_partner_key
+
+      if partner_key.blank?
+        redirect_to settings_profile_path, notice: notice
+        return [ nil, nil ]
+      end
+
+      partner = Partners.find(partner_key) || Partners.default
+      [ partner, { partner_key: partner_key } ]
     end
 
     def should_purge_profile_image?

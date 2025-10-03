@@ -6,7 +6,7 @@ class PartnerOnboardingsControllerTest < ActionDispatch::IntegrationTest
 
     @user = users(:family_admin)
     @family = @user.family
-    @partner = Partners.default
+    @partner = configure_partner(%w[setup preferences goals trial])
 
     @user.update!(
       set_onboarding_preferences_at: nil,
@@ -89,21 +89,7 @@ class PartnerOnboardingsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "trial step is optional when not configured" do
-    Partners.configure(
-      "partners" => {
-        "chancen" => {
-          "name" => "Chancen",
-          "metadata" => {
-            "defaults" => @partner.default_metadata
-          },
-          "onboarding" => {
-            "steps" => %w[setup preferences goals]
-          }
-        }
-      }
-    )
-
-    @partner = Partners.default
+    @partner = configure_partner(%w[setup preferences goals])
     @user.update!(partner_metadata: @partner.default_metadata)
 
     get trial_partner_onboarding_url(partner_key: @partner.key)
@@ -111,21 +97,7 @@ class PartnerOnboardingsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "navigation hides steps that are not configured" do
-    Partners.configure(
-      "partners" => {
-        "chancen" => {
-          "name" => "Chancen",
-          "metadata" => {
-            "defaults" => @partner.default_metadata
-          },
-          "onboarding" => {
-            "steps" => %w[setup preferences goals]
-          }
-        }
-      }
-    )
-
-    @partner = Partners.default
+    @partner = configure_partner(%w[setup preferences goals])
     @user.update!(partner_metadata: @partner.default_metadata)
 
     get partner_onboarding_url(partner_key: @partner.key)
@@ -201,6 +173,32 @@ class PartnerOnboardingsControllerTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+    def configure_partner(steps)
+      Partners.configure(
+        "partners" => {
+          "chancen" => {
+            "name" => "Chancen",
+            "type" => "education",
+            "metadata" => {
+              "required" => %w[key name pei bank type],
+              "defaults" => {
+                "key" => "chancen",
+                "name" => "Chancen",
+                "pei" => "kenya",
+                "bank" => "choice",
+                "type" => "education"
+              }
+            },
+            "onboarding" => {
+              "steps" => steps
+            }
+          }
+        }
+      )
+
+      Partners.default
+    end
 
     def sign_out_user
       @user.sessions.each do |session|

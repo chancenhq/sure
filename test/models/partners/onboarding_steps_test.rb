@@ -24,13 +24,27 @@ class Partners::OnboardingStepsTest < ActiveSupport::TestCase
       route_params: { partner_key: @partner.key }
     )
 
-    assert_equal %i[setup preferences goals trial], steps.map { |step| step[:key] }
+    expected_keys = Partners::OnboardingSteps.enabled_keys(@partner).map(&:to_sym)
+    assert_equal expected_keys, steps.map { |step| step[:key] }
     assert steps.all? { |step| step[:name].present? }
   end
 
   test "enabled_keys falls back to defaults when configuration missing" do
-    partner = Partners.find(:chancen)
+    Partners.configure(
+      "partners" => {
+        "custom" => {
+          "name" => "Custom",
+          "metadata" => {
+            "defaults" => {}
+          }
+        }
+      }
+    )
+
+    partner = Partners.default
     assert_equal %w[setup preferences goals trial], Partners::OnboardingSteps.enabled_keys(partner)
+  ensure
+    Partners.reset!
   end
 
   test "include? respects partner configuration" do
@@ -54,5 +68,26 @@ class Partners::OnboardingStepsTest < ActiveSupport::TestCase
     assert_not Partners::OnboardingSteps.include?(partner, :preferences)
     assert Partners::OnboardingSteps.include?(partner, :goals)
     assert_not Partners::OnboardingSteps.include?(partner, :trial)
+  end
+
+  test "next_step_key falls back to next enabled step when current step missing" do
+    Partners.configure(
+      "partners" => {
+        "custom" => {
+          "name" => "Custom",
+          "metadata" => {
+            "defaults" => {}
+          },
+          "onboarding" => {
+            "steps" => %w[setup goals]
+          }
+        }
+      }
+    )
+
+    partner = Partners.default
+    assert_equal "goals", Partners::OnboardingSteps.next_step_key(partner: partner, current_key: :preferences)
+  ensure
+    Partners.reset!
   end
 end
