@@ -1,0 +1,52 @@
+<%= content_for :prev_nav do %>
+  <%= image_tag "logomark-color.svg", class: "w-10 h-10" %>
+<% end %>
+
+<%= content_for :header_nav do %>
+  <%= render "partner_onboardings/onboarding_nav", user: @user %>
+<% end %>
+
+<%= content_for :cancel_action do %>
+  <%= render "partner_onboardings/logout" %>
+<% end %>
+
+<div class="grow max-w-lg w-full mx-auto bg-surface flex flex-col justify-center md:py-0 py-6 px-4 md:px-0">
+  <div>
+    <div class="space-y-1 mb-6 text-center">
+      <h1 class="text-2xl font-medium md:text-2xl"><%= current_partner&.translation(:onboarding, :setup, :heading, default: t("partner_onboardings.show.heading")) %></h1>
+      <p class="text-secondary text-sm"><%= current_partner&.translation(:onboarding, :setup, :subheading, default: t("partner_onboardings.show.subheading")) %></p>
+    </div>
+
+    <%= styled_form_with model: @user do |form| %>
+      <%= form.hidden_field :redirect_to, value: @invitation ? "home" : "partner_onboarding_preferences" %>
+      <%= form.hidden_field :onboarded_at, value: Time.current if @invitation %>
+
+      <div class="mb-6">
+        <%= render "settings/user_avatar_field", form: form, user: @user %>
+      </div>
+
+      <div class="flex flex-col md:flex-row md:justify-between md:items-center md:gap-4 space-y-4 md:space-y-0 mb-4">
+        <%= form.text_field :first_name, placeholder: current_partner&.translation(:onboarding, :show, :first_name_placeholder, default: t("partner_onboardings.show.first_name_placeholder")), label: current_partner&.translation(:onboarding, :show, :first_name_label, default: t("partner_onboardings.show.first_name_label")), container_class: "bg-container md:w-1/2 w-full", required: true %>
+        <%= form.text_field :last_name, placeholder: current_partner&.translation(:onboarding, :show, :last_name_placeholder, default: t("partner_onboardings.show.last_name_placeholder")), label: current_partner&.translation(:onboarding, :show, :last_name_label, default: t("partner_onboardings.show.last_name_label")), container_class: "bg-container md:w-1/2 w-full", required: true %>
+      </div>
+
+      <% unless @invitation %>
+        <div class="space-y-4 mb-4">
+          <%= form.fields_for :family do |family_form| %>
+            <%= family_form.text_field :name, placeholder: current_partner&.translation(:onboarding, :show, :household_placeholder, default: t("partner_onboardings.show.household_placeholder")), label: current_partner&.translation(:onboarding, :show, :household_label, default: t("partner_onboardings.show.household_label")) %>
+
+            <%= family_form.select :country,
+              country_options,
+              { label: current_partner&.translation(:onboarding, :show, :country_label, default: t("partner_onboardings.show.country_label")) },
+              required: true %>
+          <% end %>
+        </div>
+      <% end %>
+
+      <%= form.submit current_partner&.translation(:onboarding, :setup, :submit, default: t("partner_onboardings.show.submit")) %>
+    <% end %>
+  </div>
+</div>
+
+<%= render "layouts/shared/footer" %>
+</div>

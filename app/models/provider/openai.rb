@@ -58,7 +58,18 @@ class Provider::Openai < Provider
     end
   end
 
-  def chat_response(prompt, model:, instructions: nil, functions: [], function_results: [], streamer: nil, previous_response_id: nil)
+  def chat_response(
+    prompt,
+    model:,
+    instructions: nil,
+    instructions_prompt: nil,
+    functions: [],
+    function_results: [],
+    streamer: nil,
+    previous_response_id: nil,
+    session_id: nil,
+    user_identifier: nil
+  )
     with_provider_response do
       chat_config = ChatConfig.new(
         functions: functions,
@@ -101,7 +112,10 @@ class Provider::Openai < Provider
           name: "chat_response",
           model: model,
           input: input_payload,
-          output: response.messages.map(&:output_text).join("\n")
+          output: response.messages.map(&:output_text).join("\n"),
+          prompt: instructions_prompt,
+          session_id: session_id,
+          user_identifier: user_identifier
         )
         response
       else
@@ -111,7 +125,10 @@ class Provider::Openai < Provider
           model: model,
           input: input_payload,
           output: parsed.messages.map(&:output_text).join("\n"),
-          usage: raw_response["usage"]
+          prompt: instructions_prompt,
+          usage: raw_response["usage"],
+          session_id: session_id,
+          user_identifier: user_identifier
         )
         parsed
       end
@@ -127,17 +144,43 @@ class Provider::Openai < Provider
       @langfuse_client = Langfuse.new
     end
 
-    def log_langfuse_generation(name:, model:, input:, output:, usage: nil)
+    def log_langfuse_generation(name:, model:, input:, output:, usage: nil, session_id: nil, user_identifier: nil, prompt: nil)
       return unless langfuse_client
 
-      trace = langfuse_client.trace(name: "openai.#{name}", input: input)
-      trace.generation(
+      trace = langfuse_client.trace(
+        name: "openai.#{name}",
+        input: input,
+        session_id: session_id,
+        user_id: user_identifier
+      )
+      generation_options = {
         name: name,
         model: model,
         input: input,
         output: output,
-        usage: usage
-      )
+        usage: usage,
+        session_id: session_id,
+        user_id: user_identifier
+      }
+
+      if prompt.present?
+        generation_options[:prompt_name] = prompt[:name] if prompt[:name]
+        generation_options[:prompt_version] = prompt[:version] if prompt[:version]
+        generation_options[:prompt_id] = prompt[:id] if prompt[:id]
+
+        metadata = {
+          prompt: {
+            id: prompt[:id],
+            name: prompt[:name],
+            version: prompt[:version],
+            content: prompt[:content],
+            template: prompt[:template]
+          }.compact
+        }
+        generation_options[:metadata] = metadata
+      end
+
+      trace.generation(**generation_options)
       trace.update(output: output)
     rescue => e
       Rails.logger.warn("Langfuse logging failed: #{e.message}")

@@ -1,0 +1,37 @@
+---
+en:
+  partner_registrations:
+    new:
+      title: "Almost There!"
+      join_family_title: "Join %{family}"
+      body: "Use your Google account below or register with your email to get started, it is quick and secure."
+      welcome_title: "Welcome"
+      welcome_body: "We are excited to have you here."
+      invitation_message: "%{inviter} invited you to join as %{role}."
+      role_admin: "admin"
+      role_member: "member"
+      password_placeholder: "Create a secure password"
+      submit: "Create account"
+      google_auth_connect: "Sign in with Google"
+    welcome:
+      heading: "Welcome"
+      subheading: "We're here to help you navigate your finances and build smart money habits."
+      body: "Think of Maybe as your personal finance buddy."
+      key_points_heading: "Key Points"
+      points:
+        isa: "Get instant answers about your accounts"
+        budgeting: "Learn budgeting that actually works"
+        skills: "Build financial skills for life"
+      cta: "Let's Get Started"
+    privacy:
+      heading: "Your Privacy Comes First"
+      subheading: "We take protecting your data seriously, it is not just talk, it is how we are built."
+      body: "Here is our promise: Your data stays anonymous while we personalise your experience."
+      key_points_heading: "Key Assurance Points"
+      points:
+        anonymised: "Your data is anonymised and secure"
+        personalised: "Personalised help without compromising privacy"
+        no_sharing: "No sharing, no selling to external parties"
+      agreement: "By continuing, you agree to participate in this preview version."
+      agree_cta: "I Agree & Continue"
+      learn_more_cta: "Learn More"

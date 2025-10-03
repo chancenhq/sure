@@ -1,0 +1,24 @@
+<%
+  header_title current_partner&.translation(:registration, :welcome, :heading, default: t(".heading"))
+%>
+<br />
+<br />
+<div class="max-w-xl mx-auto space-y-8 bg-surface-inset border border-secondary rounded-2xl p-8 text-primary">
+  <div class="space-y-4 text-center">
+    <p class="text-secondary text-base leading-relaxed"><%= current_partner&.translation(:registration, :welcome, :subheading, default: t(".subheading")) %></p>
+    <p class="text-secondary leading-relaxed"><%= current_partner&.translation(:registration, :welcome, :body, default: t(".body")) %></p>
+  </div>
+
+  <div class="space-y-3 text-left">
+    <h3 class="text-lg font-medium text-primary"><%= current_partner&.translation(:registration, :welcome, :key_points_heading, default: t(".key_points_heading")) %></h3>
+    <ul class="list-disc space-y-2 text-secondary pl-6">
+      <li><%= current_partner&.translation(:registration, :welcome, :points, :isa, default: t(".points.isa")) %></li>
+      <li><%= current_partner&.translation(:registration, :welcome, :points, :budgeting, default: t(".points.budgeting")) %></li>
+      <li><%= current_partner&.translation(:registration, :welcome, :points, :skills, default: t(".points.skills")) %></li>
+    </ul>
+  </div>
+
+  <div class="pt-4">
+    <%= render DS::Link.new(text: current_partner&.translation(:registration, :welcome, :cta, default: t(".cta")), href: privacy_partner_registration_path(partner_key: @partner.key), variant: :primary, full_width: true) %>
+  </div>
+</div>

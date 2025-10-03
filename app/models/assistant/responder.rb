@@ -1,9 +1,10 @@
 class Assistant::Responder
-  def initialize(message:, instructions:, function_tool_caller:, llm:)
+  def initialize(message:, instructions:, function_tool_caller:, llm:, instructions_prompt: nil)
     @message = message
     @instructions = instructions
     @function_tool_caller = function_tool_caller
     @llm = llm
+    @instructions_prompt = instructions_prompt
   end
 
   def on(event_name, &block)
@@ -31,7 +32,7 @@ class Assistant::Responder
   end
 
   private
-    attr_reader :message, :instructions, :function_tool_caller, :llm
+    attr_reader :message, :instructions, :function_tool_caller, :llm, :instructions_prompt
 
     def handle_follow_up_response(response)
       streamer = proc do |chunk|
@@ -64,10 +65,13 @@ class Assistant::Responder
         message.content,
         model: message.ai_model,
         instructions: instructions,
+        instructions_prompt: instructions_prompt,
         functions: function_tool_caller.function_definitions,
         function_results: function_results,
         streamer: streamer,
-        previous_response_id: previous_response_id
+        previous_response_id: previous_response_id,
+        session_id: chat_session_id,
+        user_identifier: chat_user_identifier
       )
 
       unless response.success?
@@ -83,5 +87,19 @@ class Assistant::Responder
 
     def listeners
       @listeners ||= Hash.new { |h, k| h[k] = [] }
+    end
+
+    def chat_session_id
+      chat&.id&.to_s
+    end
+
+    def chat_user_identifier
+      return unless chat&.user_id
+
+      ::Digest::SHA256.hexdigest(chat.user_id.to_s)
+    end
+
+    def chat
+      @chat ||= message.chat
     end
 end
