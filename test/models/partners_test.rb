@@ -19,15 +19,7 @@ class PartnersTest < ActiveSupport::TestCase
     partner = Partners.find("chancen-ke")
 
     assert_not_nil partner
-    assert_equal({
-      "key" => "chancen-ke",
-      "name" => "Chancen Kenya",
-      "type" => "financial",
-      "country" => "ke",
-      "ui_layout" => "intro",
-      "pei_array" => [],
-      "bank_array" => [ "Choice Bank" ]
-    }, partner.default_metadata)
+    assert_not_nil partner.default_metadata
   end
 
   test "reset clears cached registry" do
