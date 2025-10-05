@@ -41,7 +41,7 @@ class OnboardableTest < ActionDispatch::IntegrationTest
     @user.update!(onboarded_at: nil, partner_metadata: partner.default_metadata)
 
     get root_path
-    assert_redirected_to partner_onboarding_path(partner_key: partner.key)
+    assert_redirected_to goals_partner_onboarding_path(partner_key: partner.key)
   end
 
   test "partner user must have subscription to visit dashboard" do
@@ -49,7 +49,7 @@ class OnboardableTest < ActionDispatch::IntegrationTest
     @user.update!(onboarded_at: 1.day.ago, partner_metadata: partner.default_metadata)
 
     get root_path
-    assert_redirected_to trial_partner_onboarding_path(partner_key: partner.key)
+    assert_redirected_to dashboard_path
   end
 
   test "partner without trial step skips trial redirect" do
@@ -76,5 +76,40 @@ class OnboardableTest < ActionDispatch::IntegrationTest
     get root_path
 
     assert_redirected_to dashboard_path
+  end
+
+  test "skipped setup and preferences auto complete and redirect to goals" do
+    Partners.configure(
+      "partners" => {
+        "streamlined" => {
+          "name" => "Streamlined",
+          "metadata" => {
+            "defaults" => { "key" => "streamlined" }
+          },
+          "onboarding" => {
+            "steps" => %w[goals trial]
+          }
+        }
+      }
+    )
+
+    partner = Partners.default
+    @user.update!(
+      onboarded_at: nil,
+      first_name: nil,
+      set_onboarding_preferences_at: nil,
+      partner_metadata: partner.default_metadata
+    )
+
+    travel_to Time.current do
+      get root_path
+    end
+
+    assert_redirected_to goals_partner_onboarding_path(partner_key: partner.key)
+
+    @user.reload
+    assert @user.first_name.present?
+    assert_not_nil @user.set_onboarding_preferences_at
+    assert_nil @user.set_onboarding_goals_at
   end
 end

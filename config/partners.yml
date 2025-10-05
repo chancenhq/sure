@@ -24,11 +24,7 @@ default: &default
           - goals
           - trial
         steps:
-          - setup
-          - preferences
-          - kyc   # TODO: implement KYC flow that is partner-specific (via Choice Bank BaaS)
           - goals
-          - trial
     chancen-rw:
       name: Chancen Rwanda
       type: financial

@@ -4,7 +4,9 @@ class PartnerOnboardingsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @user = users(:family_admin)
     @family = @user.family
-    @partner = Partners.default
+    @default_partner = Partners.default
+    @partner = Partners.find("chancen-rw")
+    @partner ||= @default_partner
 
     @user.update!(
       set_onboarding_preferences_at: nil,
@@ -18,6 +20,33 @@ class PartnerOnboardingsControllerTest < ActionDispatch::IntegrationTest
     get partner_onboarding_url(partner_key: @partner.key)
     assert_response :success
     assert_select "h1", text: /set up your account/i
+  end
+
+  test "show redirects to first enabled step when setup disabled" do
+    Partners.configure(
+      "partners" => {
+        "streamlined" => {
+          "name" => "Streamlined",
+          "metadata" => {
+            "defaults" => { "key" => "streamlined" }
+          },
+          "onboarding" => {
+            "steps" => %w[goals trial]
+          }
+        }
+      }
+    )
+
+    partner = Partners.default
+    @user.update!(partner_metadata: partner.default_metadata, first_name: nil)
+
+    get partner_onboarding_url(partner_key: partner.key)
+
+    assert_redirected_to goals_partner_onboarding_url(partner_key: partner.key)
+  ensure
+    Partners.reset!
+    @partner = Partners.find("chancen-rw") || Partners.default
+    @default_partner = Partners.default
   end
 
   test "should get preferences" do
@@ -74,7 +103,16 @@ class PartnerOnboardingsControllerTest < ActionDispatch::IntegrationTest
   test "should get goals" do
     get goals_partner_onboarding_url(partner_key: @partner.key)
     assert_response :success
-    assert_select "h1", text: /What would you like to achieve?/i
+
+    expected_heading = @partner.translation(
+      :onboarding,
+      :goals,
+      :heading,
+      product: Rails.configuration.x.product_name,
+      default: I18n.t("partner_onboardings.goals.heading", product: Rails.configuration.x.product_name)
+    )
+
+    assert_select "h1", text: expected_heading
   end
 
   test "should get trial" do

@@ -18,7 +18,7 @@
     </div>
 
     <%= styled_form_with model: @user do |form| %>
-      <%= form.hidden_field :redirect_to, value: @invitation ? "home" : "partner_onboarding_preferences" %>
+      <%= form.hidden_field :redirect_to, value: (@invitation ? "home" : (@redirect_after_submit || "home")) %>
       <%= form.hidden_field :onboarded_at, value: Time.current if @invitation %>
 
       <div class="mb-6">

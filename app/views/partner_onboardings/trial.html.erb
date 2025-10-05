@@ -1,4 +1,6 @@
-<%= content_for :previous_path, goals_partner_onboarding_path(partner_key: active_partner_key) %>
+<% if @previous_step_path.present? %>
+  <%= content_for :previous_path, @previous_step_path %>
+<% end %>
 
 <%= content_for :header_nav do %>
   <%= render "partner_onboardings/onboarding_nav", user: @user %>

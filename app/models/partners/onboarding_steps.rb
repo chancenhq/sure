@@ -20,6 +20,7 @@ module Partners
     }.freeze
 
     DEFAULT_KEYS = STEP_DEFINITIONS.keys.freeze
+    AUTO_COMPLETABLE_KEYS = %w[setup preferences].freeze
 
     module_function
 
@@ -30,6 +31,23 @@ module Partners
 
     def include?(partner, key)
       enabled_keys(partner).include?(key.to_s)
+    end
+
+    def next_step_key(partner, current_step)
+      keys = enabled_keys(partner)
+      index = keys.index(current_step.to_s)
+      return unless index
+
+      keys[index + 1]
+    end
+
+    def previous_step_key(partner, current_step)
+      keys = enabled_keys(partner)
+      index = keys.index(current_step.to_s)
+      return unless index
+      return if index.zero?
+
+      keys[index - 1]
     end
 
     def build_steps(partner:, user:, view_context:, route_params: {})
@@ -55,8 +73,100 @@ module Partners
       definition[:path].call(view_context, route_params)
     end
 
+    def next_step_path(partner:, current_step:, view_context:, route_params: {})
+      key = next_step_key(partner, current_step)
+      step_path(key, view_context: view_context, route_params: route_params)
+    end
+
+    def previous_step_path(partner:, current_step:, view_context:, route_params: {})
+      key = previous_step_key(partner, current_step)
+      step_path(key, view_context: view_context, route_params: route_params)
+    end
+
+    def auto_complete_missing_steps!(partner:, user:)
+      missing_keys = AUTO_COMPLETABLE_KEYS - enabled_keys(partner)
+      return if missing_keys.empty?
+
+      user.with_lock do
+        missing_keys.each do |key|
+          case key
+          when "setup"
+            auto_complete_setup_step!(user)
+          when "preferences"
+            auto_complete_preferences_step!(user)
+          end
+        end
+      end
+    end
+
     def step_name(view_context:, partner:, key:)
       partner&.translation(:onboarding, :nav, key, default: view_context.t("partner_onboardings.nav.#{key}"))
+    end
+
+    def step_path(key, view_context:, route_params: {})
+      definition = STEP_DEFINITIONS[key.to_s]
+      return unless definition
+
+      definition[:path].call(view_context, route_params)
+    end
+
+    def auto_complete_setup_step!(user)
+      return if user.first_name.present?
+
+      defaults = setup_defaults_for(user)
+      user.update!(defaults) if defaults.any?
+    end
+
+    def auto_complete_preferences_step!(user)
+      attrs = {}
+      attrs[:set_onboarding_preferences_at] = Time.current unless user.set_onboarding_preferences_at?
+      attrs[:theme] = "system" if user.theme.blank?
+
+      family_attrs = preferences_family_defaults_for(user)
+
+      user.update!(attrs) if attrs.any?
+      if user.family && family_attrs.any?
+        user.family.update!(family_attrs)
+      end
+    end
+
+    def setup_defaults_for(user)
+      first_name = user.first_name.presence || default_first_name_for(user)
+      last_name = user.last_name.presence || default_last_name_for(user)
+
+      result = {}
+      result[:first_name] = first_name if user.first_name.blank? && first_name.present?
+      result[:last_name] = last_name if user.last_name.blank? && last_name.present?
+      result
+    end
+
+    def preferences_family_defaults_for(user)
+      family = user.family
+      return {} unless family
+
+      defaults = {}
+      defaults[:locale] = I18n.default_locale.to_s if family.locale.blank?
+      defaults[:currency] = default_currency_iso_code if family.currency.blank?
+      defaults[:date_format] = Family::DATE_FORMATS.first.last if family.date_format.blank?
+
+      partner_country = user.partner_attribute(:country)
+      defaults[:country] = partner_country if family.country.blank? && partner_country.present?
+      defaults.compact
+    end
+
+    def default_currency_iso_code
+      Money.default_currency&.iso_code
+    rescue Money::Currency::UnknownCurrency
+      "USD"
+    end
+
+    def default_first_name_for(user)
+      local_part = user.email.to_s.split("@").first.to_s
+      local_part.gsub(/[^a-zA-Z]+/, " ").strip.titleize.presence
+    end
+
+    def default_last_name_for(_user)
+      nil
     end
   end
 end

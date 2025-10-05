@@ -1,4 +1,6 @@
-<%= content_for :previous_path, preferences_partner_onboarding_path(partner_key: active_partner_key) %>
+<% if @previous_step_path.present? %>
+  <%= content_for :previous_path, @previous_step_path %>
+<% end %>
 
 <%= content_for :header_nav do %>
   <%= render "partner_onboardings/onboarding_nav", user: @user %>
@@ -20,7 +22,7 @@
     </div>
 
     <%= form_with model: @user do |form| %>
-      <%= form.hidden_field :redirect_to, value: self_hosted? ? "home" : "partner_onboarding_trial" %>
+      <%= form.hidden_field :redirect_to, value: (@redirect_after_submit || (self_hosted? ? "home" : "partner_onboarding_trial")) %>
       <%= form.hidden_field :set_onboarding_goals_at, value: Time.current %>
       <%= form.hidden_field :onboarded_at, value: Time.current %>
 

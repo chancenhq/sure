@@ -24,7 +24,8 @@ class Partners::OnboardingStepsTest < ActiveSupport::TestCase
       route_params: { partner_key: @partner.key }
     )
 
-    assert_equal %i[setup preferences goals trial], steps.map { |step| step[:key] }
+    expected_keys = Partners::OnboardingSteps.enabled_keys(@partner).map(&:to_sym)
+    assert_equal expected_keys, steps.map { |step| step[:key] }
     assert steps.all? { |step| step[:name].present? }
   end
 
@@ -54,5 +55,41 @@ class Partners::OnboardingStepsTest < ActiveSupport::TestCase
     assert_not Partners::OnboardingSteps.include?(partner, :preferences)
     assert Partners::OnboardingSteps.include?(partner, :goals)
     assert_not Partners::OnboardingSteps.include?(partner, :trial)
+  end
+
+  test "auto completes skipped setup and preferences using defaults" do
+    Partners.configure(
+      "partners" => {
+        "streamlined" => {
+          "name" => "Streamlined",
+          "metadata" => {
+            "defaults" => { "key" => "streamlined" }
+          },
+          "onboarding" => {
+            "steps" => %w[goals]
+          }
+        }
+      }
+    )
+
+    partner = Partners.default
+    @user.update!(
+      first_name: nil,
+      last_name: nil,
+      theme: nil,
+      set_onboarding_preferences_at: nil,
+      partner_metadata: partner.default_metadata
+    )
+
+    travel_to Time.current do
+      Partners::OnboardingSteps.auto_complete_missing_steps!(partner: partner, user: @user)
+    end
+
+    @user.reload
+
+    assert @user.first_name.present?
+    assert_nil @user.last_name
+    assert_equal "system", @user.theme
+    assert_not_nil @user.set_onboarding_preferences_at
   end
 end
