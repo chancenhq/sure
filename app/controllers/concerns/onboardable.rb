@@ -14,7 +14,13 @@ module Onboardable
       if Current.user.needs_onboarding?
         redirect_to partner_user? ? partner_onboarding_path(partner_route_params) : onboarding_path
       elsif Current.family.needs_subscription?
-        redirect_to partner_user? ? trial_partner_onboarding_path(partner_route_params) : trial_onboarding_path
+        if partner_user?
+          return unless partner_onboarding_step_enabled?(:trial)
+
+          redirect_to trial_partner_onboarding_path(partner_route_params)
+        else
+          redirect_to trial_onboarding_path
+        end
       elsif Current.family.upgrade_required?
         redirect_to upgrade_subscription_path
       end
@@ -42,5 +48,13 @@ module Onboardable
 
     def partner_route_params
       { partner_key: Current.user.partner_key }
+    end
+
+    def partner_onboarding_step_enabled?(step)
+      partner_key = Current.user&.partner_key
+      return false if partner_key.blank?
+
+      partner = Partners.find(partner_key)
+      Partners::OnboardingSteps.include?(partner, step)
     end
 end

@@ -20,6 +20,11 @@ class PartnersTest < ActiveSupport::TestCase
 
     assert_not_nil partner
     assert_not_nil partner.default_metadata
+    assert_equal "chancen-ke", partner.default_metadata["key"]
+    assert_equal "Chancen Kenya", partner.default_metadata["name"]
+    assert_equal "financial", partner.default_metadata["type"]
+    assert_equal ["Choice Bank"], partner.default_metadata["bank_array"]
+  end
   end
 
   test "reset clears cached registry" do

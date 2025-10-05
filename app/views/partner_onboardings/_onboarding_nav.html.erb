@@ -1,39 +1,12 @@
 <%# locals: (user:) %>
 
 <% partner_params = { partner_key: active_partner_key } %>
-<% steps = [
-  {
-    key: :setup,
-    name: current_partner&.translation(:onboarding, :nav, :setup, default: t("partner_onboardings.nav.setup")),
-    path: partner_onboarding_path(partner_params),
-    is_complete: user.first_name.present?,
-    step_number: 1
-  },
-  {
-    key: :preferences,
-    name: current_partner&.translation(:onboarding, :nav, :preferences, default: t("partner_onboardings.nav.preferences")),
-    path: preferences_partner_onboarding_path(partner_params),
-    is_complete: user.set_onboarding_preferences_at.present?,
-    step_number: 2
-  },
-  {
-    key: :goals,
-    name: current_partner&.translation(:onboarding, :nav, :goals, default: t("partner_onboardings.nav.goals")),
-    path: goals_partner_onboarding_path(partner_params),
-    is_complete: user.set_onboarding_goals_at.present?,
-    step_number: 3
-  },
-  {
-    key: :trial,
-    name: current_partner&.translation(:onboarding, :nav, :trial, default: t("partner_onboardings.nav.trial")),
-    path: trial_partner_onboarding_path(partner_params),
-    is_complete: user.onboarded?,
-    step_number: 4
-  }
-] %>
-
-<%# Don't show last step if self hosted %>
-<% steps.pop if self_hosted? %>
+<% steps = Partners::OnboardingSteps.build_steps(
+     partner: current_partner,
+     user: user,
+     view_context: self,
+     route_params: partner_params
+   ) %>
 
 <ul class="hidden md:flex items-center gap-2">
   <% steps.each_with_index do |step, idx| %>

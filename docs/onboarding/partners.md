@@ -44,6 +44,7 @@ This guide explains how Maybe's partner onboarding system works and how to confi
 ### Views and Controllers
 - `PartnerRegistrationsController` renders registration, welcome, and privacy screens tailored to the active partner.
 - `PartnerOnboardingsController` drives the multi-step onboarding wizard (`setup`, `preferences`, `goals`, `trial`, etc.), pulling labels and text from translations via the active partner definition.
+- Only the steps declared under `onboarding.steps` render in the navigation or allow direct access, so omitting entries (e.g., `trial` for self-hosted installs) cleanly hides those pages without additional conditionals.
 - The `Onboardable` concern automatically routes users with a `partner_key` to the partner onboarding flow until they finish required steps.
 
 ## Selecting the Active Partner

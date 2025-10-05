@@ -90,7 +90,6 @@ class UserTest < ActiveSupport::TestCase
     assert_not user.read_attribute(:show_sidebar)
     assert_not user.read_attribute(:show_ai_sidebar)
   end
-
   test "should be valid" do
     assert @user.valid?, @user.errors.full_messages.to_sentence
   end

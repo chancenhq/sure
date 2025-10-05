@@ -173,7 +173,6 @@ class User < ApplicationRecord
 
     super
   end
-
   # Deactivation
   validate :can_deactivate, if: -> { active_changed? && !active }
   after_update_commit :purge_later, if: -> { saved_change_to_active?(from: true, to: false) }

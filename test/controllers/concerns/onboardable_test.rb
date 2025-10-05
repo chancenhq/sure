@@ -2,8 +2,13 @@ require "test_helper"
 
 class OnboardableTest < ActionDispatch::IntegrationTest
   setup do
+    Partners.reset!
     sign_in @user = users(:empty)
     @user.family.subscription.destroy
+  end
+
+  teardown do
+    Partners.reset!
   end
 
   test "must complete onboarding before any other action" do
@@ -45,5 +50,31 @@ class OnboardableTest < ActionDispatch::IntegrationTest
 
     get root_path
     assert_redirected_to trial_partner_onboarding_path(partner_key: partner.key)
+  end
+
+  test "partner without trial step skips trial redirect" do
+    Partners.configure(
+      "partners" => {
+        "chancen" => {
+          "name" => "Chancen",
+          "metadata" => {
+            "defaults" => { "key" => "chancen" }
+          },
+          "onboarding" => {
+            "steps" => %w[setup preferences goals]
+          }
+        }
+      }
+    )
+
+    partner = Partners.default
+    @user.update!(
+      onboarded_at: 1.day.ago,
+      partner_metadata: partner.default_metadata
+    )
+
+    get root_path
+
+    assert_redirected_to dashboard_path
   end
 end
