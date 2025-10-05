@@ -22,6 +22,13 @@ module Partners
     DEFAULT_KEYS = STEP_DEFINITIONS.keys.freeze
     AUTO_COMPLETABLE_KEYS = %w[setup preferences].freeze
 
+    FAMILY_FALLBACKS = {
+      locale: "en",
+      currency: "USD",
+      country: "US",
+      date_format: "%Y-%m-%d"
+    }.freeze
+
     module_function
 
     def enabled_keys(partner)
@@ -93,7 +100,7 @@ module Partners
           when "setup"
             auto_complete_setup_step!(user)
           when "preferences"
-            auto_complete_preferences_step!(user)
+            auto_complete_preferences_step!(user, partner)
           end
         end
       end
@@ -117,12 +124,12 @@ module Partners
       user.update!(defaults) if defaults.any?
     end
 
-    def auto_complete_preferences_step!(user)
+    def auto_complete_preferences_step!(user, partner)
       attrs = {}
       attrs[:set_onboarding_preferences_at] = Time.current unless user.set_onboarding_preferences_at?
       attrs[:theme] = "system" if user.theme.blank?
 
-      family_attrs = preferences_family_defaults_for(user)
+      family_attrs = preferences_family_defaults_for(user, partner: partner)
 
       user.update!(attrs) if attrs.any?
       if user.family && family_attrs.any?
@@ -140,24 +147,17 @@ module Partners
       result
     end
 
-    def preferences_family_defaults_for(user)
-      family = user.family
-      return {} unless family
+    def preferences_family_defaults_for(user, partner:)
+      partner_defaults = partner&.default_metadata || {}
 
-      defaults = {}
-      defaults[:locale] = I18n.default_locale.to_s if family.locale.blank?
-      defaults[:currency] = default_currency_iso_code if family.currency.blank?
-      defaults[:date_format] = Family::DATE_FORMATS.first.last if family.date_format.blank?
-
-      partner_country = user.partner_attribute(:country)
-      defaults[:country] = partner_country if family.country.blank? && partner_country.present?
-      defaults.compact
-    end
-
-    def default_currency_iso_code
-      Money.default_currency&.iso_code
-    rescue Money::Currency::UnknownCurrency
-      "USD"
+      {
+        locale: partner_defaults["locale"].presence || FAMILY_FALLBACKS[:locale],
+        currency: partner_defaults["currency"].presence || FAMILY_FALLBACKS[:currency],
+        date_format: partner_defaults["date_format"].presence || FAMILY_FALLBACKS[:date_format],
+        country: partner_defaults["country"].presence ||
+          user.partner_attribute(:country).presence ||
+          FAMILY_FALLBACKS[:country]
+      }
     end
 
     def default_first_name_for(user)
