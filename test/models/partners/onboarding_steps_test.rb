@@ -98,6 +98,7 @@ class Partners::OnboardingStepsTest < ActiveSupport::TestCase
     end
 
     @user.reload
+    family = @user.family.reload
 
     assert @user.first_name.present?
     assert_nil @user.last_name

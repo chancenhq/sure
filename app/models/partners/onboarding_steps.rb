@@ -21,6 +21,12 @@ module Partners
 
     DEFAULT_KEYS = STEP_DEFINITIONS.keys.freeze
     AUTO_COMPLETABLE_KEYS = %w[setup preferences].freeze
+    FAMILY_FALLBACKS = {
+      locale: "en",
+      currency: "USD",
+      country: "US",
+      date_format: "%Y-%m-%d"
+    }.freeze
 
     module_function
 
@@ -95,7 +101,7 @@ module Partners
           when "setup"
             auto_complete_setup_step!(user)
           when "preferences"
-            auto_complete_preferences_step!(user)
+            auto_complete_preferences_step!(user, partner)
           end
         end
       end
@@ -119,12 +125,12 @@ module Partners
       user.update!(defaults) if defaults.any?
     end
 
-    def auto_complete_preferences_step!(user)
+    def auto_complete_preferences_step!(user, partner)
       attrs = {}
       attrs[:set_onboarding_preferences_at] = Time.current unless user.set_onboarding_preferences_at?
       attrs[:theme] = "system" if user.theme.blank?
 
-      family_attrs = preferences_family_defaults_for(user)
+      family_attrs = preferences_family_defaults_for(user, partner: partner)
 
       user.update!(attrs) if attrs.any?
       if user.family && family_attrs.any?

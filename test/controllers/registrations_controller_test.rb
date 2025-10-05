@@ -14,7 +14,7 @@ class RegistrationsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_url
 
     user = User.order(created_at: :desc).first
-    assert_equal "intro", user.ui_layout
+    assert_equal "dashboard", user.ui_layout
   end
 
   test "create when hosted requires an invite code" do
@@ -40,7 +40,7 @@ class RegistrationsControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to root_url
 
         user = User.order(created_at: :desc).first
-        assert_equal "intro", user.ui_layout
+        assert_equal "dashboard", user.ui_layout
       end
     end
   end

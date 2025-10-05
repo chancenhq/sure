@@ -27,13 +27,13 @@
       <%= form.hidden_field :onboarded_at, value: Time.current %>
 
       <% goal_options = [
-        { icon: "layers", key: :unified_accounts },
-        { icon: "banknote", key: :cashflow },
+        { icon: "layers", key: :isa },
         { icon: "pie-chart", key: :budgeting },
-        { icon: "users", key: :partner },
-        { icon: "area-chart", key: :investments },
+        { icon: "banknote", key: :spending },
+        { icon: "users", key: :emergency_fund },
         { icon: "bot", key: :ai_insights },
-        { icon: "settings-2", key: :optimization },
+        { icon: "graduation-cap", key: :graduation },
+        { icon: "area-chart", key: :investing },
         { icon: "frown", key: :reduce_stress }
       ] %>
 
