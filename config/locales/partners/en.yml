@@ -242,8 +242,8 @@ en:
             dark: "Dark"
         goals:
           heading: "[rw] What brings you to %{product}?"
-          subheading: "Select one or more goals to personalize your experience."
-          submit: "Next"
+          subheading: "Select one or more goals so I can better support your financial journey and provide personalised guidance."
+          submit: "Let's Start Learning"
           options:
             unified_accounts: "See all my accounts in one place"
             cashflow: "Understand cashflow and expenses"
@@ -253,6 +253,14 @@ en:
             ai_insights: "Let AI help me understand my finances"
             optimization: "Analyze and optimize accounts"
             reduce_stress: "Reduce financial stress or anxiety"
+            isa: "Understand my Chancen ISA better"
+            budgeting: "Learn smart budgeting habits"
+            spending: "Track my spending patterns"
+            emergency_fund: "Build an emergency fund"
+            graduation: "Plan for life after graduation"
+            investing: "Start saving and investing"
+            reduce_stress: "Reduce financial stress"
+          footer_note: "Do not worry, you will be able to change these later as your goals evolve!"
         trial:
           heading: "[rw] Try Sure for 14 days."
           subheading: "No credit card required"

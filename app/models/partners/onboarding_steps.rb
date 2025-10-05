@@ -21,6 +21,12 @@ module Partners
 
     DEFAULT_KEYS = STEP_DEFINITIONS.keys.freeze
     AUTO_COMPLETABLE_KEYS = %w[setup preferences].freeze
+    FAMILY_FALLBACKS = {
+      locale: "en",
+      currency: "USD",
+      country: "US",
+      date_format: "%Y-%m-%d"
+    }.freeze
 
     FAMILY_FALLBACKS = {
       locale: "en",
