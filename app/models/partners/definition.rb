@@ -65,6 +65,5 @@ module Partners
         memo[key] = raw_defaults[key] if raw_defaults.key?(key)
       end
     end
-
   end
 end
