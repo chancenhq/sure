@@ -14,7 +14,7 @@ class PartnerRegistrationsControllerTest < ActionDispatch::IntegrationTest
   test "privacy" do
     get privacy_partner_registration_url(partner_key: @partner_key)
     assert_response :success
-    assert_select "a[href='#{new_session_path(partner_key: @partner_key)}']", text: I18n.t("partner_registrations.privacy.agree_cta")
+    assert_select "a[href='#{new_partner_registration_path(partner_key: @partner_key)}']", text: I18n.t("partner_registrations.privacy.agree_cta")
     assert_select "a[href='about:blank']", text: I18n.t("partner_registrations.privacy.learn_more_cta")
   end
 
@@ -36,9 +36,10 @@ class PartnerRegistrationsControllerTest < ActionDispatch::IntegrationTest
     user = User.order(created_at: :desc).first
     assert_redirected_to partner_onboarding_url(partner_key: @partner_key)
     assert_equal "chancen-ke", user.partner_key
-    assert_equal "ke", user.partner_metadata_value(:country)
+    assert_equal "KE", user.partner_metadata_value(:country)
     assert_equal [ "Choice Bank" ], user.partner_metadata_value(:bank_array)
     assert_equal "intro", user.ui_layout
+    assert user.ai_enabled
   end
 
   test "create when hosted requires an invite code" do
@@ -68,6 +69,7 @@ class PartnerRegistrationsControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to partner_onboarding_url(partner_key: @partner_key)
         assert_equal "chancen-ke", user.partner_key
         assert_equal "intro", user.ui_layout
+        assert user.ai_enabled
       end
     end
   end

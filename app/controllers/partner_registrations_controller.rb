@@ -57,10 +57,27 @@ class PartnerRegistrationsController < RegistrationsController
 
       metadata = default_partner_metadata
       metadata.merge!(partner_metadata_params) if params[:user].present?
-      if (layout = metadata["ui_layout"].presence)
-        user.ui_layout = layout
+      if (layout = metadata.delete("ui_layout"))
+        layout = layout.presence
+        user.ui_layout = layout if layout
       end
       user.partner_metadata = metadata if metadata.present?
+
+      apply_partner_user_defaults(user)
+    end
+
+    def apply_partner_user_defaults(user)
+      defaults = @partner&.user_defaults || {}
+      defaults.each do |attribute, value|
+        attribute_name = attribute.to_s
+        setter = "#{attribute_name}="
+        next unless user.respond_to?(setter)
+
+        current_value = user.respond_to?(attribute_name) ? user.public_send(attribute_name) : nil
+        next if current_value == value
+
+        user.public_send(setter, value)
+      end
     end
 
     def default_partner_metadata

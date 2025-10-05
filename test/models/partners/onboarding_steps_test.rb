@@ -68,7 +68,9 @@ class Partners::OnboardingStepsTest < ActiveSupport::TestCase
               "currency" => "CAD",
               "locale" => "fr",
               "country" => "ca",
-              "date_format" => "%d/%m/%Y"
+              "date_format" => "%d/%m/%Y",
+              "ui_layout" => "intro",
+              "ai_enabled" => true
             }
           },
           "onboarding" => {
@@ -79,13 +81,16 @@ class Partners::OnboardingStepsTest < ActiveSupport::TestCase
     )
 
     partner = Partners.default
-    @user.family.update!(locale: "en", currency: "USD", date_format: "%m-%d-%Y", country: "US")
+    assert_equal "intro", partner.user_defaults["ui_layout"]
+    @user.family.update_columns(locale: nil, currency: nil, date_format: nil, country: nil)
+    @user.family.reload
     @user.update!(
       first_name: nil,
       last_name: nil,
       theme: nil,
       set_onboarding_preferences_at: nil,
-      partner_metadata: partner.default_metadata
+      partner_metadata: partner.default_metadata,
+      ai_enabled: false
     )
 
     travel_to Time.current do
@@ -103,6 +108,8 @@ class Partners::OnboardingStepsTest < ActiveSupport::TestCase
     assert_equal "CAD", family.currency
     assert_equal "%d/%m/%Y", family.date_format
     assert_equal "ca", family.country
+    assert @user.ai_enabled
+    assert_equal "intro", @user.ui_layout
   end
 
   test "auto complete preferences falls back to default values when partner missing metadata" do
@@ -121,12 +128,14 @@ class Partners::OnboardingStepsTest < ActiveSupport::TestCase
     )
 
     partner = Partners.default
-    @user.family.update!(locale: "en", currency: "CAD", date_format: "%d/%m/%Y", country: "CA")
+    @user.family.update_columns(locale: nil, currency: nil, date_format: nil, country: nil)
+    @user.family.reload
     @user.update!(
       first_name: nil,
       theme: nil,
       set_onboarding_preferences_at: nil,
-      partner_metadata: partner.default_metadata
+      partner_metadata: partner.default_metadata,
+      ai_enabled: false
     )
 
     travel_to Time.current do
@@ -139,5 +148,7 @@ class Partners::OnboardingStepsTest < ActiveSupport::TestCase
     assert_equal "USD", family.currency
     assert_equal "%Y-%m-%d", family.date_format
     assert_equal "US", family.country
+    @user.reload
+    assert_not @user.ai_enabled
   end
 end

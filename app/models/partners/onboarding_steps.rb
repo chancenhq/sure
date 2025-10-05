@@ -92,9 +92,11 @@ module Partners
 
     def auto_complete_missing_steps!(partner:, user:)
       missing_keys = AUTO_COMPLETABLE_KEYS - enabled_keys(partner)
-      return if missing_keys.empty?
 
       user.with_lock do
+        apply_user_defaults!(user, partner)
+        return if missing_keys.empty?
+
         missing_keys.each do |key|
           case key
           when "setup"
@@ -148,16 +150,49 @@ module Partners
     end
 
     def preferences_family_defaults_for(user, partner:)
-      partner_defaults = partner&.default_metadata || {}
+      family = user.family
+      return {} unless family
 
-      {
-        locale: partner_defaults["locale"].presence || FAMILY_FALLBACKS[:locale],
-        currency: partner_defaults["currency"].presence || FAMILY_FALLBACKS[:currency],
-        date_format: partner_defaults["date_format"].presence || FAMILY_FALLBACKS[:date_format],
-        country: partner_defaults["country"].presence ||
+      partner_defaults = partner&.default_metadata || {}
+      defaults = {}
+
+      if family.locale.blank?
+        defaults[:locale] = partner_defaults["locale"].presence || FAMILY_FALLBACKS[:locale]
+      end
+
+      if family.currency.blank?
+        defaults[:currency] = partner_defaults["currency"].presence || FAMILY_FALLBACKS[:currency]
+      end
+
+      if family.date_format.blank?
+        defaults[:date_format] = partner_defaults["date_format"].presence || FAMILY_FALLBACKS[:date_format]
+      end
+
+      if family.country.blank?
+        defaults[:country] = partner_defaults["country"].presence ||
           user.partner_attribute(:country).presence ||
           FAMILY_FALLBACKS[:country]
-      }
+      end
+
+      defaults
+    end
+
+    def apply_user_defaults!(user, partner)
+      defaults = partner&.user_defaults || {}
+      return if defaults.blank?
+
+      updates = {}
+      defaults.each do |attribute, value|
+        attribute_name = attribute.to_s
+        setter = "#{attribute_name}="
+        next unless user.respond_to?(setter)
+        current = user.respond_to?(attribute_name) ? user.public_send(attribute_name) : nil
+        next if current == value
+
+        updates[attribute_name] = value
+      end
+
+      user.update!(updates) if updates.any?
     end
 
     def default_first_name_for(user)
