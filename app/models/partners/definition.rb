@@ -1,5 +1,7 @@
 module Partners
   class Definition
+    USER_DEFAULT_KEYS = %w[ai_enabled ui_layout].freeze
+
     attr_reader :key
 
     def initialize(key, config)
@@ -37,7 +39,9 @@ module Partners
           defaults.respond_to?(:to_h) ? defaults.to_h : {}
         end
 
-      (normalized_defaults || {}).deep_stringify_keys
+      metadata_defaults = (normalized_defaults || {}).deep_stringify_keys
+      USER_DEFAULT_KEYS.each { |key| metadata_defaults.delete(key) }
+      metadata_defaults
     end
 
     def onboarding_steps
@@ -49,5 +53,18 @@ module Partners
     def translation(*keys, default: nil, **options)
       I18n.t([ "partners", key, *keys.map(&:to_s) ].join("."), **{ default: default }.merge(options))
     end
+
+    def user_defaults
+      source_defaults = @config.dig("metadata", "defaults") || {}
+      raw_defaults = {}
+      source_defaults.each do |key, value|
+        raw_defaults[key.to_s] = value
+      end
+
+      USER_DEFAULT_KEYS.each_with_object({}) do |key, memo|
+        memo[key] = raw_defaults[key] if raw_defaults.key?(key)
+      end
+    end
+
   end
 end

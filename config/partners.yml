@@ -12,11 +12,15 @@ default: &default
           key: chancen-ke
           name: Chancen Kenya
           type: financial
-          country: ke
-          ui_layout: intro
+          country: KE
+          currency: KES
+          date_format: "%d/%m/%Y"
+          locale: en
           pei_array: []
           vector_store_id_array: ["vs_68df09dd7b2c819180c8e6b7ac3acbe2"]
           bank_array: ["Choice Bank"]
+          ui_layout: intro
+          ai_enabled: true
       onboarding:   # TODO: implement in onboarding navigation partials
         default:
           - setup
@@ -38,10 +42,11 @@ default: &default
           name: Chancen Rwanda
           type: financial
           country: rw
-          ui_layout: intro
           pei_array: []
           vector_store_id_array: []
           bank_array: ["Equity Bank"]
+          ui_layout: intro
+          ai_enabled: true
       onboarding:   # TODO: implement in onboarding navigation partials
         default:
           - setup

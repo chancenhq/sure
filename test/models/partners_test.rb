@@ -26,6 +26,15 @@ class PartnersTest < ActiveSupport::TestCase
     assert_equal [ "Choice Bank" ], partner.default_metadata["bank_array"]
   end
 
+  test "partner configuration exposes user defaults" do
+    partner = Partners.find("chancen-ke")
+
+    assert_not_nil partner
+    assert_equal true, partner.user_defaults["ai_enabled"]
+    assert_equal "intro", partner.user_defaults["ui_layout"]
+    assert_nil partner.default_metadata["ui_layout"]
+  end
+
   test "reset clears cached registry" do
     Partners.default
     Partners.reset!

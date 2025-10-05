@@ -63,7 +63,15 @@ class Partners::OnboardingStepsTest < ActiveSupport::TestCase
         "streamlined" => {
           "name" => "Streamlined",
           "metadata" => {
-            "defaults" => { "key" => "streamlined" }
+            "defaults" => {
+              "key" => "streamlined",
+              "currency" => "CAD",
+              "locale" => "fr",
+              "country" => "ca",
+              "date_format" => "%d/%m/%Y",
+              "ui_layout" => "intro",
+              "ai_enabled" => true
+            }
           },
           "onboarding" => {
             "steps" => %w[goals]
@@ -73,12 +81,16 @@ class Partners::OnboardingStepsTest < ActiveSupport::TestCase
     )
 
     partner = Partners.default
+    assert_equal "intro", partner.user_defaults["ui_layout"]
+    @user.family.update_columns(locale: nil, currency: nil, date_format: nil, country: nil)
+    @user.family.reload
     @user.update!(
       first_name: nil,
       last_name: nil,
       theme: nil,
       set_onboarding_preferences_at: nil,
-      partner_metadata: partner.default_metadata
+      partner_metadata: partner.default_metadata,
+      ai_enabled: false
     )
 
     travel_to Time.current do
@@ -91,5 +103,51 @@ class Partners::OnboardingStepsTest < ActiveSupport::TestCase
     assert_nil @user.last_name
     assert_equal "system", @user.theme
     assert_not_nil @user.set_onboarding_preferences_at
+    assert_equal "fr", family.locale
+    assert_equal "CAD", family.currency
+    assert_equal "%d/%m/%Y", family.date_format
+    assert_equal "ca", family.country
+    assert @user.ai_enabled
+    assert_equal "intro", @user.ui_layout
+  end
+
+  test "auto complete preferences falls back to default values when partner missing metadata" do
+    Partners.configure(
+      "partners" => {
+        "lean" => {
+          "name" => "Lean",
+          "metadata" => {
+            "defaults" => { "key" => "lean" }
+          },
+          "onboarding" => {
+            "steps" => %w[goals]
+          }
+        }
+      }
+    )
+
+    partner = Partners.default
+    @user.family.update_columns(locale: nil, currency: nil, date_format: nil, country: nil)
+    @user.family.reload
+    @user.update!(
+      first_name: nil,
+      theme: nil,
+      set_onboarding_preferences_at: nil,
+      partner_metadata: partner.default_metadata,
+      ai_enabled: false
+    )
+
+    travel_to Time.current do
+      Partners::OnboardingSteps.auto_complete_missing_steps!(partner: partner, user: @user)
+    end
+
+    family = @user.family.reload
+
+    assert_equal "en", family.locale
+    assert_equal "USD", family.currency
+    assert_equal "%Y-%m-%d", family.date_format
+    assert_equal "US", family.country
+    @user.reload
+    assert_not @user.ai_enabled
   end
 end

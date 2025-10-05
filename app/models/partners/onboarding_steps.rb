@@ -85,9 +85,11 @@ module Partners
 
     def auto_complete_missing_steps!(partner:, user:)
       missing_keys = AUTO_COMPLETABLE_KEYS - enabled_keys(partner)
-      return if missing_keys.empty?
 
       user.with_lock do
+        apply_user_defaults!(user, partner)
+        return if missing_keys.empty?
+
         missing_keys.each do |key|
           case key
           when "setup"
@@ -140,24 +142,50 @@ module Partners
       result
     end
 
-    def preferences_family_defaults_for(user)
+    def preferences_family_defaults_for(user, partner:)
       family = user.family
       return {} unless family
 
+      partner_defaults = partner&.default_metadata || {}
       defaults = {}
-      defaults[:locale] = I18n.default_locale.to_s if family.locale.blank?
-      defaults[:currency] = default_currency_iso_code if family.currency.blank?
-      defaults[:date_format] = Family::DATE_FORMATS.first.last if family.date_format.blank?
 
-      partner_country = user.partner_attribute(:country)
-      defaults[:country] = partner_country if family.country.blank? && partner_country.present?
-      defaults.compact
+      if family.locale.blank?
+        defaults[:locale] = partner_defaults["locale"].presence || FAMILY_FALLBACKS[:locale]
+      end
+
+      if family.currency.blank?
+        defaults[:currency] = partner_defaults["currency"].presence || FAMILY_FALLBACKS[:currency]
+      end
+
+      if family.date_format.blank?
+        defaults[:date_format] = partner_defaults["date_format"].presence || FAMILY_FALLBACKS[:date_format]
+      end
+
+      if family.country.blank?
+        defaults[:country] = partner_defaults["country"].presence ||
+          user.partner_attribute(:country).presence ||
+          FAMILY_FALLBACKS[:country]
+      end
+
+      defaults
     end
 
-    def default_currency_iso_code
-      Money.default_currency&.iso_code
-    rescue Money::Currency::UnknownCurrency
-      "USD"
+    def apply_user_defaults!(user, partner)
+      defaults = partner&.user_defaults || {}
+      return if defaults.blank?
+
+      updates = {}
+      defaults.each do |attribute, value|
+        attribute_name = attribute.to_s
+        setter = "#{attribute_name}="
+        next unless user.respond_to?(setter)
+        current = user.respond_to?(attribute_name) ? user.public_send(attribute_name) : nil
+        next if current == value
+
+        updates[attribute_name] = value
+      end
+
+      user.update!(updates) if updates.any?
     end
 
     def default_first_name_for(user)
