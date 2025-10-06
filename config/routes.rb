@@ -40,6 +40,7 @@ Rails.application.routes.draw do
     resource :registration, only: %i[new create], controller: "partner_registrations" do
       get :welcome
       get :privacy
+      get :consent
     end
 
     resource :onboarding, only: :show, controller: "partner_onboardings" do
