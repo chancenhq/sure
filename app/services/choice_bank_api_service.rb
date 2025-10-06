@@ -1,0 +1,182 @@
+require "digest"
+require "securerandom"
+require "json"
+
+class ChoiceBankApiService
+  BASE_URL = ENV.fetch("CHOICE_BANK_API_URL", "https://baas-pilot.choicebankapi.com")
+  PRIVATE_KEY = ENV.fetch("CHOICE_BANK_PRIVATE_KEY", "")
+  SENDER_ID = ENV.fetch("CHOICE_BANK_SENDER_ID", "zamuka")
+  ONBOARDING_ENDPOINT = "/onboarding/v3/submitEasyOnboardingRequest"
+
+  class << self
+    def submit_kyc(kyc_data, user)
+      return { success: false, error: "KYC data is missing" } unless kyc_data.present?
+
+      # Validate that we have the necessary credentials
+      unless PRIVATE_KEY.present?
+        Rails.logger.error "Choice Bank API: Missing CHOICE_BANK_PRIVATE_KEY"
+        return { success: false, error: "Choice Bank API is not configured. Please set CHOICE_BANK_PRIVATE_KEY." }
+      end
+
+      # Prepare the request payload for Choice Bank
+      request_payload = prepare_onboarding_request(kyc_data, user)
+
+      # Make actual API call with proper authentication
+      Rails.logger.info "Submitting KYC to Choice Bank API for user #{user.id}"
+      Rails.logger.error " - full request payload: #{request_payload}"
+      response = make_authenticated_request(ONBOARDING_ENDPOINT, request_payload)
+      handle_api_response(response, user)
+    end
+
+    private
+
+      def prepare_onboarding_request(kyc_data, user)
+        # Ensure birthday is properly formatted as YYYY-MM-DD string
+        birthday_value = if kyc_data[:birthday].is_a?(Date)
+          kyc_data[:birthday].strftime("%Y-%m-%d")
+        elsif kyc_data[:birthday].present?
+          # Parse and reformat to ensure consistent format
+          Date.parse(kyc_data[:birthday].to_s).strftime("%Y-%m-%d") rescue kyc_data[:birthday]
+        else
+          nil
+        end
+
+        {
+          firstName: kyc_data[:firstName],
+          middleName: kyc_data[:middleName],
+          lastName: kyc_data[:lastName],
+          birthday: birthday_value,
+          gender: kyc_data[:gender],
+          countryCode: kyc_data[:countryCode] || "KE",
+          mobilePhone: kyc_data[:mobilePhone],
+          idType: kyc_data[:idType],
+          idNumber: kyc_data[:idNumber],
+          kraPin: kyc_data[:kraPin],
+          email: kyc_data[:email],
+          address: kyc_data[:address] || "",
+          frontSidePhoto: kyc_data[:frontSidePhoto],
+          backSidePhoto: kyc_data[:backSidePhoto],
+          selfiePhoto: kyc_data[:selfiePhoto],
+          externalUserId: user.id.to_s
+        }
+      end
+
+      def make_authenticated_request(endpoint, params)
+        # Generate request ID and salt
+        request_id = generate_request_id
+        salt = generate_salt
+        timestamp = (Time.current.to_f * 1000).to_i
+
+        # Build the request structure
+        request_body = {
+          requestId: request_id,
+          sender: SENDER_ID,
+          locale: "en_KE",
+          timestamp: timestamp,
+          salt: salt,
+          params: params
+        }
+
+        # Generate signature
+        signature = generate_signature(request_body)
+
+        # Add signature to request
+        request_body[:signature] = signature
+
+        # Make the HTTP request
+        uri = URI("#{BASE_URL}#{endpoint}")
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.use_ssl = true
+        http.read_timeout = 30
+        http.open_timeout = 10
+
+        request = Net::HTTP::Post.new(uri)
+        request["Content-Type"] = "application/json"
+        request["Accept"] = "application/json"
+        request.body = request_body.to_json
+
+        Rails.logger.info "Sending request to Choice Bank API: #{endpoint}"
+
+        response = http.request(request)
+        parsed_response = JSON.parse(response.body)
+
+        Rails.logger.info "Choice Bank API response status: #{response.code}"
+
+        # Log full response for debugging signature issues
+        if parsed_response["code"] == "12004" || parsed_response["msg"]&.include?("signature")
+          Rails.logger.error "Choice Bank Signature Error Details:"
+          Rails.logger.error " - Response code: #{parsed_response['code']}"
+          Rails.logger.error " - Response message: #{parsed_response['msg']}"
+          Rails.logger.error " - Full response: #{parsed_response.inspect}"
+        end
+
+        parsed_response
+      rescue => e
+        Rails.logger.error "Choice Bank API request failed: #{e.message}"
+        Rails.logger.error e.backtrace.join("\n")
+        { "error" => e.message, "success" => false }
+      end
+
+      def generate_signature(request_body)
+        # Add the private key temporarily for signature generation
+        signing_data = request_body.dup
+        signing_data[:senderKey] = PRIVATE_KEY
+
+        # Convert to alphabetically sorted JSON string
+        sorted_json = sort_hash_alphabetically(signing_data).to_json
+
+        # Debug logging for signature generation
+        Rails.logger.info "Choice Bank Signature Debug:"
+        Rails.logger.info " - Salt: #{request_body[:salt]}"
+        Rails.logger.info " - Timestamp: #{request_body[:timestamp]}"
+        Rails.logger.info " - RequestId: #{request_body[:requestId]}"
+        Rails.logger.info " - Sorted keys: #{signing_data.keys.sort.join(', ')}"
+        Rails.logger.info " - JSON length: #{sorted_json.length}"
+        Rails.logger.info " - First 100 chars of sorted JSON: #{sorted_json[0..100]}..."
+
+        # Generate SHA-256 hash
+        signature = Digest::SHA256.hexdigest(sorted_json)
+        Rails.logger.info " - Generated signature: #{signature[0..20]}..."
+
+        signature
+      end
+
+      def sort_hash_alphabetically(hash)
+        sorted = {}
+        hash.keys.sort.each do |key|
+          value = hash[key]
+          sorted[key] = value.is_a?(Hash) ? sort_hash_alphabetically(value) : value
+        end
+        sorted
+      end
+
+      def generate_request_id
+        # Format: APPREQ + Unix millisecond timestamp + random hex
+        timestamp = (Time.current.to_f * 1000).to_i
+        random_hex = SecureRandom.hex(4)
+        "APPREQ#{timestamp}#{random_hex}"
+      end
+
+      def generate_salt
+        # Generate a random alphanumeric salt
+        SecureRandom.alphanumeric(10)
+      end
+
+      def handle_api_response(response, user)
+        if response["success"] || response["status"] == "success"
+          account_id = response["accountId"] || response["data"]&.dig("accountId")
+          Rails.logger.info "Choice Bank KYC submitted successfully for user #{user.id}: Account #{account_id}"
+
+          # Optionally send confirmation email
+          # UserMailer.choice_bank_account_created(user, account_id).deliver_later if account_id
+
+          { success: true, account_id: account_id, message: response["message"] }
+        else
+          error_message = response["error"] || response["message"] || "KYC submission failed"
+          Rails.logger.error "Choice Bank KYC submission failed for user #{user.id}: #{error_message}"
+          Rails.logger.error " - full response: #{response}"
+          { success: false, error: error_message }
+        end
+      end
+  end
+end
