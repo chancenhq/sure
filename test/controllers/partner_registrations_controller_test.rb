@@ -15,7 +15,14 @@ class PartnerRegistrationsControllerTest < ActionDispatch::IntegrationTest
     get privacy_partner_registration_url(partner_key: @partner_key)
     assert_response :success
     assert_select "a[href='#{new_session_path(partner_key: @partner_key)}']", text: I18n.t("partner_registrations.privacy.agree_cta")
-    assert_select "a[href='about:blank']", text: I18n.t("partner_registrations.privacy.learn_more_cta")
+    assert_select "a[href='#{consent_partner_registration_path(partner_key: @partner_key)}']", text: I18n.t("partner_registrations.privacy.learn_more_cta")
+  end
+
+  test "consent" do
+    get consent_partner_registration_url(partner_key: @partner_key)
+    assert_response :success
+    assert_select "h2", text: I18n.t("partner_registrations.consent.sections.what_is_this_about.title")
+    assert_select "a[href='#{new_session_path(partner_key: @partner_key)}']", text: I18n.t("partner_registrations.consent.agree_cta")
   end
 
   test "new" do

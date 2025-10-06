@@ -10,6 +10,8 @@ class PartnerRegistrationsController < RegistrationsController
 
   def privacy; end
 
+  def consent; end
+
   def create
     if @invitation
       @user.family = @invitation.family

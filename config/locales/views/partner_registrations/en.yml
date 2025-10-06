@@ -35,3 +35,48 @@ en:
       agreement: "By continuing, you agree to participate in this preview version."
       agree_cta: "I Agree & Continue"
       learn_more_cta: "Learn More"
+    consent:
+      heading: "Member Consent Form"
+      sections:
+        what_is_this_about:
+          title: "What Is This About?"
+          body: "We are pre-launching a financial literacy mobile application to help our members improve their money management skills, including the impact of the Chancen ISA. The first feature we are introducing is an AI chatbot that answers your Chancen ISA and financial questions. We invite you to participate in this pre-launch phase to help us improve the app. This form explains what information we collect and how we use it."
+        data_collection:
+          title: "What Information Do We Collect?"
+          intro: "When you participate in our pre-launch, we collect:"
+          bullets:
+            email: "Your email address - to create your account and contact you if needed"
+            conversations: "Your conversations with the chatbot - we record the full content of your chats with the bot, but we remove your name and identifying details before analysis"
+        data_use:
+          title: "How Do We Use Your Information?"
+          bullets:
+            email: "Email address: Account creation, communication about the app, and product updates"
+            conversations: "Chat conversations: We analyse the content to understand how our members use the chatbot, identify what works well, and make improvements to help current and future members learn better"
+        privacy_protection:
+          title: "How We Protect Your Privacy"
+          bullets:
+            anonymised: "Your chat conversations are anonymised - your name is removed before our team reviews them"
+            personalisation: "The chatbot can still personalise responses to you during and across sessions"
+            security: "We store your data securely, and only authorised team members can access it"
+            compliance: "We comply with the Kenya Data Protection Act, 2019"
+        your_rights:
+          title: "Your Rights"
+          bullets:
+            correction: "Request correction of any incorrect information"
+            withdraw: "Withdraw your consent and request deletion of your data at any time"
+            questions: "Ask questions about how we process your data"
+        voluntary_participation:
+          title: "Voluntary Participation"
+          bullets:
+            voluntary: "Your participation is completely voluntary"
+            stop_anytime: "You can stop using the app at any time"
+            no_effect: "Choosing not to participate will not affect you negatively in any way"
+        data_retention:
+          title: "Data Retention"
+          body: "We will keep your data only as long as necessary for product improvement purposes. You may request deletion of your data at any time by contacting us."
+        your_consent:
+          title: "Your Consent"
+          body: "By agreeing below, I confirm that I have read and understood this consent form, understand what information is being collected and how it will be used, voluntarily agree to participate in this pre-launch, understand I can withdraw my consent at any time, confirm that I am 18 years old or above, and agree to the terms and conditions mentioned in this document."
+      agree_cta: "I Agree"
+      back_cta: "Back"
+      compliance_notice: "This consent form complies with the Kenya Data Protection Act, 2019."
