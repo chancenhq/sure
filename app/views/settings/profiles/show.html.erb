@@ -25,6 +25,7 @@
   <% end %>
 <% end %>
 
+<% unless Current.user&.intro? %>
 <%= settings_section title: t(".household_title"), subtitle: t(".household_subtitle") do %>
   <div class="space-y-4">
     <%= styled_form_with model: Current.user, class: "space-y-4", data: { controller: "auto-submit-form" } do |form| %>
@@ -120,6 +121,7 @@
       <% end %>
     </div>
   </div>
+<% end %>
 <% end %>
 
 <%= settings_section title: t(".danger_zone_title") do %>

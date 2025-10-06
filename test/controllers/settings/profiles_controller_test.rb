@@ -9,7 +9,23 @@ class Settings::ProfilesControllerTest < ActionDispatch::IntegrationTest
   test "should get show" do
     sign_in @admin
     get settings_profile_path
+
     assert_response :success
+    assert_select "#mobile-settings-nav"
+    assert_select 'div[data-controller="app-layout"]', count: 0
+    assert_select "h2", text: I18n.t("settings.profiles.show.household_title")
+  end
+
+  test "intro user can view profile" do
+    @admin.update!(ui_layout: :intro)
+    sign_in @admin
+
+    get settings_profile_path
+
+    assert_response :success
+    assert_select 'div[data-controller="app-layout"]'
+    assert_select "#mobile-settings-nav", count: 0
+    assert_select "h2", text: I18n.t("settings.profiles.show.household_title"), count: 0
   end
 
   test "admin can remove a family member" do
