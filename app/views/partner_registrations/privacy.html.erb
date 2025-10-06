@@ -21,7 +21,7 @@
   <p class="text-secondary leading-relaxed"><%= current_partner&.translation(:registration, :privacy, :agreement, default: t(".agreement")) %></p>
 
   <div class="flex flex-col gap-3 pt-4 sm:flex-row">
-    <%= render DS::Link.new(text: current_partner&.translation(:registration, :privacy, :agree_cta, default: t(".agree_cta")), href: new_partner_registration_path(partner_key: @partner.key), variant: :primary, full_width: true, class: "sm:w-1/2") %>
-    <%= render DS::Link.new(text: current_partner&.translation(:registration, :privacy, :learn_more_cta, default: t(".learn_more_cta")), href: "about:blank", variant: :primary, full_width: true, class: "sm:w-1/2") %>
+    <%= render DS::Link.new(text: current_partner&.translation(:registration, :privacy, :agree_cta, default: t(".agree_cta")), href: new_session_path(partner_key: @partner.key), variant: :primary, full_width: true, class: "sm:w-1/2") %>
+    <%= render DS::Link.new(text: current_partner&.translation(:registration, :privacy, :learn_more_cta, default: t(".learn_more_cta")), href: consent_partner_registration_path(partner_key: @partner.key), variant: :primary, full_width: true, class: "sm:w-1/2") %>
   </div>
 </div>

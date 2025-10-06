@@ -1,0 +1,73 @@
+<%
+  header_title current_partner&.translation(:registration, :consent, :heading, default: t(".heading"))
+%>
+<br />
+<br />
+<div class="max-w-3xl mx-auto space-y-8 bg-surface-inset border border-secondary rounded-2xl p-8 text-primary">
+  <section class="space-y-2">
+    <h2 class="text-xl font-semibold text-primary"><%= current_partner&.translation(:registration, :consent, :sections, :what_is_this_about, :title, default: t(".sections.what_is_this_about.title")) %></h2>
+    <p class="text-secondary leading-relaxed"><%= current_partner&.translation(:registration, :consent, :sections, :what_is_this_about, :body, default: t(".sections.what_is_this_about.body")) %></p>
+  </section>
+
+  <section class="space-y-2">
+    <h2 class="text-xl font-semibold text-primary"><%= current_partner&.translation(:registration, :consent, :sections, :data_collection, :title, default: t(".sections.data_collection.title")) %></h2>
+    <p class="text-secondary leading-relaxed"><%= current_partner&.translation(:registration, :consent, :sections, :data_collection, :intro, default: t(".sections.data_collection.intro")) %></p>
+    <ul class="list-disc pl-6 space-y-2 text-secondary leading-relaxed">
+      <li><%= current_partner&.translation(:registration, :consent, :sections, :data_collection, :bullets, :email, default: t(".sections.data_collection.bullets.email")) %></li>
+      <li><%= current_partner&.translation(:registration, :consent, :sections, :data_collection, :bullets, :conversations, default: t(".sections.data_collection.bullets.conversations")) %></li>
+    </ul>
+  </section>
+
+  <section class="space-y-2">
+    <h2 class="text-xl font-semibold text-primary"><%= current_partner&.translation(:registration, :consent, :sections, :data_use, :title, default: t(".sections.data_use.title")) %></h2>
+    <ul class="list-disc pl-6 space-y-2 text-secondary leading-relaxed">
+      <li><%= current_partner&.translation(:registration, :consent, :sections, :data_use, :bullets, :email, default: t(".sections.data_use.bullets.email")) %></li>
+      <li><%= current_partner&.translation(:registration, :consent, :sections, :data_use, :bullets, :conversations, default: t(".sections.data_use.bullets.conversations")) %></li>
+    </ul>
+  </section>
+
+  <section class="space-y-2">
+    <h2 class="text-xl font-semibold text-primary"><%= current_partner&.translation(:registration, :consent, :sections, :privacy_protection, :title, default: t(".sections.privacy_protection.title")) %></h2>
+    <ul class="list-disc pl-6 space-y-2 text-secondary leading-relaxed">
+      <li><%= current_partner&.translation(:registration, :consent, :sections, :privacy_protection, :bullets, :anonymised, default: t(".sections.privacy_protection.bullets.anonymised")) %></li>
+      <li><%= current_partner&.translation(:registration, :consent, :sections, :privacy_protection, :bullets, :personalisation, default: t(".sections.privacy_protection.bullets.personalisation")) %></li>
+      <li><%= current_partner&.translation(:registration, :consent, :sections, :privacy_protection, :bullets, :security, default: t(".sections.privacy_protection.bullets.security")) %></li>
+      <li><%= current_partner&.translation(:registration, :consent, :sections, :privacy_protection, :bullets, :compliance, default: t(".sections.privacy_protection.bullets.compliance")) %></li>
+    </ul>
+  </section>
+
+  <section class="space-y-2">
+    <h2 class="text-xl font-semibold text-primary"><%= current_partner&.translation(:registration, :consent, :sections, :your_rights, :title, default: t(".sections.your_rights.title")) %></h2>
+    <ul class="list-disc pl-6 space-y-2 text-secondary leading-relaxed">
+      <li><%= current_partner&.translation(:registration, :consent, :sections, :your_rights, :bullets, :correction, default: t(".sections.your_rights.bullets.correction")) %></li>
+      <li><%= current_partner&.translation(:registration, :consent, :sections, :your_rights, :bullets, :withdraw, default: t(".sections.your_rights.bullets.withdraw")) %></li>
+      <li><%= current_partner&.translation(:registration, :consent, :sections, :your_rights, :bullets, :questions, default: t(".sections.your_rights.bullets.questions")) %></li>
+    </ul>
+  </section>
+
+  <section class="space-y-2">
+    <h2 class="text-xl font-semibold text-primary"><%= current_partner&.translation(:registration, :consent, :sections, :voluntary_participation, :title, default: t(".sections.voluntary_participation.title")) %></h2>
+    <ul class="list-disc pl-6 space-y-2 text-secondary leading-relaxed">
+      <li><%= current_partner&.translation(:registration, :consent, :sections, :voluntary_participation, :bullets, :voluntary, default: t(".sections.voluntary_participation.bullets.voluntary")) %></li>
+      <li><%= current_partner&.translation(:registration, :consent, :sections, :voluntary_participation, :bullets, :stop_anytime, default: t(".sections.voluntary_participation.bullets.stop_anytime")) %></li>
+      <li><%= current_partner&.translation(:registration, :consent, :sections, :voluntary_participation, :bullets, :no_effect, default: t(".sections.voluntary_participation.bullets.no_effect")) %></li>
+    </ul>
+  </section>
+
+  <section class="space-y-2">
+    <h2 class="text-xl font-semibold text-primary"><%= current_partner&.translation(:registration, :consent, :sections, :data_retention, :title, default: t(".sections.data_retention.title")) %></h2>
+    <p class="text-secondary leading-relaxed"><%= current_partner&.translation(:registration, :consent, :sections, :data_retention, :body, default: t(".sections.data_retention.body")) %></p>
+  </section>
+
+  <section class="space-y-2">
+    <h2 class="text-xl font-semibold text-primary"><%= current_partner&.translation(:registration, :consent, :sections, :your_consent, :title, default: t(".sections.your_consent.title")) %></h2>
+    <p class="text-secondary leading-relaxed"><%= current_partner&.translation(:registration, :consent, :sections, :your_consent, :body, default: t(".sections.your_consent.body")) %></p>
+  </section>
+
+  <div class="flex flex-col gap-3 pt-4 sm:flex-row">
+    <%= render DS::Link.new(text: current_partner&.translation(:registration, :consent, :agree_cta, default: t(".agree_cta")), href: new_session_path(partner_key: @partner.key), variant: :primary, full_width: true, class: "sm:w-1/2") %>
+    <%= render DS::Link.new(text: current_partner&.translation(:registration, :consent, :back_cta, default: t(".back_cta")), href: privacy_partner_registration_path(partner_key: @partner.key), variant: :ghost, full_width: true, class: "sm:w-1/2") %>
+  </div>
+
+  <p class="text-xs text-secondary text-center"><%= current_partner&.translation(:registration, :consent, :compliance_notice, default: t(".compliance_notice")) %></p>
+</div>
