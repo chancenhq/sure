@@ -40,9 +40,9 @@ class PagesController < ApplicationController
   def intro
     @breadcrumbs = [ [ "Insights*", nil ] ]
     @intro_prompts = [
-      { title: "Evaluate investment portfolio", description: "Get a quick health check of your accounts." },
-      { title: "Show spending insights", description: "Spot trends without diving into every transaction." },
-      { title: "Find unusual patterns", description: "Let Companion watch for anything that needs attention." }
+      { title: nil, description: "Transport costs keep changing, making budgeting tricky. You can save 5% by cutting back on uncategorised spending to build a buffer. Most of your money goes to essentials, housing and food take up over half your budget." },
+      { title: "Show spending insights", description: "We update this data weekly with fresh insights." },
+      { title: "💡 Your Turn Soon", description: "You will soon be able to get personalized insights just like this!" }
     ]
 
     render "pages/intro/index"

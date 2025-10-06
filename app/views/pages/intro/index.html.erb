@@ -6,35 +6,80 @@
 
 <div class="max-w-xl mx-auto space-y-8 py-6">
   <section class="space-y-4">
-    <h1 class="text-2xl font-semibold text-primary">Welcome back, <%= Current.user.display_name %>!</h1>
+    <h1 class="text-2xl font-semibold text-primary">Budget Analyser Preview - Coming Soon!</h1>
     <p class="text-base text-secondary">
-      Companion can help you make sense of your finances without the clutter. Ask a question to get personalized insights or pick one of the quick ideas below to get started.
+      See how average students in Nairobi spend their money.
     </p>
   </section>
 
   <section class="space-y-3">
-    <h2 class="text-sm font-semibold text-tertiary tracking-wide uppercase">Quick ideas</h2>
+    <div data-controller="sankey-chart" data-sankey-chart-data-value="{&quot;nodes&quot;:[{&quot;name&quot;:&quot;Cash Flow&quot;,&quot;value&quot;:101618.0,&quot;percentage&quot;:100.0,&quot;color&quot;:&quot;var(--color-success)&quot;},{&quot;name&quot;:&quot;Formal Salary&quot;,&quot;value&quot;:70877.0,&quot;percentage&quot;:69.7,&quot;color&quot;:&quot;#15803d&quot;},{&quot;name&quot;:&quot;Uncategorized&quot;,&quot;value&quot;:30741.0,&quot;percentage&quot;:30.3,&quot;color&quot;:&quot;#737373&quot;},{&quot;name&quot;:&quot;Housing&quot;,&quot;value&quot;:25831.0,&quot;percentage&quot;:27.4,&quot;color&quot;:&quot;#ef4444&quot;},{&quot;name&quot;:&quot;Food \u0026 Markets&quot;,&quot;value&quot;:19713.0,&quot;percentage&quot;:20.9,&quot;color&quot;:&quot;#f97316&quot;},{&quot;name&quot;:&quot;Transport&quot;,&quot;value&quot;:968.0,&quot;percentage&quot;:1.0,&quot;color&quot;:&quot;#2563eb&quot;},{&quot;name&quot;:&quot;Health&quot;,&quot;value&quot;:1200.0,&quot;percentage&quot;:1.3,&quot;color&quot;:&quot;#db2777&quot;},{&quot;name&quot;:&quot;Communication&quot;,&quot;value&quot;:7993.0,&quot;percentage&quot;:8.5,&quot;color&quot;:&quot;#0891b2&quot;},{&quot;name&quot;:&quot;Family Support&quot;,&quot;value&quot;:6149.0,&quot;percentage&quot;:6.5,&quot;color&quot;:&quot;#facc15&quot;},{&quot;name&quot;:&quot;Tithes \u0026 Offerings&quot;,&quot;value&quot;:1642.0,&quot;percentage&quot;:1.7,&quot;color&quot;:&quot;#d97706&quot;},{&quot;name&quot;:&quot;Uncategorized&quot;,&quot;value&quot;:30741.0,&quot;percentage&quot;:32.6,&quot;color&quot;:&quot;#737373&quot;},{&quot;name&quot;:&quot;Surplus&quot;,&quot;value&quot;:7381.0,&quot;percentage&quot;:7.3,&quot;color&quot;:&quot;var(--color-success)&quot;}],&quot;links&quot;:[{&quot;source&quot;:1,&quot;target&quot;:0,&quot;value&quot;:70877.0,&quot;color&quot;:&quot;#15803d&quot;,&quot;percentage&quot;:69.7},{&quot;source&quot;:2,&quot;target&quot;:0,&quot;value&quot;:30741.0,&quot;color&quot;:&quot;#737373&quot;,&quot;percentage&quot;:30.3},{&quot;source&quot;:0,&quot;target&quot;:3,&quot;value&quot;:25831.0,&quot;color&quot;:&quot;#ef4444&quot;,&quot;percentage&quot;:27.4},{&quot;source&quot;:0,&quot;target&quot;:4,&quot;value&quot;:19713.0,&quot;color&quot;:&quot;#f97316&quot;,&quot;percentage&quot;:20.9},{&quot;source&quot;:0,&quot;target&quot;:5,&quot;value&quot;:968.0,&quot;color&quot;:&quot;#2563eb&quot;,&quot;percentage&quot;:1.0},{&quot;source&quot;:0,&quot;target&quot;:6,&quot;value&quot;:1200.0,&quot;color&quot;:&quot;#db2777&quot;,&quot;percentage&quot;:1.3},{&quot;source&quot;:0,&quot;target&quot;:7,&quot;value&quot;:7993.0,&quot;color&quot;:&quot;#0891b2&quot;,&quot;percentage&quot;:8.5},{&quot;source&quot;:0,&quot;target&quot;:8,&quot;value&quot;:6149.0,&quot;color&quot;:&quot;#facc15&quot;,&quot;percentage&quot;:6.5},{&quot;source&quot;:0,&quot;target&quot;:9,&quot;value&quot;:1642.0,&quot;color&quot;:&quot;#d97706&quot;,&quot;percentage&quot;:1.7},{&quot;source&quot;:0,&quot;target&quot;:10,&quot;value&quot;:30741.0,&quot;color&quot;:&quot;#737373&quot;,&quot;percentage&quot;:32.6},{&quot;source&quot;:0,&quot;target&quot;:11,&quot;value&quot;:7381.0,&quot;color&quot;:&quot;var(--color-success)&quot;,&quot;percentage&quot;:7.3}],&quot;currency_symbol&quot;:&quot;KSh&quot;}" data-sankey-chart-currency-symbol-value="KSh" class="w-full h-full"><svg width="406" height="384"><defs><linearGradient id="link-gradient-1-0-0" gradientUnits="userSpaceOnUse" x1="31" x2="195.5"><stop offset="0%" stop-color="rgba(21, 128, 61, 0.1)"></stop><stop offset="100%" stop-color="rgba(16, 168, 97, 0.1)"></stop></linearGradient><linearGradient id="link-gradient-2-0-1" gradientUnits="userSpaceOnUse" x1="31" x2="195.5"><stop offset="0%" stop-color="rgba(115, 115, 115, 0.1)"></stop><stop offset="100%" stop-color="rgba(16, 168, 97, 0.1)"></stop></linearGradient><linearGradient id="link-gradient-0-3-2" gradientUnits="userSpaceOnUse" x1="210.5" x2="375"><stop offset="0%" stop-color="rgba(16, 168, 97, 0.1)"></stop><stop offset="100%" stop-color="rgba(239, 68, 68, 0.1)"></stop></linearGradient><linearGradient id="link-gradient-0-4-3" gradientUnits="userSpaceOnUse" x1="210.5" x2="375"><stop offset="0%" stop-color="rgba(16, 168, 97, 0.1)"></stop><stop offset="100%" stop-color="rgba(249, 115, 22, 0.1)"></stop></linearGradient><linearGradient id="link-gradient-0-5-4" gradientUnits="userSpaceOnUse" x1="210.5" x2="375"><stop offset="0%" stop-color="rgba(16, 168, 97, 0.1)"></stop><stop offset="100%" stop-color="rgba(37, 99, 235, 0.1)"></stop></linearGradient><linearGradient id="link-gradient-0-6-5" gradientUnits="userSpaceOnUse" x1="210.5" x2="375"><stop offset="0%" stop-color="rgba(16, 168, 97, 0.1)"></stop><stop offset="100%" stop-color="rgba(219, 39, 119, 0.1)"></stop></linearGradient><linearGradient id="link-gradient-0-7-6" gradientUnits="userSpaceOnUse" x1="210.5" x2="375"><stop offset="0%" stop-color="rgba(16, 168, 97, 0.1)"></stop><stop offset="100%" stop-color="rgba(8, 145, 178, 0.1)"></stop></linearGradient><linearGradient id="link-gradient-0-8-7" gradientUnits="userSpaceOnUse" x1="210.5" x2="375"><stop offset="0%" stop-color="rgba(16, 168, 97, 0.1)"></stop><stop offset="100%" stop-color="rgba(250, 204, 21, 0.1)"></stop></linearGradient><linearGradient id="link-gradient-0-9-8" gradientUnits="userSpaceOnUse" x1="210.5" x2="375"><stop offset="0%" stop-color="rgba(16, 168, 97, 0.1)"></stop><stop offset="100%" stop-color="rgba(217, 119, 6, 0.1)"></stop></linearGradient><linearGradient id="link-gradient-0-10-9" gradientUnits="userSpaceOnUse" x1="210.5" x2="375"><stop offset="0%" stop-color="rgba(16, 168, 97, 0.1)"></stop><stop offset="100%" stop-color="rgba(115, 115, 115, 0.1)"></stop></linearGradient><linearGradient id="link-gradient-0-11-10" gradientUnits="userSpaceOnUse" x1="210.5" x2="375"><stop offset="0%" stop-color="rgba(16, 168, 97, 0.1)"></stop><stop offset="100%" stop-color="rgba(16, 168, 97, 0.1)"></stop></linearGradient></defs><g fill="none"><path class="sankey-link" d="M31,128.15693366111648C113.25,128.15693366111648,113.25,134.4157422508618,195.5,134.4157422508618" stroke="url(#link-gradient-1-0-0)" stroke-width="133.91706193784566" style="transition: opacity 0.3s;"></path><path class="sankey-link" d="M31,244.1569336611165C113.25,244.1569336611165,113.25,230.4157422508618,195.5,230.4157422508618" stroke="url(#link-gradient-2-0-1)" stroke-width="58.08293806215434" style="transition: opacity 0.3s;"></path><path class="sankey-link" d="M210.5,91.86013202432711C292.75,91.86013202432711,292.75,40.40292074238816,375,40.40292074238816" stroke="url(#link-gradient-0-3-2)" stroke-width="48.805841484776316" style="transition: opacity 0.3s;"></path><path class="sankey-link" d="M210.5,134.88621008136425C292.75,134.88621008136425,292.75,103.4289987994253,375,103.4289987994253" stroke="url(#link-gradient-0-4-3)" stroke-width="37.246314629297956" style="transition: opacity 0.3s;"></path><path class="sankey-link" d="M210.5,154.4238510504839C292.75,154.4238510504839,292.75,142.96663976854498,375,142.96663976854498" stroke="url(#link-gradient-0-5-4)" stroke-width="1.8289673089413292" style="transition: opacity 0.3s;"></path><path class="sankey-link" d="M210.5,156.47199212785208C292.75,156.47199212785208,292.75,165.01478084591315,375,165.01478084591315" stroke="url(#link-gradient-0-6-5)" stroke-width="2.267314845795036" style="transition: opacity 0.3s;"></path><path class="sankey-link" d="M210.5,165.15675270176612C292.75,165.15675270176612,292.75,193.69954141982723,375,193.69954141982723" stroke="url(#link-gradient-0-7-6)" stroke-width="15.102206302033103" style="transition: opacity 0.3s;"></path><path class="sankey-link" d="M210.5,178.51690543061338C292.75,178.51690543061338,292.75,227.05969414867448,375,227.05969414867448" stroke="url(#link-gradient-0-8-7)" stroke-width="11.618099155661398" style="transition: opacity 0.3s;"></path><path class="sankey-link" d="M210.5,185.8771762487755C292.75,185.8771762487755,292.75,254.41996496683663,375,254.41996496683663" stroke="url(#link-gradient-0-9-8)" stroke-width="3.1024424806628748" style="transition: opacity 0.3s;"></path><path class="sankey-link" d="M210.5,216.4698665201841C292.75,216.4698665201841,292.75,305.01265523824526,375,305.01265523824526" stroke="url(#link-gradient-0-10-9)" stroke-width="58.08293806215434" style="transition: opacity 0.3s;"></path><path class="sankey-link" d="M210.5,252.4842734166001C292.75,252.4842734166001,292.75,361.0270621346611,375,361.0270621346611" stroke="url(#link-gradient-0-11-10)" stroke-width="13.945875730677635" style="transition: opacity 0.3s;"></path></g><g><g style="transition: opacity 0.3s;"><path d="M 195.5,67.45721128193895 L 210.5,67.45721128193895 L 210.5,259.457211281939 L 195.5,259.457211281939 Z" fill="var(--color-success)" stroke="none"></path><text x="216.5" y="163.45721128193898" dy="-0.2em" text-anchor="start" class="text-xs font-medium text-primary fill-current select-none" style="cursor: default;"><tspan>Cash Flow</tspan><tspan x="216.5" dy="1.2em" class="font-mono text-secondary" style="font-size: 0.65rem;"><tspan>KSh101,618.00</tspan></tspan></text></g><g style="transition: opacity 0.3s;"><path d="M 24,61.19840269219365
+                L 31,61.19840269219365
+                L 31,195.11546463003933
+                L 24,195.11546463003933
+                Q 16,195.11546463003933 16,187.11546463003933
+                L 16,69.19840269219365
+                Q 16,61.19840269219365 24,61.19840269219365 Z" fill="#15803d" stroke="none"></path><text x="37" y="128.15693366111648" dy="-0.2em" text-anchor="start" class="text-xs font-medium text-primary fill-current select-none" style="cursor: default;"><tspan>Formal Salary</tspan><tspan x="37" dy="1.2em" class="font-mono text-secondary" style="font-size: 0.65rem;"><tspan>KSh70,877.00</tspan></tspan></text></g><g style="transition: opacity 0.3s;"><path d="M 24,215.11546463003933
+                L 31,215.11546463003933
+                L 31,273.1984026921936
+                L 24,273.1984026921936
+                Q 16,273.1984026921936 16,265.1984026921936
+                L 16,223.11546463003933
+                Q 16,215.11546463003933 24,215.11546463003933 Z" fill="#737373" stroke="none"></path><text x="37" y="244.15693366111645" dy="-0.2em" text-anchor="start" class="text-xs font-medium text-primary fill-current select-none" style="cursor: default;"><tspan>Uncategorized</tspan><tspan x="37" dy="1.2em" class="font-mono text-secondary" style="font-size: 0.65rem;"><tspan>KSh30,741.00</tspan></tspan></text></g><g style="transition: opacity 0.3s;"><path d="M 375,16
+                L 382,16
+                Q 390,16 390,24
+                L 390,56.80584148477632
+                Q 390,64.80584148477632 382,64.80584148477632
+                L 375,64.80584148477632 Z" fill="#ef4444" stroke="none"></path><text x="369" y="40.40292074238816" dy="-0.2em" text-anchor="end" class="text-xs font-medium text-primary fill-current select-none" style="cursor: default;"><tspan>Housing</tspan><tspan x="369" dy="1.2em" class="font-mono text-secondary" style="font-size: 0.65rem;"><tspan>KSh25,831.00</tspan></tspan></text></g><g style="transition: opacity 0.3s;"><path d="M 375,84.80584148477632
+                L 382,84.80584148477632
+                Q 390,84.80584148477632 390,92.80584148477632
+                L 390,114.05215611407432
+                Q 390,122.05215611407432 382,122.05215611407432
+                L 375,122.05215611407432 Z" fill="#f97316" stroke="none"></path><text x="369" y="103.42899879942533" dy="-0.2em" text-anchor="end" class="text-xs font-medium text-primary fill-current select-none" style="cursor: default;"><tspan>Food &amp; Markets</tspan><tspan x="369" dy="1.2em" class="font-mono text-secondary" style="font-size: 0.65rem;"><tspan>KSh19,713.00</tspan></tspan></text></g><g style="transition: opacity 0.3s;"><path d="M 375,142.0521561140743
+                L 389.08551634552936,142.0521561140743
+                Q 390,142.0521561140743 390,142.96663976854495
+                L 390,142.96663976854495
+                Q 390,143.88112342301562 389.08551634552936,143.88112342301562
+                L 375,143.88112342301562 Z" fill="#2563eb" stroke="none"></path><text x="369" y="142.96663976854495" dy="-0.2em" text-anchor="end" class="text-xs font-medium text-primary fill-current select-none" style="cursor: default;"><tspan>Transport</tspan><tspan x="369" dy="1.2em" class="font-mono text-secondary" style="font-size: 0.65rem;"><tspan>KSh968.00</tspan></tspan></text></g><g style="transition: opacity 0.3s;"><path d="M 375,163.88112342301562
+                L 388.8663425771025,163.88112342301562
+                Q 390,163.88112342301562 390,165.01478084591315
+                L 390,165.01478084591315
+                Q 390,166.14843826881068 388.8663425771025,166.14843826881068
+                L 375,166.14843826881068 Z" fill="#db2777" stroke="none"></path><text x="369" y="165.01478084591315" dy="-0.2em" text-anchor="end" class="text-xs font-medium text-primary fill-current select-none" style="cursor: default;"><tspan>Health</tspan><tspan x="369" dy="1.2em" class="font-mono text-secondary" style="font-size: 0.65rem;"><tspan>KSh1,200.00</tspan></tspan></text></g><g style="transition: opacity 0.3s;"><path d="M 375,186.14843826881068
+                L 382.44889684898345,186.14843826881068
+                Q 390,186.14843826881068 390,193.69954141982723
+                L 390,193.69954141982723
+                Q 390,201.25064457084378 382.44889684898345,201.25064457084378
+                L 375,201.25064457084378 Z" fill="#0891b2" stroke="none"></path><text x="369" y="193.69954141982723" dy="-0.2em" text-anchor="end" class="text-xs font-medium text-primary fill-current select-none" style="cursor: default;"><tspan>Communication</tspan><tspan x="369" dy="1.2em" class="font-mono text-secondary" style="font-size: 0.65rem;"><tspan>KSh7,993.00</tspan></tspan></text></g><g style="transition: opacity 0.3s;"><path d="M 375,221.25064457084378
+                L 384.1909504221693,221.25064457084378
+                Q 390,221.25064457084378 390,227.05969414867448
+                L 390,227.05969414867448
+                Q 390,232.8687437265052 384.1909504221693,232.8687437265052
+                L 375,232.8687437265052 Z" fill="#facc15" stroke="none"></path><text x="369" y="227.05969414867448" dy="-0.2em" text-anchor="end" class="text-xs font-medium text-primary fill-current select-none" style="cursor: default;"><tspan>Family Support</tspan><tspan x="369" dy="1.2em" class="font-mono text-secondary" style="font-size: 0.65rem;"><tspan>KSh6,149.00</tspan></tspan></text></g><g style="transition: opacity 0.3s;"><path d="M 375,252.8687437265052
+                L 388.4487787596686,252.8687437265052
+                Q 390,252.8687437265052 390,254.41996496683663
+                L 390,254.41996496683663
+                Q 390,255.97118620716807 388.4487787596686,255.97118620716807
+                L 375,255.97118620716807 Z" fill="#d97706" stroke="none"></path><text x="369" y="254.41996496683663" dy="-0.2em" text-anchor="end" class="text-xs font-medium text-primary fill-current select-none" style="cursor: default;"><tspan>Tithes &amp; Offerings</tspan><tspan x="369" dy="1.2em" class="font-mono text-secondary" style="font-size: 0.65rem;"><tspan>KSh1,642.00</tspan></tspan></text></g><g style="transition: opacity 0.3s;"><path d="M 375,275.9711862071681
+                L 382,275.9711862071681
+                Q 390,275.9711862071681 390,283.9711862071681
+                L 390,326.0541242693223
+                Q 390,334.0541242693223 382,334.0541242693223
+                L 375,334.0541242693223 Z" fill="#737373" stroke="none"></path><text x="369" y="305.0126552382452" dy="-0.2em" text-anchor="end" class="text-xs font-medium text-primary fill-current select-none" style="cursor: default;"><tspan>Uncategorized</tspan><tspan x="369" dy="1.2em" class="font-mono text-secondary" style="font-size: 0.65rem;"><tspan>KSh30,741.00</tspan></tspan></text></g><g style="transition: opacity 0.3s;"><path d="M 375,354.0541242693223
+                L 383.0270621346612,354.0541242693223
+                Q 390,354.0541242693223 390,361.0270621346611
+                L 390,361.0270621346611
+                Q 390,367.9999999999999 383.0270621346612,367.9999999999999
+                L 375,367.9999999999999 Z" fill="var(--color-success)" stroke="none"></path><text x="369" y="361.0270621346611" dy="-0.2em" text-anchor="end" class="text-xs font-medium text-primary fill-current select-none" style="cursor: default;"><tspan>Surplus</tspan><tspan x="369" dy="1.2em" class="font-mono text-secondary" style="font-size: 0.65rem;"><tspan>KSh7,381.00</tspan></tspan></text></g></g></svg></div>
+    </div>
     <div class="space-y-2">
       <% @intro_prompts.each do |prompt| %>
         <div class="bg-container border border-tertiary rounded-2xl p-4 space-y-1">
           <p class="font-medium text-primary"><%= prompt[:title] %></p>
           <p class="text-sm text-secondary"><%= prompt[:description] %></p>
         </div>
+        <div class="w-full h-96">
       <% end %>
     </div>
-  </section>
-
-  <section class="bg-container rounded-2xl p-6 space-y-4 border border-transparent shadow-border-xs">
-    <div class="space-y-2">
-      <h2 class="text-xl font-semibold text-primary">Ready when you are</h2>
-      <p class="text-secondary">
-        Ask anything and Companion will use your accounts, budgets, and spending history to answer.
-      </p>
-    </div>
-
-    <%= link_to companion_path, class: "inline-flex w-full justify-center items-center gap-2 px-4 py-3 rounded-xl bg-primary hover:bg-primary-hover text-inverse font-medium transition-colors" do %>
-      <%= icon("icon-assistant", custom: true) %>
-      <span>Open Companion</span>
-    <% end %>
   </section>
 </div>
