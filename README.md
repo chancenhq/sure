@@ -69,13 +69,15 @@ bin/setup
 bin/dev
 
 # Optionally, load demo data
-rake demo_data:default
+rake demo_data:default   # USA household dataset
+rake demo_data:kenya     # Kenya household dataset
 ```
 
-Visit http://localhost:3000 to view the app. You can log in with these demo credentials (from the DB seed):
+Visit http://localhost:3000 to view the app. You can log in with these demo credentials (from the demo data tasks):
 
-- Email: `user@example.com`
-- Password: `Password1!`
+- USA dataset admin: `demo.usa@example.com`
+- Kenya dataset admin: `demo.ke@example.com`
+- Password (both): `Password1!`
 
 For further instructions, see guides below.
 
