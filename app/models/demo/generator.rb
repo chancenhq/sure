@@ -81,7 +81,7 @@ class Demo::Generator
   end
 
   # Generate comprehensive realistic demo data with multi-currency
-  def generate_default_data!(skip_clear: false, email: "user@example.com")
+  def generate_default_data!(skip_clear: false, email: "demo.usa@example.com", family_name: "Demo Family (USA)")
     if skip_clear
       puts "⏭️  Skipping data clearing (appending new family)..."
     else
@@ -91,7 +91,22 @@ class Demo::Generator
 
     with_timing(__method__, max_seconds: 1000) do
       puts "👥 Creating demo family..."
-      family = create_family_and_users!("Demo Family", email, onboarded: true, subscribed: true)
+      family = create_family_and_users!(
+        family_name,
+        email,
+        onboarded: true,
+        subscribed: true,
+        family_attributes: {
+          currency: "USD",
+          locale: "en-US",
+          country: "US",
+          timezone: "America/New_York",
+          date_format: "%m-%d-%Y"
+        },
+        admin_attrs: { first_name: "Jack", last_name: "Bogle" },
+        member_attrs: { first_name: "Eve", last_name: "Bogle" },
+        member_email: "partner.usa@example.com"
+      )
 
       puts "📊 Creating realistic financial data..."
       create_realistic_categories!(family)
@@ -101,6 +116,45 @@ class Demo::Generator
       generate_budget_auto_fill!(family)
 
       puts "✅ Realistic demo data loaded successfully!"
+    end
+  end
+
+  def generate_kenya_data!(skip_clear: false, email: "demo.ke@example.com", family_name: "Demo Family (Kenya)")
+    if skip_clear
+      puts "⏭️  Skipping data clearing (appending new family)..."
+    else
+      puts "🧹 Clearing existing data..."
+      clear_all_data!
+    end
+
+    with_timing(__method__, max_seconds: 1000) do
+      puts "👥 Creating Kenyan demo family..."
+      family = create_family_and_users!(
+        family_name,
+        email,
+        onboarded: true,
+        subscribed: true,
+        family_attributes: {
+          currency: "KES",
+          locale: "en-KE",
+          country: "KE",
+          timezone: "Africa/Nairobi",
+          date_format: "%d/%m/%Y"
+        },
+        admin_attrs: { first_name: "Wanjiku", last_name: "Kamau" },
+        member_attrs: { first_name: "Otieno", last_name: "Kamau" },
+        member_email: "partner.ke@example.com"
+      )
+
+      puts "📊 Creating realistic Kenyan household data..."
+      create_kenyan_categories!(family)
+      create_kenyan_accounts!(family)
+      generate_kenyan_transactions!(family)
+      generate_kenyan_reconciliations!
+      sync_family_accounts!(family)
+      generate_budget_auto_fill!(family)
+
+      puts "✅ Kenyan demo data loaded successfully!"
     end
   end
 
@@ -146,39 +200,65 @@ class Demo::Generator
       raise ActiveRecord::RecordNotFound, "No admin user with email #{email} found in family ##{family.id}"
     end
 
-    def create_family_and_users!(family_name, email, onboarded:, subscribed:)
-      family = Family.create!(
-        name: family_name,
+    def create_family_and_users!(family_name, email, onboarded:, subscribed:, family_attributes: {}, admin_attrs: {}, member_attrs: {}, member_email: nil)
+      defaults = {
         currency: "USD",
         locale: "en",
         country: "US",
         timezone: "America/New_York",
         date_format: "%m-%d-%Y"
-      )
+      }
+
+      family = Family.create!(defaults.merge(family_attributes).merge(name: family_name))
 
       family.start_subscription!("sub_demo_123") if subscribed
 
-      # Admin user
-      family.users.create!(
-        email: email,
+      admin_email = ensure_unique_email(email)
+      member_email ||= email.sub("@", ".partner@")
+      partner_email = ensure_unique_email(member_email)
+
+      admin_defaults = {
         first_name: "Jack",
         last_name: "Bogle",
         role: "admin",
-        password: "Password1!",
-        onboarded_at: onboarded ? Time.current : nil
+        password: "Password1!"
+      }
+
+      family.users.create!(
+        admin_defaults.merge(admin_attrs).merge(
+          email: admin_email,
+          onboarded_at: onboarded ? Time.current : nil
+        )
       )
 
-      # Member user
-      family.users.create!(
-        email: "partner_#{email}",
+      member_defaults = {
         first_name: "Eve",
         last_name: "Bogle",
         role: "member",
-        password: "Password1!",
-        onboarded_at: onboarded ? Time.current : nil
+        password: "Password1!"
+      }
+
+      family.users.create!(
+        member_defaults.merge(member_attrs).merge(
+          email: partner_email,
+          onboarded_at: onboarded ? Time.current : nil
+        )
       )
 
       family
+    end
+
+    def ensure_unique_email(base_email)
+      return base_email unless User.exists?(email: base_email)
+
+      local, domain = base_email.split("@", 2)
+      counter = 1
+      email = base_email
+      while User.exists?(email: email)
+        email = "#{local}+demo#{counter}@#{domain}"
+        counter += 1
+      end
+      email
     end
 
     def create_realistic_categories!(family)
@@ -258,6 +338,225 @@ class Demo::Generator
       @jewelry = family.accounts.create!(accountable: OtherAsset.new, name: "Jewelry Collection", balance: 0, currency: "USD")
     end
 
+    def create_kenyan_categories!(family)
+      # Income categories reflective of Kenya's labour market (KNBS Economic Survey 2023 indicates ~KES 68k average monthly formal earnings)
+      @formal_salary_cat = family.categories.create!(name: "Formal Salary", color: "#15803d", classification: "income")
+      @side_hustle_cat  = family.categories.create!(name: "Side Hustle", color: "#16a34a", classification: "income")
+      @agribusiness_cat = family.categories.create!(name: "Smallholder Produce", color: "#22c55e", classification: "income")
+      @remittance_cat   = family.categories.create!(name: "Diaspora Remittance", color: "#047857", classification: "income")
+
+      # Expense categories tailored to common Kenyan household costs
+      @housing_ke_cat = family.categories.create!(name: "Housing", color: "#ef4444", classification: "expense")
+      @rent_ke_cat    = family.categories.create!(name: "Rent", parent: @housing_ke_cat, color: "#b91c1c", classification: "expense")
+      @utilities_ke_cat = family.categories.create!(name: "Utilities", parent: @housing_ke_cat, color: "#991b1b", classification: "expense")
+
+      @food_ke_cat        = family.categories.create!(name: "Food & Markets", color: "#f97316", classification: "expense")
+      @market_food_cat    = family.categories.create!(name: "Open-Air Market", parent: @food_ke_cat, color: "#ea580c", classification: "expense")
+      @supermarket_food_cat = family.categories.create!(name: "Supermarket", parent: @food_ke_cat, color: "#c2410c", classification: "expense")
+      @eating_out_ke_cat  = family.categories.create!(name: "Eating Out", parent: @food_ke_cat, color: "#9a3412", classification: "expense")
+
+      @transport_ke_cat = family.categories.create!(name: "Transport", color: "#2563eb", classification: "expense")
+      @matatu_cat       = family.categories.create!(name: "Matatu & Boda", parent: @transport_ke_cat, color: "#1d4ed8", classification: "expense")
+      @fuel_cat         = family.categories.create!(name: "Fuel", parent: @transport_ke_cat, color: "#1e40af", classification: "expense")
+
+      @education_ke_cat   = family.categories.create!(name: "Education", color: "#7c3aed", classification: "expense")
+      @school_fees_cat    = family.categories.create!(name: "School Fees", parent: @education_ke_cat, color: "#6d28d9", classification: "expense")
+      @uniforms_books_cat = family.categories.create!(name: "Uniforms & Books", parent: @education_ke_cat, color: "#5b21b6", classification: "expense")
+
+      @health_ke_cat = family.categories.create!(name: "Health", color: "#db2777", classification: "expense")
+      @nhif_cat      = family.categories.create!(name: "NHIF", parent: @health_ke_cat, color: "#be185d", classification: "expense")
+      @clinic_cat    = family.categories.create!(name: "Clinic & Pharmacy", parent: @health_ke_cat, color: "#9d174d", classification: "expense")
+
+      @communication_cat = family.categories.create!(name: "Communication", color: "#0891b2", classification: "expense")
+      @airtime_cat       = family.categories.create!(name: "Airtime & Data", parent: @communication_cat, color: "#0e7490", classification: "expense")
+      @internet_cat      = family.categories.create!(name: "Home Internet", parent: @communication_cat, color: "#155e75", classification: "expense")
+
+      @savings_cat      = family.categories.create!(name: "Savings & SACCO", color: "#0f766e", classification: "expense")
+      @chama_cat        = family.categories.create!(name: "Chama Contribution", parent: @savings_cat, color: "#0d9488", classification: "expense")
+      @pension_cat      = family.categories.create!(name: "Retirement Savings", parent: @savings_cat, color: "#14b8a6", classification: "expense")
+
+      @family_support_cat = family.categories.create!(name: "Family Support", color: "#facc15", classification: "expense")
+      @church_cat         = family.categories.create!(name: "Tithes & Offerings", color: "#d97706", classification: "expense")
+      @misc_ke_cat        = family.categories.create!(name: "Miscellaneous", color: "#6b7280", classification: "expense")
+    end
+
+    def create_kenyan_accounts!(family)
+      @equity_checking = family.accounts.create!(accountable: Depository.new, name: "Equity Bank Current", balance: 0, currency: "KES")
+      @mpesa_wallet    = family.accounts.create!(accountable: Depository.new, name: "M-Pesa Wallet", balance: 0, currency: "KES")
+      @sacco_savings   = family.accounts.create!(accountable: Depository.new, name: "Harambee SACCO Savings", balance: 0, currency: "KES")
+      @nssf_pension    = family.accounts.create!(accountable: Investment.new, name: "NSSF Pension", balance: 0, currency: "KES")
+
+      @helb_loan       = family.accounts.create!(accountable: Loan.new, name: "HELB Loan", balance: 0, currency: "KES")
+
+      @motorbike_asset = family.accounts.create!(accountable: Vehicle.new, name: "Family Motorbike", balance: 0, currency: "KES")
+      @plot_asset      = family.accounts.create!(accountable: Property.new, name: "Kitengela Plot", balance: 0, currency: "KES")
+    end
+
+    def generate_kenyan_transactions!(family)
+      start_month = 36.months.ago.beginning_of_month
+      end_month   = Date.current.end_of_month
+
+      # Seed initial positions representing prior commitments
+      initial_plot_date = 30.months.ago.to_date
+      create_transaction!(@plot_asset, -950_000, "Land Purchase Deposit", nil, initial_plot_date)
+      motorbike_purchase_date = 28.months.ago.to_date
+      create_transaction!(@motorbike_asset, -160_000, "Motorbike Purchase", nil, motorbike_purchase_date)
+      helb_origination_date = 5.years.ago.to_date
+      create_transaction!(@helb_loan, 180_000, "HELB Principal", nil, helb_origination_date)
+
+      date_cursor = start_month
+      while date_cursor <= end_month
+        salary_date = last_business_day(date_cursor)
+        salary_amount = jitter(68_000, 0.07).round # Aligns with KNBS reported urban wages (~KES 67-70k)
+        create_transaction!(@equity_checking, -salary_amount, "Salary - Nairobi ICT Services", @formal_salary_cat, salary_date)
+
+        # Employer pays commuter allowance via M-Pesa mid-month
+        allowance_date = salary_date - 10.days
+        create_transaction!(@mpesa_wallet, -jitter(7_000, 0.1).round, "Commuter Allowance", @formal_salary_cat, allowance_date)
+
+        # Side hustle tutoring or boda-hailing - typical Kenyan multiple income streams
+        if rand < 0.7
+          hustle_date = date_cursor + rand(5..20).days
+          hustle_amount = jitter(9_500, 0.18).round
+          create_transaction!(@mpesa_wallet, -hustle_amount, "Weekend Coding Lessons", @side_hustle_cat, hustle_date)
+        end
+
+        if rand < 0.3
+          agro_date = date_cursor + rand(10..22).days
+          agro_amount = jitter(6_500, 0.2).round
+          create_transaction!(@mpesa_wallet, -agro_amount, "Produce from Rural Family", @agribusiness_cat, agro_date)
+        end
+
+        if rand < 0.25
+          remit_date = date_cursor + rand(1..26).days
+          remit_amount = jitter(12_000, 0.25).round
+          create_transaction!(@equity_checking, -remit_amount, "Diaspora Support", @remittance_cat, remit_date)
+        end
+
+        # Allocate funds for daily spend via M-Pesa and SACCO savings contributions
+        mpesa_transfer = jitter(18_000, 0.15).round
+        create_transfer!(@equity_checking, @mpesa_wallet, mpesa_transfer, "Monthly Transfer to M-Pesa", salary_date - 1.day)
+
+        sacco_contribution = jitter(5_500, 0.12).round
+        create_transfer!(@equity_checking, @sacco_savings, sacco_contribution, "Monthly SACCO Contribution", salary_date + 1.day)
+
+        nssf_amount = 2_160 # Updated NSSF tier I + II cap after 2023 reforms
+        create_transfer!(@equity_checking, @nssf_pension, nssf_amount, "NSSF Contribution", salary_date + 2.days)
+
+        # Housing & utilities
+        create_transaction!(@equity_checking, 22_000, "Apartment Rent - Roysambu", @rent_ke_cat, date_cursor + 2.days)
+        create_transaction!(@mpesa_wallet, rand(1_800..2_600), "Kenya Power Tokens", @utilities_ke_cat, date_cursor + 12.days)
+        create_transaction!(@mpesa_wallet, rand(1_200..1_800), "Water & Garbage", @utilities_ke_cat, date_cursor + 16.days)
+
+        # Food spending mixes supermarkets and open-air markets
+        3.times do
+          date = date_cursor + rand(0..27).days
+          create_transaction!(@mpesa_wallet, rand(2_800..4_200), "Gikomba Market Shopping", @market_food_cat, date)
+        end
+        2.times do
+          date = date_cursor + rand(0..27).days
+          create_transaction!(@mpesa_wallet, rand(4_000..6_500), "Naivas Supermarket", @supermarket_food_cat, date)
+        end
+        if rand < 0.6
+          create_transaction!(@mpesa_wallet, rand(1_200..2_200), "Local Cafe", @eating_out_ke_cat, date_cursor + rand(5..25).days)
+        end
+
+        # Transport: matatu/boda fares and occasional fuel for motorbike
+        8.times do
+          date = date_cursor + rand(0..27).days
+          create_transaction!(@mpesa_wallet, rand(120..180), "Matatu Fares", @matatu_cat, date)
+        end
+        if rand < 0.5
+          create_transaction!(@mpesa_wallet, rand(1_500..2_800), "Fuel - TotalEnergies", @fuel_cat, date_cursor + rand(3..24).days)
+        end
+
+        # Education: three school terms per year with heavier expenses in Jan/May/Sep
+        if [ 1, 5, 9 ].include?(date_cursor.month)
+          create_transaction!(@equity_checking, rand(35_000..45_000), "School Fees", @school_fees_cat, date_cursor + 3.days)
+          create_transaction!(@mpesa_wallet, rand(4_000..6_500), "Uniforms & Books", @uniforms_books_cat, date_cursor + 4.days)
+        end
+
+        # Healthcare: NHIF monthly contributions & occasional clinic visits
+        create_transaction!(@mpesa_wallet, 1_200, "NHIF Premium", @nhif_cat, date_cursor + 8.days)
+        if rand < 0.4
+          create_transaction!(@mpesa_wallet, rand(1_800..3_200), "Clinic Visit", @clinic_cat, date_cursor + rand(10..26).days)
+        end
+
+        # Communication: airtime purchases and home internet bundles
+        4.times do
+          date = date_cursor + rand(0..27).days
+          create_transaction!(@mpesa_wallet, rand(300..450), "Safaricom Airtime", @airtime_cat, date)
+        end
+        create_transaction!(@mpesa_wallet, 3_200, "Home Fibre", @internet_cat, date_cursor + rand(1..10).days)
+
+        # Family obligations and community support
+        create_transaction!(@mpesa_wallet, rand(4_500..6_500), "Remittance to Parents", @family_support_cat, date_cursor + 6.days)
+        if rand < 0.8
+          create_transaction!(@mpesa_wallet, rand(1_000..2_000), "Church Offering", @church_cat, date_cursor + rand(0..27).days)
+        end
+
+        # HELB loan repayment to clear tertiary education debt
+        create_transfer!(@equity_checking, @helb_loan, 3_500, "HELB Loan Payment", first_business_day(date_cursor) + 14.days)
+
+        # Occasional emergency fund drawdown or support to extended family
+        if rand < 0.2
+          create_transfer!(@sacco_savings, @mpesa_wallet, rand(8_000..15_000), "Chama Emergency Support", date_cursor + rand(0..27).days)
+        end
+
+        date_cursor = date_cursor.next_month
+      end
+
+      # Periodic diaspora remittance inflow (quarterly)
+      remittance_cursor = start_month
+      while remittance_cursor <= end_month
+        create_transaction!(@equity_checking, -jitter(25_000, 0.2).round, "Sibling Remittance", @remittance_cat, remittance_cursor + 20.days)
+        remittance_cursor = remittance_cursor.next_month.next_month.next_month
+      end
+
+      # Annual bonuses around December festive season
+      3.times do |i|
+        year = Date.current.year - i
+        bonus_date = Date.new(year, 12, 15)
+        next if bonus_date < start_month
+        create_transaction!(@equity_checking, -jitter(85_000, 0.1).round, "Annual Performance Bonus", @formal_salary_cat, bonus_date)
+      end
+
+      # Household equipment purchases typical for middle-income Nairobi families
+      create_transaction!(@equity_checking, 65_000, "Fridge Replacement", @misc_ke_cat, 20.months.ago.to_date)
+      create_transaction!(@mpesa_wallet, 28_000, "Back-to-School Laptop", @education_ke_cat, 14.months.ago.to_date)
+
+      # Replenish SACCO savings at year end to mimic dividends reinvestment
+      2.times do |i|
+        year = Date.current.year - i
+        dividend_date = Date.new(year, 2, 20)
+        next if dividend_date < start_month
+        dividend_amount = jitter(18_000, 0.15).round
+        create_transfer!(@sacco_savings, @equity_checking, dividend_amount, "SACCO Dividend Payout", dividend_date)
+      end
+
+      puts "   📊 Generated Kenyan household transactions"
+    end
+
+    def generate_kenyan_reconciliations!
+      today = Date.current
+
+      @plot_asset.entries.create!(
+        entryable: Valuation.new(kind: "current_anchor"),
+        amount: 1_300_000,
+        name: Valuation.build_current_anchor_name(@plot_asset.accountable_type),
+        currency: "KES",
+        date: today
+      )
+
+      @motorbike_asset.entries.create!(
+        entryable: Valuation.new(kind: "current_anchor"),
+        amount: 95_000,
+        name: Valuation.build_current_anchor_name(@motorbike_asset.accountable_type),
+        currency: "KES",
+        date: today
+      )
+    end
+
     def create_realistic_transactions!(family)
       load_securities!
 
@@ -335,23 +634,28 @@ class Demo::Generator
       budget = family.budgets.where(start_date: current_month).first_or_initialize
       budget.update!(
         end_date: current_month.end_of_month,
-        currency: "USD",
+        currency: family.currency,
         budgeted_spending: spend_per_cat.values.sum / 3.0, # placeholder, refine below
         expected_income: 0 # Could compute similarly if desired
       )
 
       spend_per_cat.each do |cat_id, total|
         avg = total / 3.0
-        rounded = ((avg / 25.0).round) * 25
+        rounding_step = budget_rounding_step(family.currency)
+        rounded = ((avg / rounding_step).round) * rounding_step
         category = Category.find(cat_id)
         budget.budget_categories.find_or_create_by!(category: category) do |bc|
           bc.budgeted_spending = rounded
-          bc.currency = "USD"
+          bc.currency = family.currency
         end
       end
 
       # Update aggregate budgeted_spending to sum of categories
       budget.update!(budgeted_spending: budget.budget_categories.sum(:budgeted_spending))
+    end
+
+    def budget_rounding_step(currency)
+      currency == "KES" ? 500.0 : 25.0
     end
 
     # Helper method to get weighted random date (favoring recent years)
@@ -772,6 +1076,12 @@ class Demo::Generator
     def first_business_day(date)
       d = date.beginning_of_month
       d += 1.day while d.saturday? || d.sunday?
+      d
+    end
+
+    def last_business_day(date)
+      d = date.end_of_month
+      d -= 1.day while d.saturday? || d.sunday?
       d
     end
 
