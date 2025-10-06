@@ -1,4 +1,10 @@
-<%= content_for :page_title, t(".title") %>
+<nav class="mb-6 flex items-center gap-3">
+  <%= link_to root_path, class: "block" do %>
+    <%= image_tag "logomark-color.svg", class: "w-9 h-9" %>
+  <% end %>
+
+  <h1 class="text-xl lg:text-2xl font-medium text-primary"><%= t(".title") %></h1>
+</nav>
 
 <div class="bg-container shadow-border-xs rounded-xl p-4 grow overflow-y-auto">
   <div class="flex flex-col md:flex-row justify-between gap-4 mb-12 last:mb-0">
