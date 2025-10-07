@@ -42,6 +42,7 @@ gem "sentry-rails"
 gem "sentry-sidekiq"
 gem "logtail-rails"
 gem "skylight", groups: [ :production ]
+gem "posthog-ruby", groups: [ :production ]
 
 # Active Storage
 gem "aws-sdk-s3", "~> 1.177.0", require: false
