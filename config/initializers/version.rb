@@ -1,3 +1,5 @@
+require_relative "../../lib/semver"
+
 module Sure
   class << self
     def version
