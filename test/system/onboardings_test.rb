@@ -137,7 +137,7 @@ class OnboardingsTest < ApplicationSystemTestCase
 
     visit goals_onboarding_path
 
-    assert_text "What would you like to achieve?"
+    assert_text "What brings you here?"
     assert_button "Next"
   end
 
