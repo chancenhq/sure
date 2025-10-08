@@ -1,6 +1,19 @@
-<%= content_for :page_title, t(".page_title") %>
+<% page_title = t(".page_title") %>
+<% profile_subtitle = t(".profile_subtitle", product: product_name) %>
 
-<%= settings_section title: t(".profile_title"), subtitle: t(".profile_subtitle") do %>
+<% if Current.user&.intro? %>
+  <% content_for :page_header do %>
+    <div class="space-y-1">
+      <h1 class="text-2xl font-semibold text-primary"><%= page_title %></h1>
+      <p class="text-secondary text-sm"><%= profile_subtitle %></p>
+    </div>
+  <% end %>
+<% else %>
+  <%= content_for :page_title, page_title %>
+<% end %>
+
+<div class="space-y-6">
+<%= settings_section title: t(".profile_title"), subtitle: profile_subtitle do %>
   <%= styled_form_with model: @user, url: user_path(@user), class: "space-y-4" do |form| %>
     <%= render "settings/user_avatar_field", form: form, user: @user %>
 
@@ -25,6 +38,7 @@
   <% end %>
 <% end %>
 
+<% unless Current.user&.intro? %>
 <%= settings_section title: t(".household_title"), subtitle: t(".household_subtitle") do %>
   <div class="space-y-4">
     <%= styled_form_with model: Current.user, class: "space-y-4", data: { controller: "auto-submit-form" } do |form| %>
@@ -121,6 +135,7 @@
     </div>
   </div>
 <% end %>
+<% end %>
 
 <%= settings_section title: t(".danger_zone_title") do %>
   <div class="space-y-4">
@@ -183,3 +198,4 @@
     </div>
   </div>
 <% end %>
+</div>
