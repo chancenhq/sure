@@ -2,7 +2,7 @@ require "json"
 
 namespace :bulk do
   desc "Create empty partner accounts for a list of email addresses"
-  task :add_users, [:partner_key, :emails] => :environment do |_task, args|
+  task :add_users, [ :partner_key, :emails ] => :environment do |_task, args|
     args.with_defaults(
       partner_key: ENV["partner_key"] || ENV["PARTNER_KEY"],
       emails: ENV["emails"] || ENV["EMAILS"]
