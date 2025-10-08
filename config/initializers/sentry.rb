@@ -4,17 +4,28 @@ if ENV["SENTRY_DSN"].present?
     config.environment = ENV["RAILS_ENV"]
     config.breadcrumbs_logger = [ :active_support_logger, :http_logger ]
     config.enabled_environments = %w[production]
+    config.release = "#{Rails.configuration.x.product_name}@#{Sure.version}"
+
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/ruby/data-management/data-collected/ for more info
+    config.send_default_pii = true
+
+    # Enable sending logs to Sentry
+    config.enable_logs = true
+    # Patch Ruby logger to forward logs
+    config.enabled_patches = [ :logger ]
 
     # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for performance monitoring.
+    # of transactions for tracing.
     # We recommend adjusting this value in production.
-    config.traces_sample_rate = 0.25
-
+    config.traces_sample_rate = 1.0
+    # or
+    config.traces_sampler = lambda do |context|
+      true
+    end
     # Set profiles_sample_rate to profile 100%
     # of sampled transactions.
     # We recommend adjusting this value in production.
-    config.profiles_sample_rate = 0.25
-
-    config.profiler_class = Sentry::Vernier::Profiler
+    config.profiles_sample_rate = 1.0
   end
 end
