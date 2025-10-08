@@ -10,7 +10,7 @@
     <%# In the future, this will be a dropdown with different AI models %>
     <%= f.hidden_field :ai_model, value: "gpt-4.1" %>
 
-    <%= f.text_area :content, placeholder: "Ask anything ...", value: message_hint,
+    <%= f.text_area :content, placeholder: "What would you like to learn about today?", value: message_hint,
                   class: "w-full border-0 focus:ring-0 text-sm resize-none px-1 bg-transparent",
                   data: { chat_target: "input", action: "input->chat#autoResize keydown->chat#handleInputKeyDown" },
                   rows: 1 %>
@@ -27,5 +27,5 @@
     </div>
   <% end %>
 
-  <p class="text-xs text-secondary">AI responses are informational only and are not financial advice.</p>
+  <p class="text-xs text-secondary">I am here to educate and help you learn, always double-check important information and make decisions that feel right for you!</p>
 </div>
