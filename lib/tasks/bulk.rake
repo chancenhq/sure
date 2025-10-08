@@ -21,7 +21,10 @@ namespace :bulk do
       abort "Unknown partner '#{partner_key}'. Available partners: #{available.join(", ")}"
     end
 
-    raw_emails = parse_emails_argument(args[:emails])
+    email_inputs = [ args[:emails] ]
+    email_inputs.concat(args.extras) if args.respond_to?(:extras)
+
+    raw_emails = email_inputs.flat_map { |value| parse_emails_argument(value) }.uniq
 
     if raw_emails.empty?
       abort "No email addresses provided. Pass a JSON array or comma-separated list as the second argument."
