@@ -32,7 +32,7 @@ Do not use this tool for general budgeting or financial-literacy questions.
       properties: {
         query: {
           type: "string",
-          description: "Question or instruction to run against the partner's file search knowledge base"
+          description: "The student's exact question or topic to search for in Chancen ISA documents (e.g. repayment terms, income thresholds, fees, caps, pauses, exemptions, contribution amounts, default rules, or other contract details)."
         }
       }
     )
