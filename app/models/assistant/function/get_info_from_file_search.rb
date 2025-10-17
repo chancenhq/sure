@@ -9,19 +9,19 @@ class Assistant::Function::GetInfoFromFileSearch < Assistant::Function
 Use this function to retrieve official information from Chancen International's ISA contract
 and policy documents stored in the partner vector store.
 
-Always call this tool whenever a student asks about Chancen, Income Share Agreements (ISAs),
-or ISA-related concepts—even if they don't say “Chancen” or “ISA.”
+Always call this function whenever a student asks about Chancen, Income Share Agreements (ISAs),
+or ISA-related concepts—even if they don't explicitly say 'Chancen' or 'ISA'.
 
-ISA-related concepts include: repayment amounts/percentages, monthly contributions,
+ISA-related concepts include repayment amounts/percentages, monthly contributions,
 when payments start/stop, repayment period, minimum income threshold, maximum repayment amount/cap,
-early/lump-sum settlement, pauses/exemptions (e.g., job loss), required proofs/documents,
+early/lump-sum settlement, pauses/exemptions (e.g. job loss), required proofs/documents,
 treatment of self-employed or business income, household income rules, service/administration
-fees (e.g., ~KES 300 + annual adjustment), commitment fees (e.g., ~KES 500 per term) and late
-commitment fees (e.g., ~KES 500 per week), late payment penalties, drop-out/withdrawal fees (e.g., ~KES 5,000),
-transaction/processing charges (bank/mobile money), events of default, recovery/CRB actions,
-guardians' obligations, travel/moving abroad, information requirements (KRA/NSSF, employer details),
-payment methods (standing order, mobile money), termination/settlement, data sharing, dispute resolution,
-and governing law. Do not use this tool for general budgeting or financial-literacy questions.
+fees, commitment fees, late fees, penalties, withdrawal fees, transaction/processing charges,
+events of default, recovery/CRB actions, guardians' obligations, travel/moving abroad, information
+requirements (KRA/NSSF, employer details), payment methods (standing order, mobile money),
+termination/settlement, data sharing, dispute resolution, and governing law.
+
+Do not use this tool for general budgeting or financial-literacy questions.
       DESCRIPTION
     end
   end
@@ -32,7 +32,7 @@ and governing law. Do not use this tool for general budgeting or financial-liter
       properties: {
         query: {
           type: "string",
-          description: "Question or instruction to run against the partner's file search knowledge base"
+          description: "The student's exact question or topic to search for in Chancen ISA documents (e.g. repayment terms, income thresholds, fees, caps, pauses, exemptions, contribution amounts, default rules, or other contract details)."
         }
       }
     )
