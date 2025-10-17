@@ -1,5 +1,5 @@
 class Settings::ProfilesController < ApplicationController
-  layout "settings"
+  layout :determine_layout
 
   def show
     @user = Current.user
@@ -36,4 +36,10 @@ class Settings::ProfilesController < ApplicationController
 
     redirect_to settings_profile_path
   end
+
+  private
+
+    def determine_layout
+      Current.user&.intro? ? "application" : "settings"
+    end
 end

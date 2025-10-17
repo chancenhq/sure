@@ -42,6 +42,7 @@ gem "sentry-rails"
 gem "sentry-sidekiq"
 gem "logtail-rails"
 gem "skylight", groups: [ :production ]
+gem "posthog-ruby", groups: [ :production ]
 
 # Active Storage
 gem "aws-sdk-s3", "~> 1.177.0", require: false
@@ -74,6 +75,11 @@ gem "rotp", "~> 6.3"
 gem "rqrcode", "~> 3.0"
 gem "activerecord-import"
 gem "rubyzip", "~> 2.3"
+
+# OpenID Connect authentication
+gem "omniauth", "~> 2.1"
+gem "omniauth-rails_csrf_protection"
+gem "omniauth_openid_connect"
 
 # State machines
 gem "aasm"

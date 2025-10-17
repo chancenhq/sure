@@ -3,8 +3,8 @@ class Provider::Github
 
   def initialize
     @name = "sure"
-    @owner = "we-promise"
-    @branch = "main"
+    @owner = "chancenhq"
+    @branch = "companion"
   end
 
   def fetch_latest_release_notes

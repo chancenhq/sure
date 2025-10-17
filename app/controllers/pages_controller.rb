@@ -3,6 +3,16 @@ class PagesController < ApplicationController
 
   skip_authentication only: :redis_configuration_error
 
+  def home
+    target_path = if Current.user&.ui_layout == "intro"
+      @chat.present? ? chat_path(@chat) : chats_path
+    else
+      dashboard_path
+    end
+
+    redirect_to target_path, params: request.query_parameters
+  end
+
   def dashboard
     @balance_sheet = Current.family.balance_sheet
     @accounts = Current.family.accounts.visible.with_attached_logo
@@ -27,17 +37,29 @@ class PagesController < ApplicationController
     @breadcrumbs = [ [ "Home", root_path ], [ "Dashboard", nil ] ]
   end
 
+  def intro
+    @breadcrumbs = [ [ "Insights*", nil ] ]
+    @intro_prompts = [
+      { title: "🔔 UPDATE 🔔", description: "Transport costs keep changing, making budgeting tricky. You can save 5% by cutting back on uncategorised spending to build a buffer. Most of your money goes to essentials, housing and food take up over half your budget." },
+      { title: "🔍 Show spending insights", description: "We update this data weekly with fresh insights." },
+      { title: "💡 Your Turn Soon", description: "You will soon be able to get personalized insights just like this!" },
+      { title: "📳 M-PESA Integration", description: "We are working on integrating M-PESA to make it easier to add income and expenses." }
+    ]
+
+    render "pages/intro/index"
+  end
+
   def changelog
     @release_notes = github_provider.fetch_latest_release_notes
 
     # Fallback if no release notes are available
     if @release_notes.nil?
       @release_notes = {
-        avatar: "https://github.com/we-promise.png",
+        avatar: "https://github.com/chancenhq.png",
         username: "we-promise",
         name: "Release notes unavailable",
         published_at: Date.current,
-        body: "<p>Unable to fetch the latest release notes at this time. Please check back later or visit our <a href='https://github.com/we-promise/sure/releases' target='_blank'>GitHub releases page</a> directly.</p>"
+        body: "<p>Unable to fetch the latest release notes at this time. Please check back later or visit our <a href='https://github.com/chancenhq/sure/releases' target='_blank'>GitHub releases page</a> directly.</p>"
       }
     end
 

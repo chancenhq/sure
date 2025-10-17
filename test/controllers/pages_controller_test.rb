@@ -5,9 +5,34 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     sign_in @user = users(:family_admin)
   end
 
-  test "dashboard" do
+  test "root redirects dashboard users to dashboard" do
     get root_path
+    assert_redirected_to dashboard_path
+  end
+
+  test "dashboard page renders" do
+    get dashboard_path
     assert_response :ok
+  end
+
+  test "intro layout redirects to companion" do
+    @user.update!(ui_layout: :intro)
+
+    get root_path
+
+    assert_redirected_to chats_path
+  end
+
+  test "intro layout shows simplified navigation" do
+    @user.update!(ui_layout: :intro)
+
+    get intro_path
+
+    assert_response :ok
+    assert_select "nav p", text: "Companion", minimum: 1
+    assert_select "nav p", text: "Insights*", minimum: 1
+    assert_select "nav p", text: "Budgets", count: 0
+    assert_select "nav p", text: "Transactions", count: 0
   end
 
   test "changelog" do
@@ -26,7 +51,7 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     get changelog_path
     assert_response :ok
     assert_select "h2", text: "Release notes unavailable"
-    assert_select "a[href='https://github.com/we-promise/sure/releases']"
+    assert_select "a[href='https://github.com/chancenhq/sure/releases']"
   end
 
   test "changelog with incomplete release notes" do
