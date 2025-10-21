@@ -17,9 +17,18 @@ module Assistant::Configurable
 
     private
       def default_functions(chat)
-        return [] unless partner_vector_store_ids(chat.user).present?
+        functions = [
+          Assistant::Function::GetTransactions,
+          Assistant::Function::GetAccounts,
+          Assistant::Function::GetBalanceSheet,
+          Assistant::Function::GetIncomeStatement
+        ]
 
-        [ Assistant::Function::GetInfoFromFileSearch ]
+        if partner_vector_store_ids(chat.user).present?
+          functions << Assistant::Function::GetInfoFromFileSearch
+        end
+
+        functions
       end
 
       def partner_vector_store_ids(user)
