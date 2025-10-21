@@ -71,7 +71,8 @@ class Assistant::Responder
         streamer: streamer,
         previous_response_id: previous_response_id,
         session_id: chat_session_id,
-        user_identifier: chat_user_identifier
+        user_identifier: chat_user_identifier,
+        user_email_domain: chat_user_email_domain
       )
 
       unless response.success?
@@ -97,6 +98,13 @@ class Assistant::Responder
       return unless chat&.user_id
 
       ::Digest::SHA256.hexdigest(chat.user_id.to_s)
+    end
+
+    def chat_user_email_domain
+      email = chat&.user&.email
+      return unless email.present?
+
+      email.split("@").last
     end
 
     def chat
