@@ -21,7 +21,10 @@ class User < ApplicationRecord
 
   normalizes :first_name, :last_name, with: ->(value) { value.strip.presence }
 
+  attribute :partner_metadata, :jsonb, default: {}
+
   enum :role, { member: "member", admin: "admin", super_admin: "super_admin" }, validate: true
+  enum :ui_layout, { dashboard: "dashboard", intro: "intro" }, validate: true
 
   has_one_attached :profile_image do |attachable|
     attachable.variant :thumbnail, resize_to_fill: [ 300, 300 ], convert: :webp, saver: { quality: 80 }
@@ -29,6 +32,11 @@ class User < ApplicationRecord
   end
 
   validate :profile_image_size
+
+  before_validation :set_default_ui_layout, on: :create
+  before_save :enforce_intro_layout_preferences
+
+  attr_reader :ui_layout_assigned
 
   generates_token_for :password_reset, expires_in: 15.minutes do
     password_salt&.last(10)
@@ -83,8 +91,16 @@ class User < ApplicationRecord
     end
   end
 
+  def show_ai_sidebar
+    return false if intro?
+
+    super
+  end
+
   def show_ai_sidebar?
-    show_ai_sidebar
+    return false if intro?
+
+    super
   end
 
   def ai_available?
@@ -95,9 +111,78 @@ class User < ApplicationRecord
     ai_enabled && ai_available?
   end
 
+  def partner_metadata
+    value = super
+    value.present? ? value : {}
+  end
+
+  def partner_metadata=(value)
+    normalized =
+      case value
+      when ->(val) { defined?(ActionController::Parameters) && val.is_a?(ActionController::Parameters) }
+        value.to_unsafe_h
+      when Hash
+        value
+      else
+        {}
+      end
+
+    super(normalized.deep_stringify_keys)
+  end
+
+  def partner_metadata_value(key)
+    partner_metadata[key.to_s]
+  end
+
+  def partner_name
+    partner_metadata_value(:name)
+  end
+
+  def partner_type
+    partner_metadata_value(:type)
+  end
+
+  def partner_key
+    partner_metadata_value(:key)
+  end
+
+  def partner_attribute(key)
+    partner_metadata_value(key)
+  end
+
+  def ui_layout=(value)
+    unless @setting_default_ui_layout
+      @ui_layout_assigned = true if value.present?
+    end
+
+    super(value)
+  end
+
+  def ui_layout_assigned?
+    !!@ui_layout_assigned
+  end
+
+  def show_sidebar
+    return false if intro?
+
+    super
+  end
+
+  def show_sidebar?
+    return false if intro?
+
+    super
+  end
   # Deactivation
   validate :can_deactivate, if: -> { active_changed? && !active }
   after_update_commit :purge_later, if: -> { saved_change_to_active?(from: true, to: false) }
+
+  def enforce_intro_layout_preferences
+    if intro?
+      self.show_sidebar = false
+      self.show_ai_sidebar = false
+    end
+  end
 
   def deactivate
     update active: false, email: deactivated_email
@@ -212,5 +297,18 @@ class User < ApplicationRecord
 
     def generate_backup_codes
       8.times.map { SecureRandom.hex(4) }
+    end
+
+    def set_default_ui_layout
+      return if ui_layout_assigned?
+
+      layout = partner_metadata_value(:ui_layout)
+      layout ||= Partners.default&.default_metadata&.dig("ui_layout")
+      layout = layout.presence || "dashboard"
+
+      @setting_default_ui_layout = true
+      self.ui_layout = layout
+    ensure
+      @setting_default_ui_layout = false
     end
 end

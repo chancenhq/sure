@@ -1,3 +1,5 @@
+require_relative "../../lib/semver"
+
 module Sure
   class << self
     def version
@@ -14,7 +16,7 @@ module Sure
 
     private
       def semver
-        "0.6.4"
+        "0.6.5"
       end
   end
 end

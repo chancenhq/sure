@@ -10,6 +10,8 @@
 
 @import "./simonweb_pickr.css";
 
+@import "./google-sign-in.css";
+
 @layer components {
   .pcr-app{
     position: static !important;
@@ -34,6 +36,11 @@
       height: 20px !important;
       width: 20px !important;
   }
+}
+
+.profiler-button {
+  position: fixed;
+  top: env(safe-area-inset-top, 0);
 }
 
 .combobox {
