@@ -76,6 +76,7 @@ Rails.application.routes.draw do
     resource :llm_usage, only: :show
     resource :guides, only: :show
     resource :bank_sync, only: :show, controller: "bank_sync"
+    resource :providers, only: %i[show update]
   end
 
   resource :subscription, only: %i[new show create] do
@@ -269,6 +270,17 @@ Rails.application.routes.draw do
       post :sync
       get :setup_accounts
       post :complete_account_setup
+    end
+  end
+
+  resources :lunchflow_items, only: %i[index new create show edit update destroy] do
+    collection do
+      get :select_accounts
+      post :link_accounts
+    end
+
+    member do
+      post :sync
     end
   end
 
