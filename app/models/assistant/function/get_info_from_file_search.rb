@@ -48,7 +48,7 @@ class Assistant::Function::GetInfoFromFileSearch < Assistant::Function
     query = params["query"].to_s.strip
     raise ArgumentError, "Query must be provided" if query.blank?
 
-    client = openai_client.beta(responses: "v1", assistants: "v2")
+    client = openai_client.beta(assistants: "v2")
 
     request = {
       model: default_model,
