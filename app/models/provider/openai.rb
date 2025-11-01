@@ -68,7 +68,8 @@ class Provider::Openai < Provider
     streamer: nil,
     previous_response_id: nil,
     session_id: nil,
-    user_identifier: nil
+    user_identifier: nil,
+    user_email_domain: nil
   )
     with_provider_response do
       chat_config = ChatConfig.new(
@@ -115,7 +116,8 @@ class Provider::Openai < Provider
           output: response.messages.map(&:output_text).join("\n"),
           prompt: instructions_prompt,
           session_id: session_id,
-          user_identifier: user_identifier
+          user_identifier: user_identifier,
+          user_email_domain: user_email_domain
         )
         response
       else
@@ -128,7 +130,8 @@ class Provider::Openai < Provider
           prompt: instructions_prompt,
           usage: raw_response["usage"],
           session_id: session_id,
-          user_identifier: user_identifier
+          user_identifier: user_identifier,
+          user_email_domain: user_email_domain
         )
         parsed
       end
@@ -144,15 +147,43 @@ class Provider::Openai < Provider
       @langfuse_client = Langfuse.new
     end
 
-    def log_langfuse_generation(name:, model:, input:, output:, usage: nil, session_id: nil, user_identifier: nil, prompt: nil)
+    def log_langfuse_generation(
+      name:,
+      model:,
+      input:,
+      output:,
+      usage: nil,
+      session_id: nil,
+      user_identifier: nil,
+      user_email_domain: nil,
+      prompt: nil
+    )
       return unless langfuse_client
 
-      trace = langfuse_client.trace(
+      metadata = {}
+      metadata[:user_email_domain] = user_email_domain if user_email_domain.present?
+
+      if prompt.present?
+        metadata[:prompt] = {
+          id: prompt[:id],
+          name: prompt[:name],
+          version: prompt[:version],
+          content: prompt[:content],
+          template: prompt[:template]
+        }.compact
+      end
+
+      metadata = metadata.presence
+
+      trace_options = {
         name: "openai.#{name}",
         input: input,
         session_id: session_id,
         user_id: user_identifier
-      )
+      }
+      trace_options[:metadata] = metadata if metadata.present?
+
+      trace = langfuse_client.trace(**trace_options)
       generation_options = {
         name: name,
         model: model,
@@ -167,18 +198,9 @@ class Provider::Openai < Provider
         generation_options[:prompt_name] = prompt[:name] if prompt[:name]
         generation_options[:prompt_version] = prompt[:version] if prompt[:version]
         generation_options[:prompt_id] = prompt[:id] if prompt[:id]
-
-        metadata = {
-          prompt: {
-            id: prompt[:id],
-            name: prompt[:name],
-            version: prompt[:version],
-            content: prompt[:content],
-            template: prompt[:template]
-          }.compact
-        }
-        generation_options[:metadata] = metadata
       end
+
+      generation_options[:metadata] = metadata if metadata.present?
 
       trace.generation(**generation_options)
       trace.update(output: output)

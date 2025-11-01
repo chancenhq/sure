@@ -28,7 +28,8 @@ module Provider::LlmConcept
     streamer: nil,
     previous_response_id: nil,
     session_id: nil,
-    user_identifier: nil
+    user_identifier: nil,
+    user_email_domain: nil
   )
     raise NotImplementedError, "Subclasses must implement #chat_response"
   end
