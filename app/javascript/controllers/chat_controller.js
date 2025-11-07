@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus";
 
-const THINKING_TIMEOUT_MS = 30_000;
+const THINKING_TIMEOUT_MS = 5_000;
 
 export default class extends Controller {
   static targets = ["messages", "form", "input"];
