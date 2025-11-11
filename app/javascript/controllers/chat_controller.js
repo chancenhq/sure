@@ -5,12 +5,15 @@ export default class extends Controller {
 
   connect() {
     this.#configureAutoScroll();
+    this.pendingHistoryUpdate = null;
   }
 
   disconnect() {
     if (this.messagesObserver) {
       this.messagesObserver.disconnect();
     }
+
+    this.pendingHistoryUpdate = null;
   }
 
   autoResize() {
@@ -53,21 +56,47 @@ export default class extends Controller {
       return;
     }
 
-    const currentLocation = window.Turbo.navigator.location || new URL(window.location.href);
+    const nextLocation = new URL(href, window.location.origin);
 
-    if (!currentLocation.pathname.startsWith("/chats")) {
+    if (!nextLocation.pathname.startsWith("/chats")) {
+      return;
+    }
+    const historyMethod = link.dataset.turboAction === "replace" ? "replace" : "push";
+
+    this.pendingHistoryUpdate = { action: historyMethod, url: nextLocation };
+  }
+
+  recordFrameVisit(event) {
+    const pendingUpdate = this.pendingHistoryUpdate;
+    this.pendingHistoryUpdate = null;
+
+    const history = window.Turbo?.navigator?.history;
+
+    if (!pendingUpdate || !history) {
       return;
     }
 
-    const nextLocation = new URL(href, window.location.origin);
+    const { action } = pendingUpdate;
+    const responseUrl =
+      event.detail?.fetchResponse?.response?.url || event.detail?.fetchResponse?.url;
+    const nextLocation = responseUrl
+      ? new URL(responseUrl, window.location.origin)
+      : pendingUpdate.url;
+    const currentLocation = window.Turbo.navigator.location || new URL(window.location.href);
+
+    if (typeof history[action] !== "function") {
+      return;
+    }
+
+    if (!nextLocation.pathname.startsWith("/chats")) {
+      return;
+    }
 
     if (currentLocation.href === nextLocation.href) {
       return;
     }
 
-    const historyMethod = link.dataset.turboAction === "replace" ? "replace" : "push";
-
-    window.Turbo.navigator.history[historyMethod](nextLocation);
+    history[action](nextLocation);
   }
 
   #configureAutoScroll() {
