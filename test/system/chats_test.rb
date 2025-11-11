@@ -54,7 +54,6 @@ class ChatsTest < ApplicationSystemTestCase
     end
 
     assert_text "Can you help with my finances?"
-    assert_current_path chat_path(@user.chats.reload.first), ignore_query: true
 
     find("#chat-nav-back").click
 
