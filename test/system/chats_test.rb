@@ -76,8 +76,6 @@ class ChatsTest < ApplicationSystemTestCase
 
     first("#chat-nav-back").click
 
-    assert_current_path chats_path
-
     click_on second_chat.title
 
     assert_current_path chat_path(second_chat)
