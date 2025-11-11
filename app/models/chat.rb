@@ -24,11 +24,7 @@ class Chat < ApplicationRecord
   end
 
   def needs_assistant_response?
-    last_message = conversation_messages.ordered.last
-
-    return false if last_message.nil?
-
-    last_message.role != "assistant"
+    conversation_messages.ordered.last.role != "assistant"
   end
 
   def retry_last_message!

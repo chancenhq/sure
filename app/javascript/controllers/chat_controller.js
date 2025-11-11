@@ -1,30 +1,16 @@
 import { Controller } from "@hotwired/stimulus";
 
-const THINKING_TIMEOUT_MS = 5_000;
-
 export default class extends Controller {
   static targets = ["messages", "form", "input"];
-  static values = { chatId: String };
 
   connect() {
-    this.#clearThinkingTimeout();
-
-    if (!this.hasMessagesTarget) {
-      return;
-    }
-
     this.#configureAutoScroll();
-    this.#initializeThinkingMonitor();
-    this.#scrollToBottom();
   }
 
   disconnect() {
     if (this.messagesObserver) {
       this.messagesObserver.disconnect();
-      this.messagesObserver = null;
     }
-
-    this.#clearThinkingTimeout();
   }
 
   autoResize() {
@@ -55,117 +41,17 @@ export default class extends Controller {
   }
 
   #configureAutoScroll() {
-    this.messagesObserver = new MutationObserver((mutations) => {
-      let thinkingAdded = false;
-      let thinkingRemoved = false;
-
-      mutations.forEach((mutation) => {
-        thinkingAdded ||= this.#mutationIncludesThinkingIndicator(mutation.addedNodes);
-        thinkingRemoved ||= this.#mutationIncludesThinkingIndicator(
-          mutation.removedNodes,
-        );
-      });
-
-      if (thinkingAdded) {
-        this.#startThinkingTimeout();
+    this.messagesObserver = new MutationObserver((_mutations) => {
+      if (this.hasMessagesTarget) {
+        this.#scrollToBottom();
       }
-
-      if (thinkingRemoved) {
-        this.#clearThinkingTimeout();
-      }
-
-      this.#scrollToBottom();
     });
 
-    this.messagesObserver.observe(this.messagesTarget, {
+    // Listen to entire sidebar for changes, always try to scroll to the bottom
+    this.messagesObserver.observe(this.element, {
       childList: true,
       subtree: true,
     });
-  }
-
-  #initializeThinkingMonitor() {
-    if (this.#findThinkingIndicator()) {
-      this.#startThinkingTimeout();
-    }
-  }
-
-  #mutationIncludesThinkingIndicator(nodes) {
-    return Array.from(nodes || []).some((node) => this.#nodeContainsThinkingIndicator(node));
-  }
-
-  #nodeContainsThinkingIndicator(node) {
-    if (!node) {
-      return false;
-    }
-
-    if (node.nodeType === Node.ELEMENT_NODE) {
-      if (node.id === "thinking-indicator") {
-        return true;
-      }
-
-      if (typeof node.querySelector === "function") {
-        return Boolean(node.querySelector("#thinking-indicator"));
-      }
-    }
-
-    return false;
-  }
-
-  #findThinkingIndicator() {
-    if (!this.hasMessagesTarget) {
-      return null;
-    }
-
-    return this.messagesTarget.querySelector?.("#thinking-indicator") || null;
-  }
-
-  #startThinkingTimeout() {
-    if (this.thinkingTimeoutId || this.didReportThinkingTimeout) {
-      return;
-    }
-
-    this.didReportThinkingTimeout = false;
-    this.thinkingTimeoutId = window.setTimeout(
-      this.#handleThinkingTimeout,
-      THINKING_TIMEOUT_MS,
-    );
-  }
-
-  #clearThinkingTimeout() {
-    if (this.thinkingTimeoutId) {
-      window.clearTimeout(this.thinkingTimeoutId);
-      this.thinkingTimeoutId = null;
-    }
-
-    this.didReportThinkingTimeout = false;
-  }
-
-  #handleThinkingTimeout = () => {
-    this.thinkingTimeoutId = null;
-
-    if (!this.#findThinkingIndicator() || this.didReportThinkingTimeout) {
-      return;
-    }
-
-    this.didReportThinkingTimeout = true;
-
-    if (window.posthog?.capture) {
-      window.posthog.capture("chat_thinking_timeout", {
-        chat_id: this.hasChatIdValue ? this.chatIdValue : null,
-        message_count: this.#conversationMessageCount(),
-        timeout_ms: THINKING_TIMEOUT_MS,
-      });
-    }
-  };
-
-  #conversationMessageCount() {
-    if (!this.hasMessagesTarget) {
-      return 0;
-    }
-
-    return this.messagesTarget.querySelectorAll(
-      "[id^='user_message_'], [id^='assistant_message_']",
-    ).length;
   }
 
   #scrollToBottom = () => {
