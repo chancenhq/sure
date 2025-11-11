@@ -1,19 +1,28 @@
 import { Controller } from "@hotwired/stimulus";
 
+let sharedPendingHistoryUpdate = null;
+
+function setPendingHistoryUpdate(update) {
+  sharedPendingHistoryUpdate = update;
+}
+
+function consumePendingHistoryUpdate() {
+  const update = sharedPendingHistoryUpdate;
+  sharedPendingHistoryUpdate = null;
+  return update;
+}
+
 export default class extends Controller {
   static targets = ["messages", "form", "input"];
 
   connect() {
     this.#configureAutoScroll();
-    this.pendingHistoryUpdate = null;
   }
 
   disconnect() {
     if (this.messagesObserver) {
       this.messagesObserver.disconnect();
     }
-
-    this.pendingHistoryUpdate = null;
   }
 
   autoResize() {
@@ -63,12 +72,11 @@ export default class extends Controller {
     }
     const historyMethod = link.dataset.turboAction === "replace" ? "replace" : "push";
 
-    this.pendingHistoryUpdate = { action: historyMethod, url: nextLocation };
+    setPendingHistoryUpdate({ action: historyMethod, url: nextLocation });
   }
 
   recordFrameVisit(event) {
-    const pendingUpdate = this.pendingHistoryUpdate;
-    this.pendingHistoryUpdate = null;
+    const pendingUpdate = consumePendingHistoryUpdate();
 
     const history = window.Turbo?.navigator?.history;
 
