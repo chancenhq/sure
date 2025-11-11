@@ -1,5 +1,6 @@
 <div data-controller="chat hotkey">
-  <%= turbo_frame_tag chat_frame, data: { action: "turbo:frame-render->chat#recordFrameVisit" } do %>
+  <%= turbo_frame_tag chat_frame,
+        data: { action: "turbo:frame-render->chat#recordFrameVisit", chat_chat_id: nil } do %>
     <div class="flex flex-col h-full md:p-4">
       <% if @chats.any? %>
         <div class="grow flex flex-col">
