@@ -17,7 +17,7 @@ class ChatsControllerTest < ActionDispatch::IntegrationTest
       post chats_url, params: { chat: { content: "Hello", ai_model: "gpt-4.1" } }
     end
 
-    assert_redirected_to chat_path(Chat.order(created_at: :desc).first)
+    assert_redirected_to chat_path(Chat.order(created_at: :desc).first, thinking: true)
   end
 
   test "shows chat" do
