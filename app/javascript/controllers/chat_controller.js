@@ -1,15 +1,38 @@
 import { Controller } from "@hotwired/stimulus";
 
-let sharedPendingHistoryUpdate = null;
+const pendingHistoryUpdatesByFrameId = new Map();
 
-function setPendingHistoryUpdate(update) {
-  sharedPendingHistoryUpdate = update;
+function normalizeUrl(value) {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    return new URL(value, window.location.origin).toString();
+  } catch (_error) {
+    return null;
+  }
 }
 
-function consumePendingHistoryUpdate() {
-  const update = sharedPendingHistoryUpdate;
-  sharedPendingHistoryUpdate = null;
-  return update;
+function queuePendingHistoryUpdate({ frameId, action, url }) {
+  const normalizedUrl = normalizeUrl(url);
+
+  if (!frameId || !normalizedUrl) {
+    return;
+  }
+
+  pendingHistoryUpdatesByFrameId.set(frameId, {
+    action,
+    url: normalizedUrl,
+  });
+}
+
+function peekPendingHistoryUpdate(frameId) {
+  return pendingHistoryUpdatesByFrameId.get(frameId) || null;
+}
+
+function clearPendingHistoryUpdate(frameId) {
+  pendingHistoryUpdatesByFrameId.delete(frameId);
 }
 
 export default class extends Controller {
@@ -70,26 +93,49 @@ export default class extends Controller {
     if (!nextLocation.pathname.startsWith("/chats")) {
       return;
     }
+    const frameId =
+      link.getAttribute("data-turbo-frame") || link.closest("turbo-frame")?.id;
+
+    if (!frameId) {
+      return;
+    }
+
     const historyMethod = link.dataset.turboAction === "replace" ? "replace" : "push";
 
-    setPendingHistoryUpdate({ action: historyMethod, url: nextLocation });
+    queuePendingHistoryUpdate({
+      frameId,
+      action: historyMethod,
+      url: nextLocation,
+    });
   }
 
   recordFrameVisit(event) {
-    const pendingUpdate = consumePendingHistoryUpdate();
-
+    const frame = event?.target;
+    const frameId = frame?.id;
+    const pendingUpdate = frameId ? peekPendingHistoryUpdate(frameId) : null;
     const history = window.Turbo?.navigator?.history;
 
-    if (!pendingUpdate || !history) {
+    if (!pendingUpdate || !history || !frameId) {
       return;
     }
 
     const { action } = pendingUpdate;
     const responseUrl =
       event.detail?.fetchResponse?.response?.url || event.detail?.fetchResponse?.url;
-    const nextLocation = responseUrl
-      ? new URL(responseUrl, window.location.origin)
-      : pendingUpdate.url;
+    const nextUrlCandidate = normalizeUrl(responseUrl) || normalizeUrl(frame?.src);
+
+    if (!nextUrlCandidate) {
+      return;
+    }
+
+    const pendingLocation = new URL(pendingUpdate.url);
+    const candidateLocation = new URL(nextUrlCandidate);
+
+    if (candidateLocation.pathname !== pendingLocation.pathname) {
+      return;
+    }
+
+    const nextLocation = candidateLocation;
     const currentLocation = window.Turbo.navigator.location || new URL(window.location.href);
 
     if (typeof history[action] !== "function") {
@@ -105,6 +151,7 @@ export default class extends Controller {
     }
 
     history[action](nextLocation);
+    clearPendingHistoryUpdate(frameId);
   }
 
   #configureAutoScroll() {
