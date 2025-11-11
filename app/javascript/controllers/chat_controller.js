@@ -1,5 +1,40 @@
 import { Controller } from "@hotwired/stimulus";
 
+const pendingHistoryUpdatesByFrameId = new Map();
+
+function normalizeUrl(value) {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    return new URL(value, window.location.origin).toString();
+  } catch (_error) {
+    return null;
+  }
+}
+
+function queuePendingHistoryUpdate({ frameId, action, url }) {
+  const normalizedUrl = normalizeUrl(url);
+
+  if (!frameId || !normalizedUrl) {
+    return;
+  }
+
+  pendingHistoryUpdatesByFrameId.set(frameId, {
+    action,
+    url: normalizedUrl,
+  });
+}
+
+function peekPendingHistoryUpdate(frameId) {
+  return pendingHistoryUpdatesByFrameId.get(frameId) || null;
+}
+
+function clearPendingHistoryUpdate(frameId) {
+  pendingHistoryUpdatesByFrameId.delete(frameId);
+}
+
 export default class extends Controller {
   static targets = ["messages", "form", "input"];
 
@@ -38,6 +73,85 @@ export default class extends Controller {
       e.preventDefault();
       this.formTarget.requestSubmit();
     }
+  }
+
+  updateUrl(event) {
+    const link = event.currentTarget;
+
+    if (!link || typeof link.getAttribute !== "function") {
+      return;
+    }
+
+    const href = link.getAttribute("href");
+
+    if (!href || !window.Turbo?.navigator?.history) {
+      return;
+    }
+
+    const nextLocation = new URL(href, window.location.origin);
+
+    if (!nextLocation.pathname.startsWith("/chats")) {
+      return;
+    }
+    const frameId =
+      link.getAttribute("data-turbo-frame") || link.closest("turbo-frame")?.id;
+
+    if (!frameId) {
+      return;
+    }
+
+    const historyMethod = link.dataset.turboAction === "replace" ? "replace" : "push";
+
+    queuePendingHistoryUpdate({
+      frameId,
+      action: historyMethod,
+      url: nextLocation,
+    });
+  }
+
+  recordFrameVisit(event) {
+    const frame = event?.target;
+    const frameId = frame?.id;
+    const pendingUpdate = frameId ? peekPendingHistoryUpdate(frameId) : null;
+    const history = window.Turbo?.navigator?.history;
+
+    if (!pendingUpdate || !history || !frameId) {
+      return;
+    }
+
+    const { action } = pendingUpdate;
+    const responseUrl =
+      event.detail?.fetchResponse?.response?.url || event.detail?.fetchResponse?.url;
+    const nextUrlCandidate = normalizeUrl(responseUrl) || normalizeUrl(frame?.src);
+
+    if (!nextUrlCandidate) {
+      return;
+    }
+
+    const pendingLocation = new URL(pendingUpdate.url);
+    const candidateLocation = new URL(nextUrlCandidate);
+
+    if (candidateLocation.pathname !== pendingLocation.pathname) {
+      return;
+    }
+
+    const nextLocation = candidateLocation;
+    const currentLocation = window.Turbo.navigator.location || new URL(window.location.href);
+
+    if (typeof history[action] !== "function") {
+      return;
+    }
+
+    if (!nextLocation.pathname.startsWith("/chats")) {
+      return;
+    }
+
+    if (currentLocation.href === nextLocation.href) {
+      return;
+    }
+
+    history[action](nextLocation);
+    clearPendingHistoryUpdate(frameId);
   }
 
   #configureAutoScroll() {

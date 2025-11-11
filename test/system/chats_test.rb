@@ -63,4 +63,21 @@ class ChatsTest < ApplicationSystemTestCase
 
     assert_text "Can you help with my finances?"
   end
+
+  test "chat navigation updates browser url" do
+    @user.update!(ai_enabled: true)
+
+    first_chat = @user.chats.first || @user.chats.create!(title: "First Chat")
+    second_chat = @user.chats.where.not(id: first_chat.id).first || @user.chats.create!(title: "Second Chat")
+
+    visit chat_path(first_chat)
+
+    assert_current_path chat_path(first_chat)
+
+    first("#chat-nav-back").click
+
+    click_on second_chat.title
+
+    assert_current_path chat_path(second_chat)
+  end
 end
