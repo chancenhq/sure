@@ -1,3 +1,0 @@
-<%= turbo_stream.remove "thinking-indicator" %>
-<%= turbo_stream.append "messages", partial: "chats/thinking_indicator", locals: { chat: @chat } %>
-<%= turbo_stream.replace "chat-form", partial: "messages/chat_form", locals: { chat: @chat } %>
