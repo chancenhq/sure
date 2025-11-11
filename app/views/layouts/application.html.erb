@@ -171,7 +171,7 @@
                 src: chat_view_path(@chat),
                 loading: "lazy",
                 class: "h-full",
-                data: { action: "turbo:frame-render->chat#recordFrameVisit", chat_chat_id: @chat&.id } do %>
+                data: { action: "turbo:frame-render->chat#recordFrameVisit" } do %>
             <div class="flex justify-center items-center h-full">
               <%= icon("loader-circle", class: "animate-spin") %>
             </div>

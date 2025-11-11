@@ -1,5 +1,4 @@
-<%= turbo_frame_tag chat_frame,
-      data: { action: "turbo:frame-render->chat#recordFrameVisit", chat_chat_id: (@chat&.persisted? ? @chat.id : nil) } do %>
+<%= turbo_frame_tag chat_frame, data: { action: "turbo:frame-render->chat#recordFrameVisit" } do %>
   <div class="flex flex-col h-full md:p-4">
     <%= render "chats/chat_nav", chat: @chat %>
 

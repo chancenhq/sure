@@ -1,6 +1,5 @@
 <div data-controller="chat hotkey">
-  <%= turbo_frame_tag chat_frame,
-        data: { action: "turbo:frame-render->chat#recordFrameVisit", chat_chat_id: @chat.id } do %>
+  <%= turbo_frame_tag chat_frame, data: { action: "turbo:frame-render->chat#recordFrameVisit" } do %>
     <%= turbo_stream_from @chat %>
 
     <h1 class="sr-only"><%= @chat.title %></h1>

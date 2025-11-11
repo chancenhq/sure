@@ -1,7 +1,6 @@
 import { Controller } from "@hotwired/stimulus";
 
 const pendingHistoryUpdatesByFrameId = new Map();
-const lastRenderedChatIdsByFrameId = new Map();
 
 function normalizeUrl(value) {
   if (!value) {
@@ -34,10 +33,6 @@ function peekPendingHistoryUpdate(frameId) {
 
 function clearPendingHistoryUpdate(frameId) {
   pendingHistoryUpdatesByFrameId.delete(frameId);
-}
-
-function getFrameChatId(frame) {
-  return frame?.dataset?.chatChatId || null;
 }
 
 export default class extends Controller {
@@ -117,87 +112,46 @@ export default class extends Controller {
   recordFrameVisit(event) {
     const frame = event?.target;
     const frameId = frame?.id;
+    const pendingUpdate = frameId ? peekPendingHistoryUpdate(frameId) : null;
     const history = window.Turbo?.navigator?.history;
 
-    if (!history || !frameId) {
+    if (!pendingUpdate || !history || !frameId) {
       return;
     }
 
-    const pendingUpdate = peekPendingHistoryUpdate(frameId);
+    const { action } = pendingUpdate;
     const responseUrl =
       event.detail?.fetchResponse?.response?.url || event.detail?.fetchResponse?.url;
     const nextUrlCandidate = normalizeUrl(responseUrl) || normalizeUrl(frame?.src);
-    const candidateLocation = nextUrlCandidate ? new URL(nextUrlCandidate) : null;
-    const frameChatId = getFrameChatId(frame);
-    const lastRenderedChatId = lastRenderedChatIdsByFrameId.get(frameId) || null;
 
-    let nextLocation = null;
-    let historyAction = null;
-    let shouldClearPendingUpdate = false;
-
-    if (pendingUpdate && candidateLocation) {
-      const pendingLocation = new URL(pendingUpdate.url);
-
-      if (candidateLocation.pathname === pendingLocation.pathname) {
-        historyAction = pendingUpdate.action;
-        nextLocation = candidateLocation;
-        shouldClearPendingUpdate = true;
-      }
-    }
-
-    if (!nextLocation && candidateLocation) {
-      const responseRedirected = event.detail?.fetchResponse?.response?.redirected;
-      const isNewlyPersistedChat =
-        !pendingUpdate &&
-        responseRedirected &&
-        frameChatId &&
-        frameChatId !== lastRenderedChatId &&
-        candidateLocation.pathname.startsWith("/chats/");
-
-      if (isNewlyPersistedChat) {
-        historyAction = "push";
-        nextLocation = candidateLocation;
-      }
-    }
-
-    if (!nextLocation || !historyAction) {
-      if (shouldClearPendingUpdate && pendingUpdate) {
-        clearPendingHistoryUpdate(frameId);
-      }
-
-      lastRenderedChatIdsByFrameId.set(frameId, frameChatId);
+    if (!nextUrlCandidate) {
       return;
     }
 
-    if (typeof history[historyAction] !== "function") {
-      if (shouldClearPendingUpdate && pendingUpdate) {
-        clearPendingHistoryUpdate(frameId);
-      }
+    const pendingLocation = new URL(pendingUpdate.url);
+    const candidateLocation = new URL(nextUrlCandidate);
 
-      lastRenderedChatIdsByFrameId.set(frameId, frameChatId);
+    if (candidateLocation.pathname !== pendingLocation.pathname) {
+      return;
+    }
+
+    const nextLocation = candidateLocation;
+    const currentLocation = window.Turbo.navigator.location || new URL(window.location.href);
+
+    if (typeof history[action] !== "function") {
       return;
     }
 
     if (!nextLocation.pathname.startsWith("/chats")) {
-      if (shouldClearPendingUpdate && pendingUpdate) {
-        clearPendingHistoryUpdate(frameId);
-      }
-
-      lastRenderedChatIdsByFrameId.set(frameId, frameChatId);
       return;
     }
 
-    const currentLocation = window.Turbo.navigator.location || new URL(window.location.href);
-
-    if (currentLocation.href !== nextLocation.href) {
-      history[historyAction](nextLocation);
+    if (currentLocation.href === nextLocation.href) {
+      return;
     }
 
-    if (shouldClearPendingUpdate && pendingUpdate) {
-      clearPendingHistoryUpdate(frameId);
-    }
-
-    lastRenderedChatIdsByFrameId.set(frameId, frameChatId);
+    history[action](nextLocation);
+    clearPendingHistoryUpdate(frameId);
   }
 
   #configureAutoScroll() {
