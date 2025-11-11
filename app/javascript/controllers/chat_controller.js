@@ -40,6 +40,36 @@ export default class extends Controller {
     }
   }
 
+  updateUrl(event) {
+    const link = event.currentTarget;
+
+    if (!link || typeof link.getAttribute !== "function") {
+      return;
+    }
+
+    const href = link.getAttribute("href");
+
+    if (!href || !window.Turbo?.navigator?.history) {
+      return;
+    }
+
+    const currentLocation = window.Turbo.navigator.location || new URL(window.location.href);
+
+    if (!currentLocation.pathname.startsWith("/chats")) {
+      return;
+    }
+
+    const nextLocation = new URL(href, window.location.origin);
+
+    if (currentLocation.href === nextLocation.href) {
+      return;
+    }
+
+    const historyMethod = link.dataset.turboAction === "replace" ? "replace" : "push";
+
+    window.Turbo.navigator.history[historyMethod](nextLocation);
+  }
+
   #configureAutoScroll() {
     this.messagesObserver = new MutationObserver((_mutations) => {
       if (this.hasMessagesTarget) {

@@ -4,7 +4,7 @@
   <% if chat.new_record? || ctx == "chat" %>
     <h3 class="text-sm font-medium text-primary"><%= chat.title || "New chat" %></h3>
   <% else %>
-    <%= link_to chat_path(chat), data: { turbo_frame: chat_frame } do %>
+    <%= link_to chat_path(chat), data: { turbo_frame: chat_frame, action: "chat#updateUrl" } do %>
       <h3 class="truncate text-sm font-medium text-primary"><%= chat.title %></h3>
     <% end %>
   <% end %>
