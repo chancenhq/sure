@@ -112,14 +112,12 @@ export default class extends Controller {
   recordFrameVisit(event) {
     const frame = event?.target;
     const frameId = frame?.id;
-    const pendingUpdate = frameId ? peekPendingHistoryUpdate(frameId) : null;
     const history = window.Turbo?.navigator?.history;
 
-    if (!pendingUpdate || !history || !frameId) {
+    if (!history || !frameId) {
       return;
     }
 
-    const { action } = pendingUpdate;
     const responseUrl =
       event.detail?.fetchResponse?.response?.url || event.detail?.fetchResponse?.url;
     const nextUrlCandidate = normalizeUrl(responseUrl) || normalizeUrl(frame?.src);
@@ -128,30 +126,45 @@ export default class extends Controller {
       return;
     }
 
-    const pendingLocation = new URL(pendingUpdate.url);
     const candidateLocation = new URL(nextUrlCandidate);
 
-    if (candidateLocation.pathname !== pendingLocation.pathname) {
+    // Only handle chat routes
+    if (!candidateLocation.pathname.startsWith("/chats")) {
       return;
     }
 
-    const nextLocation = candidateLocation;
     const currentLocation = window.Turbo.navigator.location || new URL(window.location.href);
 
-    if (typeof history[action] !== "function") {
+    const pendingUpdate = frameId ? peekPendingHistoryUpdate(frameId) : null;
+
+    // If this render corresponds to a queued history update (from a link click),
+    // honor the requested action (push/replace) but only if pathnames match.
+    if (pendingUpdate) {
+      const { action } = pendingUpdate;
+      const pendingLocation = new URL(pendingUpdate.url);
+
+      if (candidateLocation.pathname !== pendingLocation.pathname) {
+        return;
+      }
+
+      if (typeof history[action] !== "function") {
+        return;
+      }
+
+      if (currentLocation.href === candidateLocation.href) {
+        return;
+      }
+
+      history[action](candidateLocation);
+      clearPendingHistoryUpdate(frameId);
       return;
     }
 
-    if (!nextLocation.pathname.startsWith("/chats")) {
-      return;
+    // No pending update (e.g., form submission returned a frame render).
+    // If we're on a chats route and the URL changed, push it so the address bar matches.
+    if (currentLocation.href !== candidateLocation.href) {
+      history.push(candidateLocation);
     }
-
-    if (currentLocation.href === nextLocation.href) {
-      return;
-    }
-
-    history[action](nextLocation);
-    clearPendingHistoryUpdate(frameId);
   }
 
   #configureAutoScroll() {
