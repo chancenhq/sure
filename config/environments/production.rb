@@ -70,7 +70,7 @@ Rails.application.configure do
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
 
   if ENV["CACHE_REDIS_URL"].present?
-    config.cache_store = :redis_cache_store, { url: ENV["CACHE_REDIS_URL"] }
+    config.cache_store = :redis_cache_store, { url: ENV["REDIS_URL"] }
   end
 
   config.action_mailer.perform_caching = false
