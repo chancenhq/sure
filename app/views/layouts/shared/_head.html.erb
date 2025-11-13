@@ -4,12 +4,16 @@
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
 
+  <% if ENV["POSTHOG_API_KEY"].present? %>
+    <meta name="posthog-api-key" content="<%= ENV["POSTHOG_API_KEY"] %>">
+    <meta name="posthog-host" content="<%= ENV.fetch("POSTHOG_HOST", "https://us.i.posthog.com") %>">
+  <% end %>
+
   <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
 
   <%= javascript_include_tag "https://cdn.plaid.com/link/v2/stable/link-initialize.js" %>
   <%= combobox_style_tag %>
 
-  <%= posthog_config_script %>
   <%= javascript_importmap_tags %>
   <%= render "layouts/dark_mode_check" %>
   <%= turbo_refreshes_with method: :morph, scroll: :preserve %>

@@ -5,9 +5,12 @@ let initialized = false;
 export function initPostHog() {
   if (initialized) return posthog;
 
-  // Check if PostHog API key is available in the environment
-  const apiKey = window.POSTHOG_API_KEY;
-  const host = window.POSTHOG_HOST || "https://us.i.posthog.com";
+  // Read PostHog configuration from meta tags
+  const apiKeyMeta = document.querySelector('meta[name="posthog-api-key"]');
+  const hostMeta = document.querySelector('meta[name="posthog-host"]');
+
+  const apiKey = apiKeyMeta?.getAttribute("content");
+  const host = hostMeta?.getAttribute("content") || "https://us.i.posthog.com";
 
   if (apiKey) {
     posthog.init(apiKey, {
