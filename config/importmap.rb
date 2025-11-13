@@ -52,3 +52,4 @@ pin "@floating-ui/utils/dom", to: "@floating-ui--utils--dom.js" # @0.2.9
 pin "d3-sankey" # @0.12.3
 pin "d3-array-src", to: "d3-array.js"
 pin "d3-shape-src", to: "d3-shape.js"
+pin "posthog-js" # @1.187.4

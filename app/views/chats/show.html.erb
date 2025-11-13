@@ -1,4 +1,8 @@
-<div data-controller="chat hotkey">
+<div data-controller="chat hotkey"
+     data-chat-chat-id-value="<%= @chat.id %>"
+     data-chat-user-id-value="<%= Current.user.id %>"
+     data-chat-created-at-value="<%= @chat.created_at.iso8601 %>"
+     data-chat-is-new-value="<%= @chat.conversation_messages.count <= 1 %>">
   <%= turbo_frame_tag chat_frame do %>
     <%= turbo_stream_from @chat %>
 

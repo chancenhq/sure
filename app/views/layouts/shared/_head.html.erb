@@ -9,6 +9,7 @@
   <%= javascript_include_tag "https://cdn.plaid.com/link/v2/stable/link-initialize.js" %>
   <%= combobox_style_tag %>
 
+  <%= posthog_config_script %>
   <%= javascript_importmap_tags %>
   <%= render "layouts/dark_mode_check" %>
   <%= turbo_refreshes_with method: :morph, scroll: :preserve %>

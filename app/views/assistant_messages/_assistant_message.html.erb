@@ -1,6 +1,6 @@
 <%# locals: (assistant_message:) %>
 
-<div id="<%= dom_id(assistant_message) %>">
+<div id="<%= dom_id(assistant_message) %>" role="assistant">
   <% if assistant_message.reasoning? %>
     <details class="group mb-1">
       <summary class="flex items-center gap-2">

@@ -122,6 +122,18 @@ module ApplicationHelper
     markdown.render(text).html_safe
   end
 
+  # Inject PostHog configuration as JavaScript variables
+  def posthog_config_script
+    return "" unless ENV["POSTHOG_API_KEY"].present?
+
+    javascript_tag do
+      <<~JS.html_safe
+        window.POSTHOG_API_KEY = #{ENV["POSTHOG_API_KEY"].to_json};
+        window.POSTHOG_HOST = #{ENV.fetch("POSTHOG_HOST", "https://us.i.posthog.com").to_json};
+      JS
+    end
+  end
+
   private
     def calculate_total(item, money_method, negate)
       # Filter out transfer-type transactions from entries
