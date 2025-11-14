@@ -1,0 +1,30 @@
+name: Companion Chat Monitor
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 * * * *'
+
+jobs:
+  chat-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright
+        run: npm install --no-save playwright@1.44.1
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify companion chatbot response
+        env:
+          COMPANION_EMAIL: juanjo.mata2@gmail.com
+          COMPANION_PASSWORD: Password1!
+        run: node bin/check_companion_chat.js
