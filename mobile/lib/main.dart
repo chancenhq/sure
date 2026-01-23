@@ -7,6 +7,7 @@ import 'providers/chat_provider.dart';
 import 'screens/backend_config_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/main_navigation_screen.dart';
+import 'screens/welcome_screen.dart';
 import 'services/api_config.dart';
 import 'services/connectivity_service.dart';
 import 'services/log_service.dart';
@@ -146,21 +147,34 @@ class AppWrapper extends StatefulWidget {
 class _AppWrapperState extends State<AppWrapper> {
   bool _isCheckingConfig = true;
   bool _hasBackendUrl = false;
+  bool _hasSeenWelcome = true; // Default to true to avoid flash
 
   @override
   void initState() {
     super.initState();
-    _checkBackendConfig();
+    _checkInitialState();
   }
 
-  Future<void> _checkBackendConfig() async {
-    final hasUrl = await ApiConfig.initialize();
+  Future<void> _checkInitialState() async {
+    // Check welcome screen and backend config in parallel
+    final results = await Future.wait<bool>([
+      WelcomeScreen.hasSeenWelcome(),
+      ApiConfig.initialize(),
+    ]);
+
     if (mounted) {
       setState(() {
-        _hasBackendUrl = hasUrl;
+        _hasSeenWelcome = results[0];
+        _hasBackendUrl = results[1];
         _isCheckingConfig = false;
       });
     }
+  }
+
+  void _onWelcomeComplete() {
+    setState(() {
+      _hasSeenWelcome = true;
+    });
   }
 
   void _onBackendConfigSaved() {
@@ -183,6 +197,11 @@ class _AppWrapperState extends State<AppWrapper> {
           child: CircularProgressIndicator(),
         ),
       );
+    }
+
+    // Show welcome screen first if user hasn't seen it
+    if (!_hasSeenWelcome) {
+      return WelcomeScreen(onGetStarted: _onWelcomeComplete);
     }
 
     if (!_hasBackendUrl) {

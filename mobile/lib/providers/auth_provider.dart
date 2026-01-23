@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import '../models/user.dart';
 import '../models/auth_tokens.dart';
@@ -113,8 +115,31 @@ class AuthProvider with ChangeNotifier {
         notifyListeners();
         return false;
       }
-    } catch (e) {
-      _errorMessage = 'Connection error: ${e.toString()}';
+    } on SocketException catch (e, stackTrace) {
+      LogService.instance.error('AuthProvider', 'Login SocketException: $e\n$stackTrace');
+      _errorMessage = 'Network unavailable. Please check your internet connection and backend URL.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } on TimeoutException catch (e, stackTrace) {
+      LogService.instance.error('AuthProvider', 'Login TimeoutException: $e\n$stackTrace');
+      _errorMessage = 'Request timed out. Please check your connection and try again.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e, stackTrace) {
+      // Check for SSL/certificate errors
+      final errorString = e.toString().toLowerCase();
+      if (errorString.contains('handshake') || 
+          errorString.contains('certificate') || 
+          errorString.contains('ssl') ||
+          errorString.contains('tls')) {
+        LogService.instance.error('AuthProvider', 'Login SSL/Certificate error: $e\n$stackTrace');
+        _errorMessage = 'SSL/Certificate error. Please check your backend URL or certificate configuration.';
+      } else {
+        LogService.instance.error('AuthProvider', 'Login unexpected error: $e\n$stackTrace');
+        _errorMessage = 'Connection error: ${e.toString()}';
+      }
       _isLoading = false;
       notifyListeners();
       return false;
@@ -155,8 +180,31 @@ class AuthProvider with ChangeNotifier {
         notifyListeners();
         return false;
       }
-    } catch (e) {
-      _errorMessage = 'Connection error: ${e.toString()}';
+    } on SocketException catch (e, stackTrace) {
+      LogService.instance.error('AuthProvider', 'Signup SocketException: $e\n$stackTrace');
+      _errorMessage = 'Network unavailable. Please check your internet connection and backend URL.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } on TimeoutException catch (e, stackTrace) {
+      LogService.instance.error('AuthProvider', 'Signup TimeoutException: $e\n$stackTrace');
+      _errorMessage = 'Request timed out. Please check your connection and try again.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e, stackTrace) {
+      // Check for SSL/certificate errors
+      final errorString = e.toString().toLowerCase();
+      if (errorString.contains('handshake') || 
+          errorString.contains('certificate') || 
+          errorString.contains('ssl') ||
+          errorString.contains('tls')) {
+        LogService.instance.error('AuthProvider', 'Signup SSL/Certificate error: $e\n$stackTrace');
+        _errorMessage = 'SSL/Certificate error. Please check your backend URL or certificate configuration.';
+      } else {
+        LogService.instance.error('AuthProvider', 'Signup unexpected error: $e\n$stackTrace');
+        _errorMessage = 'Connection error: ${e.toString()}';
+      }
       _isLoading = false;
       notifyListeners();
       return false;

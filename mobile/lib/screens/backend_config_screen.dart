@@ -1,7 +1,10 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../services/api_config.dart';
+import '../services/log_service.dart';
 
 class BackendConfigScreen extends StatefulWidget {
   final VoidCallback? onConfigSaved;
@@ -63,28 +66,109 @@ class _BackendConfigScreenState extends State<BackendConfigScreen> {
       ).timeout(
         const Duration(seconds: 10),
         onTimeout: () {
-          throw Exception('Connection timeout. Please check the URL and try again.');
+          throw TimeoutException('Connection timeout. Please check the URL and try again.');
         },
       );
 
       if (sessionsResponse.statusCode >= 200 && sessionsResponse.statusCode < 400) {
+        LogService.instance.info('BackendConfigScreen', 'Connection test successful: $normalizedUrl');
         if (mounted) {
           setState(() {
             _successMessage = 'Connection successful! Sure backend is reachable.';
           });
         }
       } else {
+        LogService.instance.warning('BackendConfigScreen', 'Connection test returned status ${sessionsResponse.statusCode} for URL: $normalizedUrl');
         if (mounted) {
           setState(() {
             _errorMessage = 'Server responded with status ${sessionsResponse.statusCode}. Please check if this is a Sure backend server.';
           });
         }
       }
-    } catch (e) {
+    } on SocketException catch (e, stackTrace) {
+      LogService.instance.error('BackendConfigScreen', 'SocketException during connection test: $e\n$stackTrace');
       if (mounted) {
         setState(() {
-          _errorMessage = 'Connection failed: ${e.toString()}';
+          _errorMessage = 'Network unavailable. Please check:\n'
+              '• Your internet connection\n'
+              '• The backend URL is correct\n'
+              '• The server is running\n'
+              '• Firewall settings allow connections';
         });
+      }
+    } on TimeoutException catch (e, stackTrace) {
+      LogService.instance.error('BackendConfigScreen', 'TimeoutException during connection test: $e\n$stackTrace');
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Connection timeout. Please check:\n'
+              '• The backend URL is correct\n'
+              '• The server is running and accessible\n'
+              '• Your network connection is stable';
+        });
+      }
+    } on HttpException catch (e, stackTrace) {
+      LogService.instance.error('BackendConfigScreen', 'HttpException during connection test: $e\n$stackTrace');
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'HTTP error: ${e.message}\n'
+              'Please verify the backend URL is correct.';
+        });
+      }
+    } catch (e, stackTrace) {
+      // Check for ClientException (common on Flutter web)
+      final errorString = e.toString().toLowerCase();
+      final errorType = e.runtimeType.toString();
+      
+      if (errorType.contains('ClientException') || errorString.contains('clientexception')) {
+        LogService.instance.error('BackendConfigScreen', 'ClientException during connection test: $e\n$stackTrace');
+        if (mounted) {
+          setState(() {
+            if (errorString.contains('cors') || errorString.contains('cross-origin')) {
+              _errorMessage = 'CORS error: The server is blocking cross-origin requests.\n\n'
+                  'This is common on Flutter web. The backend server needs to:\n'
+                  '• Allow CORS from your app\'s origin\n'
+                  '• Include proper CORS headers in responses';
+            } else if (errorString.contains('failed to fetch')) {
+              _errorMessage = 'Failed to fetch. This could be due to:\n'
+                  '• CORS policy blocking the request\n'
+                  '• Network connectivity issues\n'
+                  '• Server not responding\n'
+                  '• Browser security restrictions\n\n'
+                  'Check the browser console for more details.';
+            } else {
+              _errorMessage = 'Connection failed: ${e.toString()}\n\n'
+                  'Please verify:\n'
+                  '• The backend URL is correct\n'
+                  '• The server is running and accessible\n'
+                  '• CORS is properly configured (for web)';
+            }
+          });
+        }
+      } else if (errorString.contains('handshake') || 
+          errorString.contains('certificate') || 
+          errorString.contains('ssl') ||
+          errorString.contains('tls')) {
+        LogService.instance.error('BackendConfigScreen', 'SSL/Certificate error during connection test: $e\n$stackTrace');
+        if (mounted) {
+          setState(() {
+            _errorMessage = 'SSL/Certificate error. This may occur with:\n'
+                '• Self-signed certificates\n'
+                '• Expired certificates\n'
+                '• Certificate chain issues\n\n'
+                'For development, try using http:// instead of https://';
+          });
+        }
+      } else {
+        LogService.instance.error('BackendConfigScreen', 'Unexpected error during connection test: $e\n$stackTrace');
+        if (mounted) {
+          setState(() {
+            _errorMessage = 'Connection failed: ${e.toString()}\n\n'
+                'Please verify:\n'
+                '• The backend URL is correct\n'
+                '• The server is running\n'
+                '• Your network connection is working';
+          });
+        }
       }
     } finally {
       if (mounted) {

@@ -106,6 +106,24 @@ class AuthService {
         'error': 'Invalid response from server',
       };
     } catch (e, stackTrace) {
+      // Check for ClientException (common on Flutter web, especially "Failed to fetch")
+      final errorType = e.runtimeType.toString();
+      final errorString = e.toString().toLowerCase();
+      
+      if (errorType.contains('ClientException') || errorString.contains('clientexception') || errorString.contains('failed to fetch')) {
+        LogService.instance.error('AuthService', 'Login ClientException: $e\n$stackTrace');
+        if (errorString.contains('cors') || errorString.contains('cross-origin')) {
+          return {
+            'success': false,
+            'error': 'Network error: CORS policy blocking request. Check server CORS configuration.',
+          };
+        }
+        return {
+          'success': false,
+          'error': 'Network unavailable. Check connection and CORS settings.',
+        };
+      }
+      
       LogService.instance.error('AuthService', 'Login unexpected error: $e\n$stackTrace');
       return {
         'success': false,
@@ -204,6 +222,24 @@ class AuthService {
         'error': 'Invalid response from server',
       };
     } catch (e, stackTrace) {
+      // Check for ClientException (common on Flutter web, especially "Failed to fetch")
+      final errorType = e.runtimeType.toString();
+      final errorString = e.toString().toLowerCase();
+      
+      if (errorType.contains('ClientException') || errorString.contains('clientexception') || errorString.contains('failed to fetch')) {
+        LogService.instance.error('AuthService', 'Signup ClientException: $e\n$stackTrace');
+        if (errorString.contains('cors') || errorString.contains('cross-origin')) {
+          return {
+            'success': false,
+            'error': 'Network error: CORS policy blocking request. Check server CORS configuration.',
+          };
+        }
+        return {
+          'success': false,
+          'error': 'Network unavailable. Check connection and CORS settings.',
+        };
+      }
+      
       LogService.instance.error('AuthService', 'Signup unexpected error: $e\n$stackTrace');
       return {
         'success': false,
@@ -278,6 +314,24 @@ class AuthService {
         'error': 'Invalid response from server',
       };
     } catch (e, stackTrace) {
+      // Check for ClientException (common on Flutter web, especially "Failed to fetch")
+      final errorType = e.runtimeType.toString();
+      final errorString = e.toString().toLowerCase();
+      
+      if (errorType.contains('ClientException') || errorString.contains('clientexception') || errorString.contains('failed to fetch')) {
+        LogService.instance.error('AuthService', 'RefreshToken ClientException: $e\n$stackTrace');
+        if (errorString.contains('cors') || errorString.contains('cross-origin')) {
+          return {
+            'success': false,
+            'error': 'Network error: CORS policy blocking request. Check server CORS configuration.',
+          };
+        }
+        return {
+          'success': false,
+          'error': 'Network unavailable. Check connection and CORS settings.',
+        };
+      }
+      
       LogService.instance.error('AuthService', 'RefreshToken unexpected error: $e\n$stackTrace');
       return {
         'success': false,

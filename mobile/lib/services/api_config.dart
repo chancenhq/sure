@@ -6,6 +6,8 @@ class ApiConfig {
   // For iOS simulator, use: http://localhost:3000
   // For production, use your actual server URL
   static String _baseUrl = 'http://10.0.2.2:3000';
+  // static String _baseUrl = 'https://app.sure.am';
+  // static String _baseUrl = 'https://companion.chancen.tech';
 
   static String get baseUrl => _baseUrl;
 
