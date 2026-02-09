@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-ruby file: ".ruby-version"
+#ruby file: ".ruby-version"
 
 # Rails
 gem "rails", "~> 7.2.2"
@@ -94,10 +94,6 @@ gem "omniauth-saml", "~> 2.1"
 # State machines
 gem "aasm"
 gem "after_commit_everywhere", "~> 1.0"
-
-# Feature flags
-gem "flipper"
-gem "flipper-active_record"
 
 # AI
 gem "ruby-openai"
