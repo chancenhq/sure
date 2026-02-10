@@ -11,7 +11,6 @@ module FeatureFlags
     end
 
     def intro_ui?
-      Rails.configuration.x.ui.default_layout.to_s == "intro"
-    end
+      Rails.configuration.x.ui.default_layout.to_s.in?(%w[intro dashboard])    end
   end
 end
