@@ -1,0 +1,234 @@
+name: Mobile Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git ref (tag or commit SHA) to build mobile release from'
+        required: true
+        default: 'main'
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.4'
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        working-directory: mobile
+        run: flutter pub get
+
+      - name: Generate app icons
+        working-directory: mobile
+        run: flutter pub run flutter_launcher_icons
+
+      - name: Analyze code
+        working-directory: mobile
+        run: flutter analyze --no-fatal-infos
+
+      - name: Run tests
+        working-directory: mobile
+        run: flutter test
+
+      - name: Check if keystore secrets exist
+        id: check_secrets
+        run: |
+          if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+            echo "has_keystore=true" >> $GITHUB_OUTPUT
+            echo "✓ Keystore secrets found, will build signed APK"
+          else
+            echo "has_keystore=false" >> $GITHUB_OUTPUT
+            echo "⚠ No keystore secrets, will build unsigned debug APK"
+          fi
+
+      - name: Decode and setup keystore
+        if: steps.check_secrets.outputs.has_keystore == 'true'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > mobile/android/app/upload-keystore.jks
+          echo "storePassword=$KEY_STORE_PASSWORD" > mobile/android/key.properties
+          echo "keyPassword=$KEY_PASSWORD" >> mobile/android/key.properties
+          echo "keyAlias=$KEY_ALIAS" >> mobile/android/key.properties
+          echo "storeFile=upload-keystore.jks" >> mobile/android/key.properties
+          echo "✓ Keystore configured successfully"
+
+      - name: Build APK
+        working-directory: mobile
+        run: |
+          if [ "${{ steps.check_secrets.outputs.has_keystore }}" == "true" ]; then
+            flutter build apk --release
+          else
+            flutter build apk --debug
+          fi
+
+      - name: Build App Bundle (Release)
+        if: steps.check_secrets.outputs.has_keystore == 'true'
+        working-directory: mobile
+        run: flutter build appbundle --release
+
+      - name: Upload Android artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-mobile-build
+          path: |
+            mobile/build/app/outputs/flutter-apk/app-release.apk
+            mobile/build/app/outputs/flutter-apk/app-debug.apk
+            mobile/build/app/outputs/bundle/release/app-release.aab
+          retention-days: 30
+          if-no-files-found: ignore
+
+  build-ios:
+    name: Build iOS app bundle
+    runs-on: macos-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.4'
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        working-directory: mobile
+        run: flutter pub get
+
+      - name: Generate app icons
+        working-directory: mobile
+        run: flutter pub run flutter_launcher_icons
+
+      - name: Install CocoaPods dependencies
+        working-directory: mobile/ios
+        run: pod install
+
+      - name: Analyze code
+        working-directory: mobile
+        run: flutter analyze --no-fatal-infos
+
+      - name: Run tests
+        working-directory: mobile
+        run: flutter test
+
+      - name: Build iOS (No Code Signing)
+        working-directory: mobile
+        run: flutter build ios --release --no-codesign
+
+      - name: Create iOS build info
+        working-directory: mobile
+        run: |
+          echo "iOS build completed successfully" > build/ios-build-info.txt
+          echo "Build date: $(date)" >> build/ios-build-info.txt
+          echo "Note: This build is not code-signed and cannot be installed on physical devices" >> build/ios-build-info.txt
+
+      - name: Upload iOS build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-mobile-build
+          path: |
+            mobile/build/ios/iphoneos/Runner.app
+            mobile/build/ios-build-info.txt
+          retention-days: 30
+
+  release:
+    name: Create mobile-only GitHub release
+    needs: [build-android, build-ios]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Resolve release tag
+        id: release_tag
+        run: |
+          TAG="${{ github.ref_type == 'tag' && github.ref_name || github.event.inputs.ref }}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Download Android artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: android-mobile-build
+          path: ${{ runner.temp }}/android
+
+      - name: Download iOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-mobile-build
+          path: ${{ runner.temp }}/ios
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p "${{ runner.temp }}/release-assets"
+
+          if [ -f "${{ runner.temp }}/android/app-debug.apk" ]; then
+            cp "${{ runner.temp }}/android/app-debug.apk" "${{ runner.temp }}/release-assets/sure-${{ steps.release_tag.outputs.tag }}-debug.apk"
+          fi
+
+          if [ -f "${{ runner.temp }}/android/app-release.apk" ]; then
+            cp "${{ runner.temp }}/android/app-release.apk" "${{ runner.temp }}/release-assets/sure-${{ steps.release_tag.outputs.tag }}.apk"
+          fi
+
+          if [ -f "${{ runner.temp }}/android/app-release.aab" ]; then
+            cp "${{ runner.temp }}/android/app-release.aab" "${{ runner.temp }}/release-assets/sure-${{ steps.release_tag.outputs.tag }}.aab"
+          fi
+
+          if [ -d "${{ runner.temp }}/ios/ios/iphoneos/Runner.app" ]; then
+            cd "${{ runner.temp }}/ios/ios/iphoneos"
+            zip -r "${{ runner.temp }}/release-assets/sure-${{ steps.release_tag.outputs.tag }}-ios-unsigned.zip" Runner.app
+          fi
+
+          if [ -f "${{ runner.temp }}/ios/ios-build-info.txt" ]; then
+            cp "${{ runner.temp }}/ios/ios-build-info.txt" "${{ runner.temp }}/release-assets/"
+          fi
+
+          ls -la "${{ runner.temp }}/release-assets"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_tag.outputs.tag }}
+          name: ${{ steps.release_tag.outputs.tag }}
+          draft: false
+          prerelease: ${{ contains(steps.release_tag.outputs.tag, 'alpha') || contains(steps.release_tag.outputs.tag, 'beta') || contains(steps.release_tag.outputs.tag, 'rc') }}
+          generate_release_notes: true
+          files: |
+            ${{ runner.temp }}/release-assets/*
+          body: |
+            ## Mobile-only release assets
+
+            This workflow builds and publishes only Flutter mobile artifacts from `mobile/`.
+            No Docker images or other non-mobile release steps are executed.
