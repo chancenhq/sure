@@ -237,8 +237,8 @@ class _BackendConfigScreenState extends State<BackendConfigScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
+                        '• https://companion-staging.chancen.tech/\n'
                         '• https://demo.sure.am\n'
-                        '• https://your-domain.com\n'
                         '• http://localhost:3000',
                         style: TextStyle(
                           color: colorScheme.onSurface,
