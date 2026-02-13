@@ -5,27 +5,27 @@ class Assistant::Function::SearchFamilyFiles < Assistant::Function
     end
 
     def description
-      <<~DESC
-        Search through documents that the family has uploaded to their financial document store.
+      <<~DESCRIPTION
+        Use this function to retrieve official information from Chancen
+        International's ISA contract and policy documents stored in the partner
+        vector store.
 
-        Use this when the user asks questions about their uploaded financial documents such as
-        tax returns, bank statements, contracts, insurance policies, investment reports, or any
-        other files they've imported.
-
-        Returns relevant excerpts from matching documents along with the source filename and
-        a relevance score.
-
-        Supported file types include: PDF, DOCX, XLSX, PPTX, TXT, CSV, JSON, XML, HTML, MD,
-        and common source code formats.
-
-        Example:
-
-        ```
-        search_family_files({
-          query: "What was the total income on my 2024 tax return?"
-        })
-        ```
-      DESC
+        Always call this tool whenever a student asks about Chancen, Income Share
+        Agreements (ISAs), or ISA-related concepts, even if they do not say 'Chancen'
+        or 'ISA'. ISA-related concepts include: repayment amounts/percentages,
+        monthly contributions, when payments start/stop, repayment period, minimum
+        income threshold, maximum repayment amount/cap, early/lump-sum settlement,
+        pauses/exemptions (e.g., job loss), required proofs/documents, treatment of
+        self-employed or business income, household income rules, service/administration
+        fees (e.g., ~KES 300 + annual adjustment), commitment fees (e.g., ~KES 500 per term)
+        and late commitment fees (e.g., ~KES 500 per week), late payment penalties,
+        drop-out/withdrawal fees (e.g., ~KES 5,000), transaction/processing charges
+        (bank/mobile money), events of default, recovery/CRB actions, guardians' obligations,
+        travel/moving abroad, information requirements (KRA/NSSF, employer details),
+        payment methods (standing order, mobile money), termination/settlement, data sharing,
+        dispute resolution, and governing law. Do not use this tool for general budgeting
+        or financial-literacy questions.
+      DESCRIPTION
     end
   end
 
