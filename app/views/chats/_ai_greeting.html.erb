@@ -2,10 +2,10 @@
   <%= render "chats/ai_avatar" %>
 
   <div class="max-w-[85%] text-sm space-y-4 text-primary">
-    <p>Hey <%= Current.user&.first_name || "there" %>! I'm an AI/large-language-model that can help with your finances. I have access to the web and your account data.</p>
+    <p>Hey <%= Current.user&.first_name || "there" %>! I am your financial companion, ready to help you learn and grow your money skills.</p>
 
     <p>
-      You can use <span class="bg-container border border-secondary px-1.5 py-0.5 rounded font-mono text-xs">/</span> to access commands
+      I can explain your Chancen ISA, help you understand budgeting, and teach you about finances. Just ask!
     </p>
 
     <div class="space-y-3">
@@ -13,16 +13,20 @@
 
       <% questions = [
         {
+          icon: "handshake",
+          text: "What is a Chancen ISA?"
+        },
+        {
           icon: "chart-area",
-          text: "Evaluate investment portfolio"
+          text: "How does Chancen ISA impact my future income?"
+        },
+        {
+          icon: "hand-coins",
+          text: "Can I repay my Chancen ISA all at once?"
         },
         {
           icon: "wallet-minimal",
-          text: "Show spending insights"
-        },
-        {
-          icon: "alert-triangle",
-          text: "Find unusual patterns"
+          text: "How to budget in volatile situations?"
         }
       ] %>
 
