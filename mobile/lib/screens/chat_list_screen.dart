@@ -107,6 +107,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final authProvider = Provider.of<AuthProvider>(context);
+    final firstName = authProvider.user?.firstName ?? 'there';
 
     return Scaffold(
       appBar: AppBar(
@@ -188,7 +190,19 @@ class _ChatListScreenState extends State<ChatListScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Start a new conversation with the AI assistant.',
+                      'Hey $firstName! I am your financial companion, ready to help you learn and grow your money skills.',
+                      style: TextStyle(color: colorScheme.onSurfaceVariant),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'I can explain your Chancen ISA, help you understand budgeting, and teach you about finances. Just ask!',
+                      style: TextStyle(color: colorScheme.onSurfaceVariant),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'NOTE: I am here to educate and help you learn, always double-check important information and make decisions that feel right for you!',
                       style: TextStyle(color: colorScheme.onSurfaceVariant),
                       textAlign: TextAlign.center,
                     ),

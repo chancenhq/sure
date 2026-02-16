@@ -25,16 +25,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
     if (!introLayout) {
       screens.add(DashboardScreen(key: _dashboardKey));
-    }
-
-    if (introLayout) {
-      screens.add(IntroScreen(onStartChat: onStartChat));
-    }
-
-    screens.add(const ChatListScreen());
-
-    if (!introLayout) {
+      screens.add(const ChatListScreen());
       screens.add(const MoreScreen());
+    } else {
+      screens.add(const ChatListScreen());
+      screens.add(IntroScreen(onStartChat: onStartChat));
     }
 
     screens.add(const SettingsScreen());
@@ -47,7 +42,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     AuthProvider authProvider,
     bool introLayout,
   ) async {
-    const chatIndex = 1;
+    final chatIndex = introLayout ? 0 : 1;
 
     if (index == chatIndex && !authProvider.aiEnabled) {
       final enabled = await _showEnableAiPrompt();
@@ -85,23 +80,30 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       );
     }
 
-    if (introLayout) {
+    if (!introLayout) {
       destinations.add(
         const NavigationDestination(
-          icon: Icon(Icons.auto_awesome_outlined),
-          selectedIcon: Icon(Icons.auto_awesome),
-          label: 'Intro',
+          icon: Icon(Icons.chat_bubble_outline),
+          selectedIcon: Icon(Icons.chat_bubble),
+          label: 'Companion',
+        ),
+      );
+    } else {
+      destinations.add(
+        const NavigationDestination(
+          icon: Icon(Icons.chat_bubble_outline),
+          selectedIcon: Icon(Icons.chat_bubble),
+          label: 'Companion',
+        ),
+      );
+      destinations.add(
+        const NavigationDestination(
+          icon: Icon(Icons.pie_chart_outline),
+          selectedIcon: Icon(Icons.pie_chart),
+          label: 'Insights',
         ),
       );
     }
-
-    destinations.add(
-      const NavigationDestination(
-        icon: Icon(Icons.chat_bubble_outline),
-        selectedIcon: Icon(Icons.chat_bubble),
-        label: 'Assistant',
-      ),
-    );
 
     if (!introLayout) {
       destinations.add(
@@ -217,7 +219,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, _) {
         final introLayout = authProvider.isIntroLayout;
-        const chatIndex = 1;
+        final chatIndex = introLayout ? 0 : 1;
         final screens = _buildScreens(
           introLayout,
           () => _handleDestinationSelected(chatIndex, authProvider, introLayout),
