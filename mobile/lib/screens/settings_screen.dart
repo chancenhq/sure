@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
+import '../app_config.dart';
 import '../providers/auth_provider.dart';
 import '../services/offline_storage_service.dart';
 import '../services/log_service.dart';
@@ -190,68 +191,72 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: Text('App Version: ${_appVersion ?? '…'}'),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(' > ui_layout: ${authProvider.user?.uiLayout}'),
-                Text(' > ai_enabled: ${authProvider.user?.aiEnabled}'),
-              ],
-            ),
+            subtitle: AppConfig.isCompanion
+                ? null
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(' > ui_layout: ${authProvider.user?.uiLayout}'),
+                      Text(' > ai_enabled: ${authProvider.user?.aiEnabled}'),
+                    ],
+                  ),
           ),
 
-          const Divider(),
+          if (!AppConfig.isCompanion) ...[
+            const Divider(),
 
-          // Display Settings Section
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              'Display',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
+            // Display Settings Section
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(
+                'Display',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
               ),
             ),
-          ),
 
-          SwitchListTile(
-            secondary: const Icon(Icons.view_list),
-            title: const Text('Group by Account Type'),
-            subtitle: const Text('Group accounts by type (Crypto, Bank, etc.)'),
-            value: _groupByType,
-            onChanged: (value) async {
-              await PreferencesService.instance.setGroupByType(value);
-              setState(() {
-                _groupByType = value;
-              });
-            },
-          ),
+            SwitchListTile(
+              secondary: const Icon(Icons.view_list),
+              title: const Text('Group by Account Type'),
+              subtitle: const Text('Group accounts by type (Crypto, Bank, etc.)'),
+              value: _groupByType,
+              onChanged: (value) async {
+                await PreferencesService.instance.setGroupByType(value);
+                setState(() {
+                  _groupByType = value;
+                });
+              },
+            ),
 
-          const Divider(),
+            const Divider(),
 
-          // Data Management Section
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              'Data Management',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
+            // Data Management Section
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(
+                'Data Management',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
               ),
             ),
-          ),
 
-          // Clear local data button
-          ListTile(
-            leading: const Icon(Icons.delete_outline),
-            title: const Text('Clear Local Data'),
-            subtitle: const Text('Remove all cached transactions and accounts'),
-            onTap: () => _handleClearLocalData(context),
-          ),
+            // Clear local data button
+            ListTile(
+              leading: const Icon(Icons.delete_outline),
+              title: const Text('Clear Local Data'),
+              subtitle: const Text('Remove all cached transactions and accounts'),
+              onTap: () => _handleClearLocalData(context),
+            ),
 
-          const Divider(),
+            const Divider(),
+          ],
 
           // Sign out button
           Padding(

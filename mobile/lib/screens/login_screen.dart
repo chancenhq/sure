@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../app_config.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_config.dart';
 
@@ -204,7 +205,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               color: colorScheme.onSurfaceVariant,
                             ),
                         children: [
-                          const TextSpan(text: 'Demo account or '),
+                          const TextSpan(text: 'No account? '),
                           TextSpan(
                             text: 'Sign Up',
                             style: TextStyle(
@@ -213,7 +214,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             recognizer: _signUpTapRecognizer,
                           ),
-                          const TextSpan(text: '!'),
+                          const TextSpan(text: ' now!'),
                         ],
                       ),
                       textAlign: TextAlign.center,
@@ -438,65 +439,68 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
 
-                    const SizedBox(height: 24),
+                    if (!AppConfig.isCompanion) ...[
+                      const SizedBox(height: 24),
 
-                    // Backend URL info
-                    InkWell(
-                      onTap: widget.onGoToSettings,
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest
-                              .withValues(alpha: 0.3),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              'Sure server URL:',
-                              style:
-                                  Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: colorScheme.onSurfaceVariant,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              ApiConfig.baseUrl,
-                              style:
-                                  Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: colorScheme.primary,
-                                        fontFamily: 'monospace',
-                                      ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
+                      // Backend URL info
+                      InkWell(
+                        onTap: widget.onGoToSettings,
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surfaceContainerHighest
+                                .withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                'Sure server URL:',
+                                style:
+                                    Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: colorScheme.onSurfaceVariant,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                ApiConfig.baseUrl,
+                                style:
+                                    Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: colorScheme.primary,
+                                          fontFamily: 'monospace',
+                                        ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
 
-                    const SizedBox(height: 12),
+                      const SizedBox(height: 12),
 
-                    // API Key Login Button
-                    TextButton.icon(
-                      onPressed: _showApiKeyDialog,
-                      icon: const Icon(Icons.vpn_key_outlined, size: 18),
-                      label: const Text('API-Key Login'),
-                    ),
+                      // API Key Login Button
+                      TextButton.icon(
+                        onPressed: _showApiKeyDialog,
+                        icon: const Icon(Icons.vpn_key_outlined, size: 18),
+                        label: const Text('API-Key Login'),
+                      ),
+                    ],
                   ],
                 ),
               ),
             ),
-            Positioned(
-              right: 8,
-              top: 8,
-              child: IconButton(
-                icon: const Icon(Icons.settings_outlined),
-                tooltip: 'Backend Settings',
-                onPressed: widget.onGoToSettings,
+            if (!AppConfig.isCompanion)
+              Positioned(
+                right: 8,
+                top: 8,
+                child: IconButton(
+                  icon: const Icon(Icons.settings_outlined),
+                  tooltip: 'Backend Settings',
+                  onPressed: widget.onGoToSettings,
+                ),
               ),
-            ),
           ],
         ),
       ),
