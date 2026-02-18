@@ -366,7 +366,7 @@
 				DEVELOPMENT_TEAM = C8WT3YC922;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Sure Finances";
+				INFOPLIST_KEY_CFBundleDisplayName = "Companion";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -505,7 +505,7 @@
 				DEVELOPMENT_TEAM = C8WT3YC922;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Sure Finances";
+				INFOPLIST_KEY_CFBundleDisplayName = "Companion";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -534,7 +534,7 @@
 				DEVELOPMENT_TEAM = C8WT3YC922;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Sure Finances";
+				INFOPLIST_KEY_CFBundleDisplayName = "Companion";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

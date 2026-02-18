@@ -62,7 +62,7 @@ class SureApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'Sure Finances',
+        title: 'Companion',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           fontFamily: 'Geist',
