@@ -10,26 +10,89 @@ permissions:
   contents: write
 
 jobs:
+  prepare_release:
+    name: Prepare release tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      tag_name: ${{ steps.release_tag.outputs.tag_name }}
+      release_version: ${{ steps.release_tag.outputs.release_version }}
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve release tag
+        id: release_tag
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            BRANCH_NAME="${GITHUB_REF_NAME}"
+            SAFE_BRANCH_NAME="${BRANCH_NAME//\//-}"
+            BASE_TAG="${SAFE_BRANCH_NAME}-$(date -u +'%Y%m%d%H%M')"
+            TAG_NAME="$BASE_TAG"
+            TAG_SUFFIX=1
+
+            while git rev-parse -q --verify "refs/tags/$TAG_NAME" >/dev/null 2>&1; do
+              TAG_NAME="${BASE_TAG}-${TAG_SUFFIX}"
+              TAG_SUFFIX=$((TAG_SUFFIX + 1))
+            done
+
+            echo "Using generated tag: $TAG_NAME"
+            git config user.name "${GITHUB_ACTOR}"
+            git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+            git tag "$TAG_NAME"
+            git push origin "$TAG_NAME"
+          else
+            TAG_NAME="${GITHUB_REF_NAME}"
+          fi
+
+          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
+
+          if [[ "$TAG_NAME" == mobile-* ]]; then
+            echo "release_version=${TAG_NAME#mobile-}" >> "$GITHUB_OUTPUT"
+          else
+            echo "release_version=$TAG_NAME" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
     name: Build Mobile Apps
     uses: ./.github/workflows/flutter-build.yml
     secrets: inherit
 
+  testflight:
+    name: Upload iOS to TestFlight
+    needs: [build, release]
+    uses: ./.github/workflows/ios-testflight.yml
+    with:
+      notes: "Mobile release ${{ needs.release.outputs.tag_name }}"
+    secrets: inherit
+
   release:
     name: Create Mobile GitHub Release
-    needs: [build]
+    needs: [build, prepare_release]
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     permissions:
       contents: write
 
+    outputs:
+      tag_name: ${{ steps.version.outputs.tag_name }}
+
     steps:
       - name: Extract version from tag
         id: version
         run: |
-          # Strip 'mobile-' prefix to get the version part (e.g., 'mobile-v1.0.0' -> 'v1.0.0')
-          VERSION="${GITHUB_REF_NAME#mobile-}"
+          TAG="${{ needs.prepare_release.outputs.tag_name }}"
+          VERSION="${{ needs.prepare_release.outputs.release_version }}"
+          echo "tag_name=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Extracted version: $VERSION"
 
@@ -98,7 +161,7 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="${{ steps.version.outputs.version }}"
-          TAG="${{ github.ref_name }}"
+          TAG="${{ steps.version.outputs.tag_name }}"
 
           cat > /tmp/release-notes.md <<NOTES
           ## Mobile-Only Release: ${VERSION}
@@ -123,7 +186,7 @@ jobs:
 
           gh release create "$TAG" \
             --repo "${{ github.repository }}" \
-            --title "${VERSION} (Mobile)" \
+            --title "$TAG" \
             --notes-file /tmp/release-notes.md \
             $PRERELEASE_FLAG \
             ${{ runner.temp }}/release-assets/*
@@ -138,7 +201,7 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="${{ steps.version.outputs.version }}"
-          TAG="${{ github.ref_name }}"
+          TAG="${{ steps.version.outputs.tag_name }}"
           REPO="${{ github.repository }}"
 
           # Build download links based on which assets were produced
