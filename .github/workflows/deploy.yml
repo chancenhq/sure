@@ -8,7 +8,7 @@ on:
 env:
   ECR_REGISTRY: 568619624687.dkr.ecr.af-south-1.amazonaws.com
   ECR_REPOSITORY: sure
-  DOCKER_IMAGE_TAG: ${{ github.ref_name }}
+  RAW_GIT_TAG: ${{ github.ref_name }}
   AWS_REGION: "af-south-1"
 
 permissions:
@@ -33,6 +33,11 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
+    - name: Normalize Docker image tag
+      run: |
+        # Strip only a single leading "v" (e.g. v0.6.8 -> 0.6.8)
+        echo "DOCKER_IMAGE_TAG=${RAW_GIT_TAG#v}" >> "$GITHUB_ENV"
+
     - name: Build, tag, and push client docker image to Amazon ECR
       run: |
         docker buildx create --use
@@ -50,26 +55,27 @@ jobs:
 
     - name: Update Deployment
       run: |
-        TAG="${DOCKER_IMAGE_TAG:?DOCKER_IMAGE_TAG is required}"
+        RAW_TAG="${RAW_GIT_TAG:?RAW_GIT_TAG is required}"
+        IMAGE_TAG="${DOCKER_IMAGE_TAG:?DOCKER_IMAGE_TAG is required}"
 
         # Stricter semver-like prerelease match: vMAJOR.MINOR.PATCH[-alpha.X|-beta.X]
         is_alpha='^v[0-9]+(\.[0-9]+)*-alpha([.-][0-9]+)?$'
         is_beta='^v[0-9]+(\.[0-9]+)*-beta([.-][0-9]+)?$'
 
-        if [[ "$TAG" =~ $is_beta ]]; then
-          echo "Beta tag detected: $TAG"
+        if [[ "$RAW_TAG" =~ $is_beta ]]; then
+          echo "Beta tag detected: $RAW_TAG"
           # [future] Deploy Sure
           # yq -i '.sure.image.tag = "${{ env.DOCKER_IMAGE_TAG }}"' platform-eks-production/apps/sure/values.yaml
           # Deploy Companion (staging)
           yq -i '.companion.image.tag = "${{ env.DOCKER_IMAGE_TAG }}"' platform-eks-production/apps/companion-staging/values.yaml
 
-        elif [[ "$TAG" =~ $is_alpha ]]; then
-          echo "Alpha tag detected: $TAG"
+        elif [[ "$RAW_TAG" =~ $is_alpha ]]; then
+          echo "Alpha tag detected: $RAW_TAG"
           # Deploy Sure only
           yq -i '.sure.image.tag = "${{ env.DOCKER_IMAGE_TAG }}"' platform-eks-production/apps/sure/values.yaml
 
         else
-          echo "Tag '$TAG' does not match alpha/beta patterns. No deployment."
+          echo "Tag '$RAW_TAG' does not match alpha/beta patterns. No deployment."
         fi
 
         # Stage changes
@@ -82,6 +88,6 @@ jobs:
           git config --global user.email "platform@chancen.international"
           git config --global user.name "platform-chancen"
           git config --global credential.helper cache        
-          git -C platform-eks-production commit -m "Update ${ECR_REPOSITORY:-unknown} image tag to ${TAG}"
+          git -C platform-eks-production commit -m "Update ${ECR_REPOSITORY:-unknown} image tag to ${IMAGE_TAG}"
           git -C platform-eks-production push
         fi
