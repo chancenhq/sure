@@ -107,7 +107,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _launchContactUrl(BuildContext context) async {
-    final uri = Uri.parse('https://discord.com/invite/36ZGBsxYEK');
+    final uri = Uri.parse('https://chat.whatsapp.com/Ca2yaFwpSOxIMQkuh0IcGM?mode=wwc');
     final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!launched && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -344,7 +344,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             leading: const Icon(Icons.chat_bubble_outline),
             title: const Text('Contact us'),
             subtitle: Text(
-              'https://discord.com/invite/36ZGBsxYEK',
+              'WhatsApp Group',
               style: TextStyle(
                 color: Theme.of(context).colorScheme.primary,
                 decoration: TextDecoration.underline,
@@ -355,7 +355,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const Divider(),
 
-            // Display Settings Section
+          if (!AppConfig.isCompanion) ...[
             const Padding(
               padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Text(
@@ -383,7 +383,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             const Divider(),
 
-            // Data Management Section
             const Padding(
               padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Text(
@@ -396,7 +395,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
 
-            // Clear local data button
             ListTile(
               leading: const Icon(Icons.delete_outline),
               title: const Text('Clear Local Data'),
@@ -405,48 +403,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
 
             const Divider(),
-          ],
 
-          // Danger Zone Section
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              'Danger Zone',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.red,
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(
+                'Danger Zone',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
               ),
             ),
-          ),
 
-          ListTile(
-            leading: const Icon(Icons.restart_alt, color: Colors.red),
-            title: const Text('Reset Account'),
-            subtitle: const Text(
-              'Delete all accounts, categories, merchants, and tags but keep your user account',
+            ListTile(
+              leading: const Icon(Icons.restart_alt, color: Colors.red),
+              title: const Text('Reset Account'),
+              subtitle: const Text(
+                'Delete all accounts, categories, merchants, and tags but keep your user account',
+              ),
+              trailing: _isResettingAccount
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                  : null,
+              enabled: !_isResettingAccount && !_isDeletingAccount,
+              onTap: _isResettingAccount || _isDeletingAccount ? null : () => _handleResetAccount(context),
             ),
-            trailing: _isResettingAccount
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : null,
-            enabled: !_isResettingAccount && !_isDeletingAccount,
-            onTap: _isResettingAccount || _isDeletingAccount ? null : () => _handleResetAccount(context),
-          ),
 
-          ListTile(
-            leading: const Icon(Icons.delete_forever, color: Colors.red),
-            title: const Text('Delete Account'),
-            subtitle: const Text(
-              'Permanently remove all your data. This cannot be undone.',
+            ListTile(
+              leading: const Icon(Icons.delete_forever, color: Colors.red),
+              title: const Text('Delete Account'),
+              subtitle: const Text(
+                'Permanently remove all your data. This cannot be undone.',
+              ),
+              trailing: _isDeletingAccount
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                  : null,
+              enabled: !_isDeletingAccount && !_isResettingAccount,
+              onTap: _isDeletingAccount || _isResettingAccount ? null : () => _handleDeleteAccount(context),
             ),
-            trailing: _isDeletingAccount
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : null,
-            enabled: !_isDeletingAccount && !_isResettingAccount,
-            onTap: _isDeletingAccount || _isResettingAccount ? null : () => _handleDeleteAccount(context),
-          ),
 
-          const Divider(),
+            const Divider(),
+          ],
 
           // Sign out button
           Padding(
