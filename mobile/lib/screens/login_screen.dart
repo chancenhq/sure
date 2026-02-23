@@ -194,7 +194,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 48),
                     // Logo/Title
                     SvgPicture.asset(
-                      'assets/images/logomark.svg',
+                      'assets/images/logomark-color.svg',
                       width: 80,
                       height: 80,
                     ),
@@ -439,7 +439,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
 
-                    if (!AppConfig.isCompanion) ...[
+                    if (true) ...[
                       const SizedBox(height: 24),
 
                       // Backend URL info
