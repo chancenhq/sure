@@ -72,7 +72,7 @@ class SureApp extends StatelessWidget {
             'sans-serif',
           ],
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF6366F1),
+            seedColor: const Color(0xFF62A446),
             brightness: Brightness.light,
           ),
           useMaterial3: true,
@@ -109,7 +109,7 @@ class SureApp extends StatelessWidget {
             'sans-serif',
           ],
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF6366F1),
+            seedColor: const Color(0xFF62A446),
             brightness: Brightness.dark,
           ),
           useMaterial3: true,
