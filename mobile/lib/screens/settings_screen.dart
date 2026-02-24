@@ -406,20 +406,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onTap: () => _handleClearLocalData(context),
             ),
 
-            const Divider(),
+          ],
 
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Text(
-                'Danger Zone',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
-                ),
+          const Divider(),
+
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text(
+              'Danger Zone',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.red,
               ),
             ),
+          ),
 
+          if (!AppConfig.isCompanion)
             ListTile(
               leading: const Icon(Icons.restart_alt, color: Colors.red),
               title: const Text('Reset Account'),
@@ -433,21 +436,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onTap: _isResettingAccount || _isDeletingAccount ? null : () => _handleResetAccount(context),
             ),
 
-            ListTile(
-              leading: const Icon(Icons.delete_forever, color: Colors.red),
-              title: const Text('Delete Account'),
-              subtitle: const Text(
-                'Permanently remove all your data. This cannot be undone.',
-              ),
-              trailing: _isDeletingAccount
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                  : null,
-              enabled: !_isDeletingAccount && !_isResettingAccount,
-              onTap: _isDeletingAccount || _isResettingAccount ? null : () => _handleDeleteAccount(context),
+          ListTile(
+            leading: const Icon(Icons.delete_forever, color: Colors.red),
+            title: const Text('Delete Account'),
+            subtitle: const Text(
+              'Permanently remove all your data. This cannot be undone.',
             ),
+            trailing: _isDeletingAccount
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                : null,
+            enabled: !_isDeletingAccount && !_isResettingAccount,
+            onTap: _isDeletingAccount || _isResettingAccount ? null : () => _handleDeleteAccount(context),
+          ),
 
-            const Divider(),
-          ],
+          const Divider(),
 
           // Sign out button
           Padding(
