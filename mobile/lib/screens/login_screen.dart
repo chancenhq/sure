@@ -17,6 +17,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  static const bool _enableAdvancedLoginOptions = false;
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -439,7 +440,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
 
-                    if (true) ...[
+                    if (_enableAdvancedLoginOptions) ...[
                       const SizedBox(height: 24),
 
                       // Backend URL info
@@ -491,7 +492,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
-            if (!AppConfig.isCompanion)
+            if (!AppConfig.isCompanion && _enableAdvancedLoginOptions)
               Positioned(
                 right: 8,
                 top: 8,
