@@ -413,7 +413,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const Padding(
             padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Text(
-              'Danger Zone',
+              'Warning',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
