@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
 import '../models/chat.dart';
 import '../providers/auth_provider.dart';
@@ -144,7 +145,10 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
       },
     );
 
-    if (newTitle != null && newTitle.isNotEmpty && newTitle != currentTitle && mounted) {
+    if (newTitle != null &&
+        newTitle.isNotEmpty &&
+        newTitle != currentTitle &&
+        mounted) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final accessToken = await authProvider.getValidAccessToken();
       if (accessToken != null) {
@@ -205,7 +209,8 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
             );
           }
 
-          if (chatProvider.errorMessage != null && chatProvider.currentChat == null) {
+          if (chatProvider.errorMessage != null &&
+              chatProvider.currentChat == null) {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
@@ -248,7 +253,9 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
             _lastNonEmptyMessages = messages;
           }
           final visibleMessages =
-              messages.isEmpty && _lastNonEmptyMessages.isNotEmpty ? _lastNonEmptyMessages : messages;
+              messages.isEmpty && _lastNonEmptyMessages.isNotEmpty
+                  ? _lastNonEmptyMessages
+                  : messages;
 
           return Column(
             children: [
@@ -273,19 +280,22 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                               const SizedBox(height: 8),
                               Text(
                                 'Send a message to begin chatting with the AI assistant.',
-                                style: TextStyle(color: colorScheme.onSurfaceVariant),
+                                style: TextStyle(
+                                    color: colorScheme.onSurfaceVariant),
                                 textAlign: TextAlign.center,
                               ),
                             ] else ...[
                               const SizedBox(
                                 width: 24,
                                 height: 24,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
                               ),
                               const SizedBox(height: 12),
                               Text(
                                 'Loading conversation…',
-                                style: TextStyle(color: colorScheme.onSurfaceVariant),
+                                style: TextStyle(
+                                    color: colorScheme.onSurfaceVariant),
                               ),
                             ],
                           ],
@@ -308,7 +318,8 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
               // Loading indicator when sending
               if (chatProvider.isSendingMessage)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Row(
                     children: [
                       const SizedBox(
@@ -343,7 +354,8 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                 ),
                 child: Shortcuts(
                   shortcuts: const {
-                    SingleActivator(LogicalKeyboardKey.enter): _SendMessageIntent(),
+                    SingleActivator(LogicalKeyboardKey.enter):
+                        _SendMessageIntent(),
                   },
                   child: Actions(
                     actions: <Type, Action<Intent>>{
@@ -354,31 +366,49 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                         },
                       ),
                     },
-                    child: Row(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _messageController,
-                            decoration: InputDecoration(
-                              hintText: 'Type a message...',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(24),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _messageController,
+                                decoration: InputDecoration(
+                                  hintText: 'Type a message...',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                ),
+                                maxLines: null,
+                                textCapitalization:
+                                    TextCapitalization.sentences,
                               ),
                             ),
-                            maxLines: null,
-                            textCapitalization: TextCapitalization.sentences,
-                          ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.send),
+                              onPressed: chatProvider.isSendingMessage
+                                  ? null
+                                  : _sendMessage,
+                              color: colorScheme.primary,
+                              iconSize: 28,
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: const Icon(Icons.send),
-                          onPressed: chatProvider.isSendingMessage ? null : _sendMessage,
-                          color: colorScheme.primary,
-                          iconSize: 28,
+                        const SizedBox(height: 6),
+                        Text(
+                          'AI can make mistakes. Verify important information.',
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                    fontSize: 11,
+                                  ),
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
@@ -410,7 +440,8 @@ class _MessageBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
-        mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!isUser)
@@ -426,24 +457,81 @@ class _MessageBubble extends StatelessWidget {
           const SizedBox(width: 8),
           Flexible(
             child: Column(
-              crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    color: isUser ? colorScheme.primary : colorScheme.surfaceContainerHighest,
+                    color: isUser
+                        ? colorScheme.primary
+                        : colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        message.content,
-                        style: TextStyle(
-                          color: isUser ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+                      MarkdownBody(
+                        data: message.content,
+                        selectable: false,
+                        softLineBreak: true,
+                        styleSheet:
+                            MarkdownStyleSheet.fromTheme(Theme.of(context))
+                                .copyWith(
+                          p: TextStyle(
+                            color: isUser
+                                ? colorScheme.onPrimary
+                                : colorScheme.onSurfaceVariant,
+                          ),
+                          strong: TextStyle(
+                            color: isUser
+                                ? colorScheme.onPrimary
+                                : colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          em: TextStyle(
+                            color: isUser
+                                ? colorScheme.onPrimary
+                                : colorScheme.onSurfaceVariant,
+                            fontStyle: FontStyle.italic,
+                          ),
+                          listBullet: TextStyle(
+                            color: isUser
+                                ? colorScheme.onPrimary
+                                : colorScheme.onSurfaceVariant,
+                          ),
+                          h1: TextStyle(
+                            color: isUser
+                                ? colorScheme.onPrimary
+                                : colorScheme.onSurfaceVariant,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          h2: TextStyle(
+                            color: isUser
+                                ? colorScheme.onPrimary
+                                : colorScheme.onSurfaceVariant,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          h3: TextStyle(
+                            color: isUser
+                                ? colorScheme.onPrimary
+                                : colorScheme.onSurfaceVariant,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          code: TextStyle(
+                            color: isUser
+                                ? colorScheme.onPrimary
+                                : colorScheme.onSurfaceVariant,
+                            fontFamily: 'monospace',
+                          ),
                         ),
                       ),
-                      if (message.toolCalls != null && message.toolCalls!.isNotEmpty)
+                      if (message.toolCalls != null &&
+                          message.toolCalls!.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(top: 8),
                           child: Wrap(
