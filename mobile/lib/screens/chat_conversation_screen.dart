@@ -25,6 +25,8 @@ class ChatConversationScreen extends StatefulWidget {
 class _ChatConversationScreenState extends State<ChatConversationScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  bool _hasEverHadMessages = false;
+  List<Message> _lastNonEmptyMessages = const [];
 
   @override
   void initState() {
@@ -78,6 +80,11 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
     final shouldUpdateTitle = chatProvider.currentChat?.hasDefaultTitle == true;
 
     _messageController.clear();
+    if (mounted && !_hasEverHadMessages) {
+      setState(() {
+        _hasEverHadMessages = true;
+      });
+    }
 
     final delivered = await chatProvider.sendMessage(
       accessToken: accessToken,
@@ -234,41 +241,62 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
           }
 
           final messages = chatProvider.currentChat?.messages ?? [];
+          if (messages.isNotEmpty) {
+            if (!_hasEverHadMessages) {
+              _hasEverHadMessages = true;
+            }
+            _lastNonEmptyMessages = messages;
+          }
+          final visibleMessages =
+              messages.isEmpty && _lastNonEmptyMessages.isNotEmpty ? _lastNonEmptyMessages : messages;
 
           return Column(
             children: [
               // Messages list
               Expanded(
-                child: messages.isEmpty
+                child: visibleMessages.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              Icons.chat_bubble_outline,
-                              size: 64,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Start a conversation',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Send a message to begin chatting with the AI assistant.',
-                              style: TextStyle(color: colorScheme.onSurfaceVariant),
-                              textAlign: TextAlign.center,
-                            ),
+                            if (!_hasEverHadMessages) ...[
+                              Icon(
+                                Icons.chat_bubble_outline,
+                                size: 64,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Start a conversation',
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Send a message to begin chatting with the AI assistant.',
+                                style: TextStyle(color: colorScheme.onSurfaceVariant),
+                                textAlign: TextAlign.center,
+                              ),
+                            ] else ...[
+                              const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Loading conversation…',
+                                style: TextStyle(color: colorScheme.onSurfaceVariant),
+                              ),
+                            ],
                           ],
                         ),
                       )
                     : ListView.builder(
                         controller: _scrollController,
                         padding: const EdgeInsets.all(16),
-                        itemCount: messages.length,
+                        itemCount: visibleMessages.length,
                         itemBuilder: (context, index) {
-                          final message = messages[index];
+                          final message = visibleMessages[index];
                           return _MessageBubble(
                             message: message,
                             formatTime: _formatTime,
