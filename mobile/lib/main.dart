@@ -13,6 +13,29 @@ import 'services/api_config.dart';
 import 'services/connectivity_service.dart';
 import 'services/log_service.dart';
 
+// warm white background used throughout the light theme
+const Color _warmBackground = Color(0xFFFDFBF7);
+
+// create color schemes once so they can be reused
+final ColorScheme _lightScheme = ColorScheme.fromSeed(
+  seedColor: const Color(0xFF62A446),
+  brightness: Brightness.light,
+).copyWith(
+  background: _warmBackground,
+  surface: _warmBackground,
+);
+
+final ColorScheme _darkScheme = ColorScheme.fromSeed(
+  seedColor: const Color(0xFF62A446),
+  brightness: Brightness.dark,
+).copyWith(
+  // choose dark-friendly background; for example a very dark grey
+  background: const Color(0xFF121212),
+  surface: const Color(0xFF121212),
+);
+
+
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ApiConfig.initialize();
@@ -71,10 +94,9 @@ class SureApp extends StatelessWidget {
             'Arial',
             'sans-serif',
           ],
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF62A446),
-            brightness: Brightness.light,
-          ),
+          // start with a seed-based scheme for the green primary color
+          colorScheme: _lightScheme,
+          scaffoldBackgroundColor: _lightScheme.background,
           useMaterial3: true,
           appBarTheme: const AppBarTheme(
             centerTitle: true,
@@ -108,10 +130,8 @@ class SureApp extends StatelessWidget {
             'Arial',
             'sans-serif',
           ],
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF62A446),
-            brightness: Brightness.dark,
-          ),
+          colorScheme: _darkScheme,
+          scaffoldBackgroundColor: _darkScheme.background,
           useMaterial3: true,
           appBarTheme: const AppBarTheme(
             centerTitle: true,
