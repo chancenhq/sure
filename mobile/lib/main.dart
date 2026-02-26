@@ -87,6 +87,17 @@ class SureApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Companion',
         debugShowCheckedModeBanner: false,
+        builder: (context, child) {
+          // Keep content above system UI (status bar, navigation bar, notches).
+          // Protects all screens globally from being hidden behind system UI.
+          return SafeArea(
+            top: false,
+            left: false,
+            right: false,
+            bottom: true,
+            child: child ?? const SizedBox.shrink(),
+          );
+        },
         theme: ThemeData(
           fontFamily: 'Geist',
           fontFamilyFallback: const [
