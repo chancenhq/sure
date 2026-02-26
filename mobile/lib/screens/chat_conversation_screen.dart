@@ -402,7 +402,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'AI can make mistakes. Verify important information.',
+                          'AI can make mistakes. I am here to educate and help you learn. Always double-check important information.',
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: colorScheme.onSurfaceVariant,
