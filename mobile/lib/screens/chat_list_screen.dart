@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/chat.dart';
 import '../providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
 import 'chat_conversation_screen.dart';
@@ -37,54 +36,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   Future<void> _createNewChat() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-
-    final accessToken = await authProvider.getValidAccessToken();
-    if (accessToken == null) {
-      await authProvider.logout();
-      return;
-    }
-
-    // Show loading dialog
     if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-
-    final chat = await chatProvider.createChat(
-      accessToken: accessToken,
-      title: Chat.defaultTitle,
-    );
-
-    // Close loading dialog
-    if (mounted) {
-      Navigator.pop(context);
-    }
-
-    if (chat != null && mounted) {
-      // Navigate to chat conversation
       await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => ChatConversationScreen(chatId: chat.id),
+          builder: (context) => const ChatConversationScreen(),
         ),
       );
 
       // Refresh list after returning
       _loadChats();
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(chatProvider.errorMessage ?? 'Failed to create chat'),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 
@@ -131,6 +92,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
       ),
       body: Consumer<ChatProvider>(
         builder: (context, chatProvider, _) {
+          final nonEmptyChats = chatProvider.chats
+              .where((chat) => (chat.messageCount ?? chat.messages.length) > 0)
+              .toList();
+
           if (chatProvider.isLoading && chatProvider.chats.isEmpty) {
             return const Center(
               child: CircularProgressIndicator(),
@@ -172,7 +137,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
             );
           }
 
-          if (chatProvider.chats.isEmpty) {
+          if (nonEmptyChats.isEmpty) {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
@@ -217,9 +182,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
             onRefresh: _handleRefresh,
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: chatProvider.chats.length,
+              itemCount: nonEmptyChats.length,
               itemBuilder: (context, index) {
-                final chat = chatProvider.chats[index];
+                final chat = nonEmptyChats[index];
                 return Dismissible(
                   key: Key(chat.id),
                   direction: DismissDirection.endToStart,

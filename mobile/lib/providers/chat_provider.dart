@@ -90,6 +90,13 @@ class ChatProvider with ChangeNotifier {
     String? title,
     String? initialMessage,
   }) async {
+    final trimmedMessage = initialMessage?.trim() ?? '';
+    if (trimmedMessage.isEmpty) {
+      _errorMessage = 'Message cannot be empty';
+      notifyListeners();
+      return null;
+    }
+
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -98,7 +105,7 @@ class ChatProvider with ChangeNotifier {
       final result = await _chatService.createChat(
         accessToken: accessToken,
         title: title,
-        initialMessage: initialMessage,
+        initialMessage: trimmedMessage,
       );
 
       if (result['success'] == true) {
@@ -108,7 +115,7 @@ class ChatProvider with ChangeNotifier {
         _errorMessage = null;
 
         // Start polling for AI response if initial message was sent
-        if (initialMessage != null) {
+        if (trimmedMessage.isNotEmpty) {
           _startPolling(accessToken, chat.id);
         }
 

@@ -13,11 +13,11 @@ class _SendMessageIntent extends Intent {
 }
 
 class ChatConversationScreen extends StatefulWidget {
-  final String chatId;
+  final String? chatId;
 
   const ChatConversationScreen({
     super.key,
-    required this.chatId,
+    this.chatId,
   });
 
   @override
@@ -29,10 +29,14 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _hasEverHadMessages = false;
   List<Message> _lastNonEmptyMessages = const [];
+  String? _activeChatId;
+  bool _isInitializingChat = false;
 
   @override
   void initState() {
     super.initState();
+    _activeChatId = widget.chatId;
+    _isInitializingChat = _activeChatId != null;
     _loadChat();
   }
 
@@ -53,10 +57,34 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
       return;
     }
 
+    if (_activeChatId == null) {
+      chatProvider.clearCurrentChat();
+      if (mounted) {
+        setState(() {
+          _isInitializingChat = false;
+        });
+      }
+      return;
+    }
+
+    if (mounted) {
+      setState(() {
+        _isInitializingChat = true;
+      });
+    }
+
+    chatProvider.clearCurrentChat();
+
     await chatProvider.fetchChat(
       accessToken: accessToken,
-      chatId: widget.chatId,
+      chatId: _activeChatId!,
     );
+
+    if (mounted) {
+      setState(() {
+        _isInitializingChat = false;
+      });
+    }
 
     // Scroll to bottom after loading
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -79,8 +107,6 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
       return;
     }
 
-    final shouldUpdateTitle = chatProvider.currentChat?.hasDefaultTitle == true;
-
     _messageController.clear();
     if (mounted && !_hasEverHadMessages) {
       setState(() {
@@ -88,16 +114,41 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
       });
     }
 
+    if (_activeChatId == null) {
+      final chat = await chatProvider.createChat(
+        accessToken: accessToken,
+        title: Chat.generateTitle(content),
+        initialMessage: content,
+      );
+
+      if (chat == null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(chatProvider.errorMessage ?? 'Failed to create chat'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } else if (chat != null && mounted) {
+        setState(() {
+          _activeChatId = chat.id;
+        });
+      }
+
+      return;
+    }
+
+    final shouldUpdateTitle = chatProvider.currentChat?.hasDefaultTitle == true;
+
     final delivered = await chatProvider.sendMessage(
       accessToken: accessToken,
-      chatId: widget.chatId,
+      chatId: _activeChatId!,
       content: content,
     );
 
     if (delivered && shouldUpdateTitle) {
       await chatProvider.updateChatTitle(
         accessToken: accessToken,
-        chatId: widget.chatId,
+        chatId: _activeChatId!,
         title: Chat.generateTitle(content),
       );
     }
@@ -115,6 +166,8 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
   }
 
   Future<void> _editTitle() async {
+    if (_activeChatId == null) return;
+
     final chatProvider = Provider.of<ChatProvider>(context, listen: false);
     final currentTitle = chatProvider.currentChat?.title ?? '';
 
@@ -155,10 +208,58 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
       if (accessToken != null) {
         await chatProvider.updateChatTitle(
           accessToken: accessToken,
-          chatId: widget.chatId,
+          chatId: _activeChatId!,
           title: newTitle,
         );
       }
+    }
+  }
+
+  Future<void> _deleteChat() async {
+    if (_activeChatId == null) return;
+
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Chat'),
+        content: const Text('Are you sure you want to delete this chat?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete != true || !mounted) return;
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+    final accessToken = await authProvider.getValidAccessToken();
+    if (accessToken == null) {
+      await authProvider.logout();
+      return;
+    }
+
+    final deleted = await chatProvider.deleteChat(
+      accessToken: accessToken,
+      chatId: _activeChatId!,
+    );
+
+    if (deleted && mounted) {
+      Navigator.pop(context);
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(chatProvider.errorMessage ?? 'Failed to delete chat'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -176,25 +277,40 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
       appBar: AppBar(
         title: Consumer<ChatProvider>(
           builder: (context, chatProvider, _) {
+            final isLoadingExistingChat = _activeChatId != null &&
+                (_isInitializingChat ||
+                    chatProvider.currentChat == null ||
+                    chatProvider.currentChat!.id != _activeChatId);
+
             return GestureDetector(
-              onTap: _editTitle,
+              onTap: _activeChatId == null ? null : _editTitle,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Flexible(
                     child: Text(
-                      chatProvider.currentChat?.title ?? 'Chat',
+                      isLoadingExistingChat
+                          ? 'Chat'
+                          : (chatProvider.currentChat?.title ?? 'New Chat'),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.edit, size: 18),
+                  if (_activeChatId != null) ...[
+                    const SizedBox(width: 4),
+                    const Icon(Icons.edit, size: 18),
+                  ],
                 ],
               ),
             );
           },
         ),
         actions: [
+          if (_activeChatId != null)
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              onPressed: _deleteChat,
+              tooltip: 'Delete chat',
+            ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadChat,
@@ -204,6 +320,17 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
       ),
       body: Consumer<ChatProvider>(
         builder: (context, chatProvider, _) {
+          final isLoadingExistingChat = _activeChatId != null &&
+              (_isInitializingChat ||
+                  chatProvider.currentChat == null ||
+                  chatProvider.currentChat!.id != _activeChatId);
+
+          if (isLoadingExistingChat) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
           if (chatProvider.isLoading && chatProvider.currentChat == null) {
             return const Center(
               child: CircularProgressIndicator(),
