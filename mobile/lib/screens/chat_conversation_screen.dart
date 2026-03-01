@@ -37,6 +37,12 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
     super.initState();
     _activeChatId = widget.chatId;
     _isInitializingChat = _activeChatId != null;
+
+    // Opening a draft chat should never render a previously viewed conversation.
+    if (_activeChatId == null) {
+      Provider.of<ChatProvider>(context, listen: false).clearCurrentChat();
+    }
+
     _loadChat();
   }
 
