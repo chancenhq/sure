@@ -283,7 +283,7 @@ class _SsoOnboardingScreenState extends State<SsoOnboardingScreen> {
                 Expanded(
                   child: Text(
                     hasPendingInvitation
-                        ? 'You have a pending invitation. Accept it to join an existing household.'
+                        ? 'You have a pending invitation. Accept it to join!'
                         : 'Create a new account using your Google identity.',
                     style: TextStyle(color: colorScheme.onSurface),
                   ),
