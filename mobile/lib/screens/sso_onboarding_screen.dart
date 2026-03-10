@@ -24,6 +24,7 @@ class _SsoOnboardingScreenState extends State<SsoOnboardingScreen> {
   void initState() {
     super.initState();
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    _showLinkForm = !authProvider.ssoHasPendingInvitation;
     _emailController.text = authProvider.ssoEmail ?? '';
     _firstNameController.text = authProvider.ssoFirstName ?? '';
     _lastNameController.text = authProvider.ssoLastName ?? '';
