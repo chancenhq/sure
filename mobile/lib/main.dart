@@ -6,13 +6,40 @@ import 'providers/auth_provider.dart';
 import 'providers/accounts_provider.dart';
 import 'providers/transactions_provider.dart';
 import 'providers/chat_provider.dart';
+import 'providers/theme_provider.dart';
 import 'screens/backend_config_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/main_navigation_screen.dart';
+import 'screens/access_denied_screen.dart';
+import 'screens/biometric_lock_screen.dart';
 import 'screens/sso_onboarding_screen.dart';
 import 'services/api_config.dart';
 import 'services/connectivity_service.dart';
 import 'services/log_service.dart';
+import 'services/preferences_service.dart';
+
+// warm white background used throughout the light theme
+const Color _warmBackground = Color(0xFFFDFBF7);
+
+// create color schemes once so they can be reused
+final ColorScheme _lightScheme = ColorScheme.fromSeed(
+  seedColor: const Color(0xFF62A446),
+  brightness: Brightness.light,
+).copyWith(
+  background: _warmBackground,
+  surface: _warmBackground,
+);
+
+final ColorScheme _darkScheme = ColorScheme.fromSeed(
+  seedColor: const Color(0xFF62A446),
+  brightness: Brightness.dark,
+).copyWith(
+  // choose dark-friendly background; for example a very dark grey
+  background: const Color(0xFF121212),
+  surface: const Color(0xFF121212),
+);
+
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,6 +62,7 @@ class SureApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ConnectivityService()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProxyProvider<ConnectivityService, AccountsProvider>(
           create: (_) => AccountsProvider(),
           update: (_, connectivityService, accountsProvider) {
@@ -62,9 +90,21 @@ class SureApp extends StatelessWidget {
           },
         ),
       ],
-      child: MaterialApp(
-        title: 'Sure Finances',
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, _) => MaterialApp(
+        title: 'Companion',
         debugShowCheckedModeBanner: false,
+        builder: (context, child) {
+          // Keep content above system UI (status bar, navigation bar, notches).
+          // Protects all screens globally from being hidden behind system UI.
+          return SafeArea(
+            top: false,
+            left: false,
+            right: false,
+            bottom: true,
+            child: child ?? const SizedBox.shrink(),
+          );
+        },
         theme: ThemeData(
           fontFamily: 'Geist',
           fontFamilyFallback: const [
@@ -72,10 +112,9 @@ class SureApp extends StatelessWidget {
             'Arial',
             'sans-serif',
           ],
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF6366F1),
-            brightness: Brightness.light,
-          ),
+          // start with a seed-based scheme for the green primary color
+          colorScheme: _lightScheme,
+          scaffoldBackgroundColor: _lightScheme.background,
           useMaterial3: true,
           appBarTheme: const AppBarTheme(
             centerTitle: true,
@@ -109,10 +148,8 @@ class SureApp extends StatelessWidget {
             'Arial',
             'sans-serif',
           ],
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF6366F1),
-            brightness: Brightness.dark,
-          ),
+          colorScheme: _darkScheme,
+          scaffoldBackgroundColor: _darkScheme.background,
           useMaterial3: true,
           appBarTheme: const AppBarTheme(
             centerTitle: true,
@@ -139,14 +176,14 @@ class SureApp extends StatelessWidget {
             ),
           ),
         ),
-        themeMode: ThemeMode.system,
+        themeMode: themeProvider.themeMode,
         routes: {
           '/config': (context) => const BackendConfigScreen(),
           '/login': (context) => const LoginScreen(),
           '/home': (context) => const MainNavigationScreen(),
         },
         home: const AppWrapper(),
-      ),
+      )),
     );
   }
 }
@@ -158,23 +195,55 @@ class AppWrapper extends StatefulWidget {
   State<AppWrapper> createState() => _AppWrapperState();
 }
 
-class _AppWrapperState extends State<AppWrapper> {
+class _AppWrapperState extends State<AppWrapper> with WidgetsBindingObserver {
   bool _isCheckingConfig = true;
   bool _hasBackendUrl = false;
+  bool _isLocked = false;
   late final AppLinks _appLinks;
   StreamSubscription<Uri>? _linkSubscription;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _checkBackendConfig();
     _initDeepLinks();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _linkSubscription?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      // Mark as locked immediately when backgrounded; we check the pref on resume.
+      _markLockedIfEnabled();
+    } else if (state == AppLifecycleState.resumed && _isLocked) {
+      // Lock screen is already showing via build(); biometric auto-triggers there.
+    }
+  }
+
+  Future<void> _markLockedIfEnabled() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    if (!authProvider.isAuthenticated) return;
+    final enabled = await PreferencesService.instance.getBiometricEnabled();
+    if (enabled && mounted) {
+      setState(() => _isLocked = true);
+    }
+  }
+
+  void _onUnlocked() {
+    if (mounted) setState(() => _isLocked = false);
+  }
+
+  Future<void> _onLockLogout() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    await authProvider.logout();
+    if (mounted) setState(() => _isLocked = false);
   }
 
   void _initDeepLinks() {
@@ -253,7 +322,17 @@ class _AppWrapperState extends State<AppWrapper> {
         }
 
         if (authProvider.isAuthenticated) {
+          if (_isLocked) {
+            return BiometricLockScreen(
+              onUnlocked: _onUnlocked,
+              onLogout: _onLockLogout,
+            );
+          }
           return const MainNavigationScreen();
+        }
+
+        if (authProvider.ssoAccessDenied) {
+          return const AccessDeniedScreen();
         }
 
         if (authProvider.ssoOnboardingPending) {

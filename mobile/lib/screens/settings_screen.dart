@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../app_config.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../providers/auth_provider.dart';
+import '../providers/theme_provider.dart';
 import '../services/offline_storage_service.dart';
 import '../services/log_service.dart';
 import '../services/preferences_service.dart';
 import '../services/user_service.dart';
+import '../services/api_config.dart';
+import '../services/biometric_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -20,12 +25,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String? _appVersion;
   bool _isResettingAccount = false;
   bool _isDeletingAccount = false;
+  String? _selectedEnvironment;
+  bool _biometricSupported = false;
+  bool _biometricEnabled = false;
 
   @override
   void initState() {
     super.initState();
     _loadPreferences();
     _loadAppVersion();
+    _loadSelectedEnvironment();
+    _loadBiometricState();
   }
 
   Future<void> _loadAppVersion() async {
@@ -36,6 +46,89 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ? '${packageInfo.version} (${build})'
           : packageInfo.version;
       setState(() => _appVersion = display);
+    }
+  }
+
+  Future<void> _loadSelectedEnvironment() async {
+    try {
+      final env = await ApiConfig.getCurrentEnvironment();
+      if (mounted) {
+        setState(() {
+          _selectedEnvironment = env ?? 'Staging';
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _selectedEnvironment = 'Staging';
+        });
+      }
+    }
+  }
+
+  Future<void> _changeEnvironment(String envName) async {
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Switch Environment?'),
+        content: Text(
+          'Switching to $envName will log you out. Do you want to continue?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Switch'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    final success = await ApiConfig.setEnvironment(envName);
+    if (success && mounted) {
+      Navigator.of(context).pop(); // close bottom sheet
+      // Clear offline cache when switching environments
+      await OfflineStorageService().clearAllData();
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      await authProvider.logout();
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to change environment'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  Future<void> _loadBiometricState() async {
+    final supported = await BiometricService.instance.isDeviceSupported();
+    final enabled = await PreferencesService.instance.getBiometricEnabled();
+    if (mounted) {
+      setState(() {
+        _biometricSupported = supported;
+        _biometricEnabled = enabled;
+      });
+    }
+  }
+
+  Future<void> _toggleBiometric(bool value) async {
+    if (value) {
+      // Verify biometric works before enabling
+      final success = await BiometricService.instance.authenticate(
+        reason: 'Verify biometric to enable app lock',
+      );
+      if (!success) return;
+    }
+    await PreferencesService.instance.setBiometricEnabled(value);
+    if (mounted) {
+      setState(() => _biometricEnabled = value);
     }
   }
 
@@ -109,8 +202,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _clearAllDeviceData() async {
+    final offlineStorage = OfflineStorageService();
+    await offlineStorage.clearAllData();
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+  }
+
   Future<void> _launchContactUrl(BuildContext context) async {
-    final uri = Uri.parse('https://discord.com/invite/36ZGBsxYEK');
+    final uri = Uri.parse('https://chat.whatsapp.com/Ca2yaFwpSOxIMQkuh0IcGM?mode=wwc');
     final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!launched && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -228,7 +329,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (!context.mounted) return;
 
       if (result['success'] == true) {
+        var localDataCleared = false;
+
+        try {
+          await _clearAllDeviceData();
+          localDataCleared = true;
+        } catch (e) {
+          final log = LogService.instance;
+          log.error('Settings', 'Failed to clear all device data after account deletion: $e');
+
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Account deleted, but local data cleanup failed: $e'),
+                backgroundColor: Colors.orange,
+                duration: const Duration(seconds: 4),
+              ),
+            );
+          }
+        }
+
         await authProvider.logout();
+
+        if (!context.mounted) return;
+        await Future.delayed(const Duration(milliseconds: 600));
+        if (!context.mounted) return;
+
+        Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
+          '/login',
+          (route) => false,
+        );
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                localDataCleared
+                    ? 'Your account has been deleted and all local data has been cleared.'
+                    : 'Your account has been deleted.',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -262,6 +405,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
 
     if (confirmed == true && context.mounted) {
+      Navigator.of(context).pop(); // close bottom sheet
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       await authProvider.logout();
     }
@@ -273,6 +417,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Settings'),
+        centerTitle: true,
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
       body: ListView(
         children: [
           // User info section
@@ -331,21 +486,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: Text('App Version: ${_appVersion ?? '…'}'),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(' > ui_layout: ${authProvider.user?.uiLayout}'),
-                Text(' > ai_enabled: ${authProvider.user?.aiEnabled}'),
-              ],
-            ),
           ),
 
           ListTile(
             leading: const Icon(Icons.chat_bubble_outline),
             title: const Text('Contact us'),
             subtitle: Text(
-              'https://discord.com/invite/36ZGBsxYEK',
+              'WhatsApp Group',
               style: TextStyle(
                 color: Theme.of(context).colorScheme.primary,
                 decoration: TextDecoration.underline,
@@ -356,11 +503,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const Divider(),
 
-          // Display Settings Section
+          // Theme switcher
           const Padding(
             padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Text(
-              'Display',
+              'Appearance',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
@@ -369,49 +516,171 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
 
-          SwitchListTile(
-            secondary: const Icon(Icons.view_list),
-            title: const Text('Group by Account Type'),
-            subtitle: const Text('Group accounts by type (Crypto, Bank, etc.)'),
-            value: _groupByType,
-            onChanged: (value) async {
-              await PreferencesService.instance.setGroupByType(value);
-              setState(() {
-                _groupByType = value;
-              });
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, _) {
+              return ListTile(
+                leading: Icon(
+                  themeProvider.themeMode == ThemeMode.dark
+                      ? Icons.dark_mode
+                      : themeProvider.themeMode == ThemeMode.light
+                          ? Icons.light_mode
+                          : Icons.brightness_auto,
+                ),
+                title: const Text('Theme'),
+                trailing: SegmentedButton<ThemeMode>(
+                  segments: const [
+                    ButtonSegment(
+                      value: ThemeMode.light,
+                      icon: Icon(Icons.light_mode, size: 18),
+                    ),
+                    ButtonSegment(
+                      value: ThemeMode.system,
+                      icon: Icon(Icons.brightness_auto, size: 18),
+                    ),
+                    ButtonSegment(
+                      value: ThemeMode.dark,
+                      icon: Icon(Icons.dark_mode, size: 18),
+                    ),
+                  ],
+                  selected: {themeProvider.themeMode},
+                  onSelectionChanged: (selection) {
+                    themeProvider.setThemeMode(selection.first);
+                  },
+                  showSelectedIcon: false,
+                  style: ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+              );
             },
           ),
 
-          const Divider(),
+          if (_biometricSupported) ...[
+            const Divider(),
 
-          // Data Management Section
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              'Data Management',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(
+                'Security',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
               ),
             ),
-          ),
 
-          // Clear local data button
-          ListTile(
-            leading: const Icon(Icons.delete_outline),
-            title: const Text('Clear Local Data'),
-            subtitle: const Text('Remove all cached transactions and accounts'),
-            onTap: () => _handleClearLocalData(context),
-          ),
+            SwitchListTile(
+              secondary: const Icon(Icons.fingerprint),
+              title: const Text('Biometric Lock'),
+              subtitle: const Text('Require biometric authentication when resuming the app'),
+              value: _biometricEnabled,
+              onChanged: _toggleBiometric,
+            ),
+          ],
+
+          if (AppConfig.canSwitchEnvironment(authProvider.user?.email)) ...[
+            const Divider(),
+
+            // Environment switcher
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(
+                'Environment',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.public),
+              title: const Text('Environment'),
+              subtitle: Text('Current: ${_selectedEnvironment ?? "Unknown"}'),
+              trailing: PopupMenuButton<String>(
+                onSelected: _changeEnvironment,
+                itemBuilder: (BuildContext context) {
+                  return ['Staging', 'Production'].map((String envName) {
+                    return PopupMenuItem<String>(
+                      value: envName,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (_selectedEnvironment == envName)
+                            Icon(Icons.check, color: colorScheme.primary, size: 20),
+                          if (_selectedEnvironment == envName)
+                            const SizedBox(width: 8),
+                          Text(envName),
+                        ],
+                      ),
+                    );
+                  }).toList();
+                },
+                child: const Icon(Icons.settings),
+              ),
+            ),
+          ],
 
           const Divider(),
 
-          // Danger Zone Section
+          if (!AppConfig.isCompanion) ...[
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(
+                'Display',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+
+            SwitchListTile(
+              secondary: const Icon(Icons.view_list),
+              title: const Text('Group by Account Type'),
+              subtitle: const Text('Group accounts by type (Crypto, Bank, etc.)'),
+              value: _groupByType,
+              onChanged: (value) async {
+                await PreferencesService.instance.setGroupByType(value);
+                setState(() {
+                  _groupByType = value;
+                });
+              },
+            ),
+
+            const Divider(),
+
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(
+                'Data Management',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.delete_outline),
+              title: const Text('Clear Local Data'),
+              subtitle: const Text('Remove all cached transactions and accounts'),
+              onTap: () => _handleClearLocalData(context),
+            ),
+
+          ],
+
+          const Divider(),
+
           const Padding(
             padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Text(
-              'Danger Zone',
+              'Warning',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
@@ -420,18 +689,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
 
-          ListTile(
-            leading: const Icon(Icons.restart_alt, color: Colors.red),
-            title: const Text('Reset Account'),
-            subtitle: const Text(
-              'Delete all accounts, categories, merchants, and tags but keep your user account',
+          if (!AppConfig.isCompanion)
+            ListTile(
+              leading: const Icon(Icons.restart_alt, color: Colors.red),
+              title: const Text('Reset Account'),
+              subtitle: const Text(
+                'Delete all accounts, categories, merchants, and tags but keep your user account',
+              ),
+              trailing: _isResettingAccount
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                  : null,
+              enabled: !_isResettingAccount && !_isDeletingAccount,
+              onTap: _isResettingAccount || _isDeletingAccount ? null : () => _handleResetAccount(context),
             ),
-            trailing: _isResettingAccount
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : null,
-            enabled: !_isResettingAccount && !_isDeletingAccount,
-            onTap: _isResettingAccount || _isDeletingAccount ? null : () => _handleResetAccount(context),
-          ),
 
           ListTile(
             leading: const Icon(Icons.delete_forever, color: Colors.red),
@@ -465,4 +735,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
+}
+
+/// Shows the settings panel as a dialog that slides in from the top.
+void showSettingsPanel(BuildContext context) {
+  showGeneralDialog(
+    context: context,
+    barrierDismissible: true,
+    barrierLabel: 'Settings',
+    barrierColor: Colors.black54,
+    transitionDuration: const Duration(milliseconds: 300),
+    pageBuilder: (context, animation, secondaryAnimation) {
+      return const SettingsScreen();
+    },
+    transitionBuilder: (context, animation, secondaryAnimation, child) {
+      final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, -1),
+          end: Offset.zero,
+        ).animate(curved),
+        child: child,
+      );
+    },
+  );
 }
