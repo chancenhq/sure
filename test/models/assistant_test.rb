@@ -13,7 +13,7 @@ class AssistantTest < ActiveSupport::TestCase
     @assistant = Assistant.for_chat(@chat)
     @provider = mock
     @expected_session_id = @chat.id.to_s
-    @expected_user_identifier = ::Digest::SHA256.hexdigest(@chat.user_id.to_s)
+    @expected_user_identifier = ::OpenSSL::HMAC.hexdigest("SHA256", Rails.application.secret_key_base, @chat.user_id.to_s)
   end
 
   test "errors get added to chat" do

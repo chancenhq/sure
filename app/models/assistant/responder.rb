@@ -108,7 +108,7 @@ class Assistant::Responder
     def chat_user_identifier
       return unless chat&.user_id
 
-      ::Digest::SHA256.hexdigest(chat.user_id.to_s)
+      ::OpenSSL::HMAC.hexdigest("SHA256", Rails.application.secret_key_base, chat.user_id.to_s)
     end
 
     def chat
