@@ -1,0 +1,12 @@
+---
+en:
+  consents:
+    show:
+      title: Before you begin
+      subtitle: Select your country and accept our terms to continue.
+      country_label: Your country
+      detecting_location: Detecting your location...
+      privacy_policy: Privacy Policy
+      terms_of_use: Terms of Use
+      consent_label: I have read and agree to the Privacy Policy and Terms of Use
+      cta: Continue

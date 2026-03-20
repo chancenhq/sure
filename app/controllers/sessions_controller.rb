@@ -67,6 +67,7 @@ class SessionsController < ApplicationController
       else
         log_super_admin_override_login(user)
         @session = create_session_for(user)
+        apply_pending_consent_to(user)
         flash[:notice] = t("invitations.accept_choice.joined_household") if accept_pending_invitation_for(user)
         redirect_to root_path
       end
@@ -314,6 +315,14 @@ class SessionsController < ApplicationController
 
     def set_session
       @session = Current.user.sessions.find(params[:id])
+    end
+
+    def apply_pending_consent_to(user)
+      country = session.delete(:pending_country)
+      session.delete(:consent_accepted)
+      return if country.blank? || user.family.country.present?
+
+      user.family.update(country: country)
     end
 
     def log_super_admin_override_login(user)

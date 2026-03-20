@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../providers/auth_provider.dart';
@@ -20,6 +22,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   // Screen 3 state
   bool _consentChecked = false;
+  String _selectedCountryCode = 'KE';
+
+  static const _supportedCountries = [
+    {'name': 'Kenya',        'code': 'KE'},
+    {'name': 'Rwanda',       'code': 'RW'},
+    {'name': 'South Africa', 'code': 'ZA'},
+    {'name': 'Ghana',        'code': 'GH'},
+  ];
 
   static const _privacyUrl = 'https://chancen.com/privacy';
   static const _termsUrl = 'https://chancen.com/terms';
@@ -36,9 +46,36 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     setState(() => _currentPage = page);
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _detectCountryFromIp();
+  }
+
+  Future<void> _detectCountryFromIp() async {
+    try {
+      final response = await http.get(Uri.parse('https://ipapi.co/json/'))
+          .timeout(const Duration(seconds: 4));
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final code = data['country_code'] as String?;
+      final supported = _supportedCountries.any((c) => c['code'] == code);
+      if (mounted && supported) {
+        setState(() => _selectedCountryCode = code!);
+      }
+    } catch (_) {
+      // Silent fail — default Kenya remains selected
+    }
+  }
+
+  String get _selectedCountryName =>
+      _supportedCountries.firstWhere(
+        (c) => c['code'] == _selectedCountryCode,
+        orElse: () => _supportedCountries.first,
+      )['name']!;
+
   Future<void> _completeOnboarding() async {
     final prefs = PreferencesService.instance;
-    await prefs.setUserCountry('Kenya');
+    await prefs.setUserCountry(_selectedCountryName);
     await prefs.setConsent(version: _consentVersion);
     await prefs.setOnboardingComplete(true);
     widget.onComplete();
@@ -239,19 +276,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           const SizedBox(height: 32),
 
-          // Country section
+          // Country dropdown
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             decoration: BoxDecoration(
               color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Text(
-              'Country: Kenya',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: _selectedCountryCode,
+                isExpanded: true,
+                items: _supportedCountries.map((country) {
+                  return DropdownMenuItem<String>(
+                    value: country['code'],
+                    child: Text(country['name']!),
+                  );
+                }).toList(),
+                onChanged: (code) {
+                  if (code != null) setState(() => _selectedCountryCode = code);
+                },
+              ),
             ),
           ),
           const SizedBox(height: 24),

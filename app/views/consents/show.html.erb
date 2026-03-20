@@ -1,0 +1,60 @@
+<div class="space-y-6" data-controller="consent">
+  <div class="text-center space-y-1">
+    <h1 class="text-2xl font-semibold text-primary"><%= t(".title") %></h1>
+    <p class="text-sm text-secondary"><%= t(".subtitle") %></p>
+  </div>
+
+  <%= form_with url: consent_path, method: :post do |form| %>
+    <%# Country selector %>
+    <div class="space-y-1">
+      <label class="block text-sm font-medium text-primary" for="country">
+        <%= t(".country_label") %>
+      </label>
+      <select
+        id="country"
+        name="country"
+        class="w-full rounded-lg border border-primary bg-container px-3 py-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-green-500"
+        data-consent-target="countrySelect"
+      >
+        <% ConsentsController::SUPPORTED_COUNTRIES.each do |name, code| %>
+          <option value="<%= code %>"><%= name %></option>
+        <% end %>
+      </select>
+      <p class="text-xs text-secondary" data-consent-target="locationStatus">
+        <%= t(".detecting_location") %>
+      </p>
+    </div>
+
+    <%# Legal links %>
+    <div class="flex items-center justify-center gap-6 py-2">
+      <%= link_to t(".privacy_policy"), "https://chancen.com/privacy",
+          target: "_blank", class: "text-sm text-green-600 hover:underline" %>
+      <%= link_to t(".terms_of_use"), "https://chancen.com/terms",
+          target: "_blank", class: "text-sm text-green-600 hover:underline" %>
+    </div>
+
+    <%# Consent checkbox %>
+    <label class="flex items-start gap-3 cursor-pointer">
+      <input
+        type="checkbox"
+        id="consent_accepted"
+        name="consent_accepted"
+        class="mt-0.5 h-4 w-4 rounded border-primary text-green-600"
+        data-consent-target="checkbox"
+        data-action="change->consent#toggleSubmit"
+        required
+      />
+      <span class="text-sm text-primary"><%= t(".consent_label") %></span>
+    </label>
+
+    <%# Submit %>
+    <button
+      type="submit"
+      disabled
+      data-consent-target="submitBtn"
+      class="w-full rounded-xl bg-green-600 px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed"
+    >
+      <%= t(".cta") %>
+    </button>
+  <% end %>
+</div>
