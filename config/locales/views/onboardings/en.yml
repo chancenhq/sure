@@ -1,6 +1,18 @@
 ---
 en:
   onboardings:
+    welcome:
+      title: Meet Your Chancen Companion
+      description: >
+        I am here to help you navigate your finances, understand your Chancen ISA,
+        and build smart money habits. Think of me as your personal finance buddy.
+        I will answer your questions, help you budget like a pro, and support you
+        on your journey to financial confidence. Everything here is for learning
+        purposes; I am not a financial advisor, just a helpful guide.
+      point_isa: Get instant answers about your Chancen ISA
+      point_budgeting: Learn budgeting that actually works
+      point_skills: Build financial skills for life
+      cta: "Let's Get Started"
     header:
       sign_out: Sign out
       setup: Setup

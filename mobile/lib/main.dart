@@ -12,7 +12,7 @@ import 'screens/login_screen.dart';
 import 'screens/main_navigation_screen.dart';
 import 'screens/access_denied_screen.dart';
 import 'screens/biometric_lock_screen.dart';
-import 'screens/onboarding_screen.dart';
+import 'screens/web_onboarding_screen.dart';
 import 'screens/sso_onboarding_screen.dart';
 import 'services/api_config.dart';
 import 'services/connectivity_service.dart';
@@ -326,7 +326,7 @@ class _AppWrapperState extends State<AppWrapper> with WidgetsBindingObserver {
 
     // Show onboarding flow on first launch
     if (!_onboardingComplete) {
-      return OnboardingScreen(onComplete: _onOnboardingComplete);
+      return WebOnboardingScreen(onComplete: _onOnboardingComplete);
     }
 
     return Consumer<AuthProvider>(

@@ -156,6 +156,7 @@ Rails.application.routes.draw do
 
   resource :onboarding, only: :show do
     collection do
+      get :welcome
       get :preferences
       get :goals
       get :trial

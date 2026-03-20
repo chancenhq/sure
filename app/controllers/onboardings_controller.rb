@@ -1,8 +1,13 @@
 class OnboardingsController < ApplicationController
   layout "wizard"
 
-  before_action :set_user
-  before_action :set_joined_existing_family
+  skip_authentication only: :welcome
+
+  before_action :set_user, except: :welcome
+  before_action :set_joined_existing_family, except: :welcome
+
+  def welcome
+  end
 
   def show
   end
