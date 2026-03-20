@@ -1,0 +1,52 @@
+<div class="min-h-screen bg-surface flex flex-col items-center justify-center px-8 py-12">
+  <div class="w-full max-w-sm flex flex-col items-center">
+
+    <%# Logo %>
+    <div class="mb-8">
+      <%= image_tag "logomark-color.svg", class: "w-20 h-20", alt: "Chancen" %>
+    </div>
+
+    <%# Title %>
+    <h1 class="text-2xl font-bold text-primary text-center mb-5">
+      <%= t(".title") %>
+    </h1>
+
+    <%# Description %>
+    <p class="text-secondary text-sm text-center leading-relaxed mb-8">
+      <%= t(".description") %>
+    </p>
+
+    <%# Key points %>
+    <div class="w-full space-y-3 mb-10">
+      <div class="flex items-center gap-3">
+        <div class="flex-shrink-0 w-9 h-9 rounded-lg bg-container-inset flex items-center justify-center">
+          <%= icon "message-circle", size: "sm", color: "primary" %>
+        </div>
+        <span class="text-sm font-medium text-primary"><%= t(".point_isa") %></span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="flex-shrink-0 w-9 h-9 rounded-lg bg-container-inset flex items-center justify-center">
+          <%= icon "wallet", size: "sm", color: "primary" %>
+        </div>
+        <span class="text-sm font-medium text-primary"><%= t(".point_budgeting") %></span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="flex-shrink-0 w-9 h-9 rounded-lg bg-container-inset flex items-center justify-center">
+          <%= icon "trending-up", size: "sm", color: "primary" %>
+        </div>
+        <span class="text-sm font-medium text-primary"><%= t(".point_skills") %></span>
+      </div>
+    </div>
+
+    <%# Authenticated web users go straight to onboarding setup.
+        Unauthenticated mobile WebView users navigate to /sessions/new,
+        which the native app intercepts to hand off to native auth. %>
+    <%= link_to Current.user ? onboarding_path : new_session_path,
+                class: "w-full block text-center bg-green-600 hover:bg-green-700 text-white font-medium py-3.5 px-6 rounded-xl transition-colors" do %>
+      <%= t(".cta") %>
+    <% end %>
+
+  </div>
+</div>
