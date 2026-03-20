@@ -40,10 +40,7 @@
       </div>
     </div>
 
-    <%# Authenticated web users go straight to onboarding setup.
-        Unauthenticated mobile WebView users navigate to /sessions/new,
-        which the native app intercepts to hand off to native auth. %>
-    <%= link_to Current.user ? onboarding_path : new_session_path,
+    <%= link_to onboarding_path,
                 class: "w-full block text-center bg-green-600 hover:bg-green-700 text-white font-medium py-3.5 px-6 rounded-xl transition-colors" do %>
       <%= t(".cta") %>
     <% end %>

@@ -15,6 +15,7 @@ en:
       cta: "Let's Get Started"
     header:
       sign_out: Sign out
+      welcome: Welcome
       setup: Setup
       preferences: Preferences
       goals: Goals
