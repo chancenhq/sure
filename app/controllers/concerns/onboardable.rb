@@ -12,7 +12,7 @@ module Onboardable
       return unless redirectable_path?(request.path)
 
       if Current.user.needs_onboarding?
-        redirect_to onboarding_path
+        redirect_to Current.user.first_name.blank? ? welcome_onboarding_path : onboarding_path
       elsif Current.family.needs_subscription?
         redirect_to trial_onboarding_path
       elsif Current.family.upgrade_required?
