@@ -12,6 +12,7 @@ import '../services/preferences_service.dart';
 import '../services/user_service.dart';
 import '../services/api_config.dart';
 import '../services/biometric_service.dart';
+import 'log_viewer_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -499,6 +500,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             onTap: () => _launchContactUrl(context),
+          ),
+
+          Semantics(
+            label: 'Open debug logs',
+            button: true,
+            child: ListTile(
+              leading: const Icon(Icons.bug_report),
+              title: const Text('Debug Logs'),
+              subtitle: const Text('View app diagnostic logs'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LogViewerScreen()),
+                );
+              },
+            ),
           ),
 
           const Divider(),

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_03_03_120000) do
+ActiveRecord::Schema[7.2].define(version: 2026_03_20_080659) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -49,8 +49,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_03_120000) do
     t.string "institution_name"
     t.string "institution_domain"
     t.text "notes"
-    t.jsonb "holdings_snapshot_data"
-    t.datetime "holdings_snapshot_at"
     t.index ["accountable_id", "accountable_type"], name: "index_accounts_on_accountable_id_and_accountable_type"
     t.index ["accountable_type"], name: "index_accounts_on_accountable_type"
     t.index ["currency"], name: "index_accounts_on_currency"
@@ -125,6 +123,17 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_03_120000) do
     t.index ["user_id"], name: "index_api_keys_on_user_id"
   end
 
+  create_table "archived_exports", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "email", null: false
+    t.string "family_name"
+    t.string "download_token_digest", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["download_token_digest"], name: "index_archived_exports_on_download_token_digest", unique: true
+    t.index ["expires_at"], name: "index_archived_exports_on_expires_at"
+  end
+
   create_table "balances", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "account_id", null: false
     t.date "date", null: false
@@ -184,8 +193,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_03_120000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.uuid "parent_id"
-    t.string "classification", default: "expense", null: false
     t.string "lucide_icon", default: "shapes", null: false
+    t.string "classification_unused", default: "expense", null: false
     t.index ["family_id"], name: "index_categories_on_family_id"
   end
 
@@ -215,6 +224,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_03_120000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_coinbase_accounts_on_account_id"
+    t.index ["coinbase_item_id", "account_id"], name: "index_coinbase_accounts_on_item_and_account_id", unique: true, where: "(account_id IS NOT NULL)"
     t.index ["coinbase_item_id"], name: "index_coinbase_accounts_on_coinbase_item_id"
   end
 
@@ -387,6 +397,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_03_120000) do
     t.string "source"
     t.boolean "user_modified", default: false, null: false
     t.boolean "import_locked", default: false, null: false
+    t.uuid "parent_entry_id"
     t.index "lower((name)::text)", name: "index_entries_on_lower_name"
     t.index ["account_id", "date"], name: "index_entries_on_account_id_and_date"
     t.index ["account_id", "source", "external_id"], name: "index_entries_on_account_source_and_external_id", unique: true, where: "((external_id IS NOT NULL) AND (source IS NOT NULL))"
@@ -395,6 +406,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_03_120000) do
     t.index ["entryable_type"], name: "index_entries_on_entryable_type"
     t.index ["import_id"], name: "index_entries_on_import_id"
     t.index ["import_locked"], name: "index_entries_on_import_locked_true", where: "(import_locked = true)"
+    t.index ["parent_entry_id"], name: "index_entries_on_parent_entry_id"
     t.index ["user_modified"], name: "index_entries_on_user_modified_true", where: "(user_modified = true)"
   end
 
@@ -693,7 +705,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_03_120000) do
     t.date "sync_start_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["indexa_capital_account_id"], name: "index_indexa_capital_accounts_on_indexa_capital_account_id", unique: true
+    t.index ["indexa_capital_item_id", "indexa_capital_account_id"], name: "index_indexa_capital_accounts_on_item_and_account_id", unique: true, where: "(indexa_capital_account_id IS NOT NULL)"
     t.index ["indexa_capital_authorization_id"], name: "idx_on_indexa_capital_authorization_id_58db208d52"
     t.index ["indexa_capital_item_id"], name: "index_indexa_capital_accounts_on_indexa_capital_item_id"
   end
@@ -740,7 +752,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_03_120000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "token_digest"
-    t.index ["email", "family_id"], name: "index_invitations_on_email_and_family_id", unique: true
+    t.index ["email", "family_id"], name: "index_invitations_on_email_and_family_id_pending", unique: true, where: "(accepted_at IS NULL)"
     t.index ["email"], name: "index_invitations_on_email"
     t.index ["family_id"], name: "index_invitations_on_family_id"
     t.index ["inviter_id"], name: "index_invitations_on_inviter_id"
@@ -802,6 +814,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_03_120000) do
     t.boolean "holdings_supported", default: true, null: false
     t.jsonb "raw_holdings_payload"
     t.index ["account_id"], name: "index_lunchflow_accounts_on_account_id"
+    t.index ["lunchflow_item_id", "account_id"], name: "index_lunchflow_accounts_on_item_and_account_id", unique: true, where: "(account_id IS NOT NULL)"
     t.index ["lunchflow_item_id"], name: "index_lunchflow_accounts_on_lunchflow_item_id"
   end
 
@@ -859,7 +872,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_03_120000) do
     t.jsonb "raw_transactions_payload"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["account_id"], name: "index_mercury_accounts_on_account_id", unique: true
+    t.index ["mercury_item_id", "account_id"], name: "index_mercury_accounts_on_item_and_account_id", unique: true
     t.index ["mercury_item_id"], name: "index_mercury_accounts_on_mercury_item_id"
   end
 
@@ -1004,7 +1017,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_03_120000) do
     t.jsonb "raw_transactions_payload", default: {}
     t.jsonb "raw_holdings_payload", default: {}
     t.jsonb "raw_liabilities_payload", default: {}
-    t.index ["plaid_id"], name: "index_plaid_accounts_on_plaid_id", unique: true
+    t.index ["plaid_item_id", "plaid_id"], name: "index_plaid_accounts_on_item_and_plaid_id", unique: true
     t.index ["plaid_item_id"], name: "index_plaid_accounts_on_plaid_item_id"
   end
 
@@ -1230,7 +1243,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_03_120000) do
   create_table "snaptrade_accounts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "snaptrade_item_id", null: false
     t.string "name"
-    t.string "account_id"
     t.string "snaptrade_account_id"
     t.string "snaptrade_authorization_id"
     t.string "account_number"
@@ -1252,8 +1264,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_03_120000) do
     t.datetime "updated_at", null: false
     t.boolean "activities_fetch_pending", default: false
     t.date "sync_start_date"
-    t.index ["account_id"], name: "index_snaptrade_accounts_on_account_id", unique: true
-    t.index ["snaptrade_account_id"], name: "index_snaptrade_accounts_on_snaptrade_account_id", unique: true
+    t.index ["snaptrade_item_id", "snaptrade_account_id"], name: "index_snaptrade_accounts_on_item_and_snaptrade_account_id", unique: true, where: "(snaptrade_account_id IS NOT NULL)"
     t.index ["snaptrade_item_id"], name: "index_snaptrade_accounts_on_snaptrade_item_id"
   end
 
@@ -1390,15 +1401,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_03_120000) do
     t.datetime "updated_at", null: false
     t.string "currency"
     t.jsonb "locked_attributes", default: {}
-    t.decimal "realized_gain", precision: 19, scale: 4
-    t.decimal "cost_basis_amount", precision: 19, scale: 4
-    t.string "cost_basis_currency"
-    t.integer "holding_period_days"
-    t.string "realized_gain_confidence"
-    t.string "realized_gain_currency"
     t.string "investment_activity_label"
     t.index ["investment_activity_label"], name: "index_trades_on_investment_activity_label"
-    t.index ["realized_gain"], name: "index_trades_on_realized_gain_not_null", where: "(realized_gain IS NOT NULL)"
     t.index ["security_id"], name: "index_trades_on_security_id"
   end
 
@@ -1463,6 +1467,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_03_120000) do
     t.jsonb "preferences", default: {}, null: false
     t.string "locale"
     t.string "ui_layout"
+    t.uuid "default_account_id"
+    t.index ["default_account_id"], name: "index_users_on_default_account_id"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["family_id"], name: "index_users_on_family_id"
     t.index ["last_viewed_chat_id"], name: "index_users_on_last_viewed_chat_id"
@@ -1511,6 +1517,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_03_120000) do
   add_foreign_key "enable_banking_accounts", "enable_banking_items"
   add_foreign_key "enable_banking_items", "families"
   add_foreign_key "entries", "accounts", on_delete: :cascade
+  add_foreign_key "entries", "entries", column: "parent_entry_id", on_delete: :cascade
   add_foreign_key "entries", "imports"
   add_foreign_key "eval_results", "eval_runs"
   add_foreign_key "eval_results", "eval_samples"
@@ -1573,6 +1580,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_03_120000) do
   add_foreign_key "transactions", "merchants"
   add_foreign_key "transfers", "transactions", column: "inflow_transaction_id", on_delete: :cascade
   add_foreign_key "transfers", "transactions", column: "outflow_transaction_id", on_delete: :cascade
+  add_foreign_key "users", "accounts", column: "default_account_id", on_delete: :nullify
   add_foreign_key "users", "chats", column: "last_viewed_chat_id"
   add_foreign_key "users", "families"
 end

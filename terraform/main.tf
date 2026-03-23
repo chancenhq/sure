@@ -1,6 +1,6 @@
-module "sure" {
+module "companion" {
   source            = "github.com/resizes/platform-terraform-module-github-oidc-aws-role?ref=main"
-  name              = "github-oidc-sure"
+  name              = "github-oidc-companion"
   org_name          = "resizes"
   condition_test    = "StringLike"
   actions = [
@@ -13,13 +13,18 @@ module "sure" {
     "ecr:PutImage",
   ]
   assume_role_policy_condition_values = [
-    "repo:chancenhq/sure:ref:refs/heads/main",
-    "repo:chancenhq/sure:ref:refs/tags/v*"
+    "repo:chancenhq/companion:ref:refs/heads/main",
+    "repo:chancenhq/companion:ref:refs/tags/v*",
+    "repo:chancenhq/companion:ref:refs/heads/companion"
   ]
 }
 
-resource "aws_ecr_repository" "sure" {
-  name                 = "sure"
+import {
+  to = aws_ecr_repository.companion
+  id = "companion"
+}
+resource "aws_ecr_repository" "companion" {
+  name                 = "companion"
   image_tag_mutability = "IMMUTABLE"
 
   image_scanning_configuration {
@@ -27,7 +32,7 @@ resource "aws_ecr_repository" "sure" {
   }
 }
 
-data "aws_iam_policy_document" "sure" {
+data "aws_iam_policy_document" "companion" {
   statement {
     effect = "Allow"
 
@@ -44,7 +49,7 @@ data "aws_iam_policy_document" "sure" {
   }
 }
 
-resource "aws_ecr_repository_policy" "sure" {
-  repository = aws_ecr_repository.sure.name
-  policy     = data.aws_iam_policy_document.sure.json
+resource "aws_ecr_repository_policy" "companion" {
+  repository = aws_ecr_repository.companion.name
+  policy     = data.aws_iam_policy_document.companion.json
 }
