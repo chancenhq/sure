@@ -3,7 +3,7 @@ name: Companion Chat Monitor
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '22 * * * *'
 
 jobs:
   chat-check:
