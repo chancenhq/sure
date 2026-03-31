@@ -6,6 +6,7 @@ import '../models/auth_tokens.dart';
 import '../services/auth_service.dart';
 import '../services/device_service.dart';
 import '../services/api_config.dart';
+import '../services/analytics_service.dart';
 import '../services/log_service.dart';
 
 class AuthProvider with ChangeNotifier {
@@ -75,6 +76,7 @@ class AuthProvider with ChangeNotifier {
       } else {
         _tokens = await _authService.getStoredTokens();
         _user = await _authService.getStoredUser();
+        _identifyUser();
 
         // If tokens exist but are expired, try to refresh only when online
         if (_tokens != null && _tokens!.isExpired) {
@@ -132,6 +134,7 @@ class AuthProvider with ChangeNotifier {
       if (result['success'] == true) {
         _tokens = result['tokens'] as AuthTokens?;
         _user = result['user'] as User?;
+        _identifyUser();
         _mfaRequired = false;
         _showMfaInput = false; // Reset on successful login
         _isLoading = false;
@@ -231,6 +234,7 @@ class AuthProvider with ChangeNotifier {
       if (result['success'] == true) {
         _tokens = result['tokens'] as AuthTokens?;
         _user = result['user'] as User?;
+        _identifyUser();
         _isLoading = false;
         notifyListeners();
         return true;
@@ -284,6 +288,7 @@ class AuthProvider with ChangeNotifier {
       if (result['success'] == true) {
         _tokens = result['tokens'] as AuthTokens?;
         _user = result['user'] as User?;
+        _identifyUser();
         _ssoOnboardingPending = false;
         _isLoading = false;
         notifyListeners();
@@ -339,6 +344,7 @@ class AuthProvider with ChangeNotifier {
       if (result['success'] == true) {
         _tokens = result['tokens'] as AuthTokens?;
         _user = result['user'] as User?;
+        _identifyUser();
         _clearSsoOnboardingState();
         _isLoading = false;
         notifyListeners();
@@ -382,6 +388,7 @@ class AuthProvider with ChangeNotifier {
       if (result['success'] == true) {
         _tokens = result['tokens'] as AuthTokens?;
         _user = result['user'] as User?;
+        _identifyUser();
         _clearSsoOnboardingState();
         _isLoading = false;
         notifyListeners();
@@ -418,6 +425,7 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> logout() async {
     await _authService.logout();
+    AnalyticsService.instance.reset();
     _tokens = null;
     _user = null;
     _apiKey = null;
@@ -426,6 +434,15 @@ class AuthProvider with ChangeNotifier {
     _mfaRequired = false;
     ApiConfig.clearApiKeyAuth();
     notifyListeners();
+  }
+
+  void _identifyUser() {
+    if (_user == null) return;
+    AnalyticsService.instance.identify(
+      userId: _user!.id,
+      email: _user!.email,
+      name: _user!.displayName,
+    );
   }
 
   Future<bool> _refreshToken() async {
