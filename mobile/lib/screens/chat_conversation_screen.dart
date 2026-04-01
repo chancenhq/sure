@@ -400,8 +400,10 @@ class _MessageBubble extends StatelessWidget {
             child: Column(
               crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                SelectionArea(
+                  child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
                     color: isUser ? colorScheme.primary : colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(16),
@@ -435,6 +437,7 @@ class _MessageBubble extends StatelessWidget {
                         ),
                     ],
                   ),
+                ),
                 ),
                 const SizedBox(height: 4),
                 Text(
