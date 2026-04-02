@@ -7,6 +7,7 @@ import '../services/auth_service.dart';
 import '../services/device_service.dart';
 import '../services/api_config.dart';
 import '../services/log_service.dart';
+import '../utils/app_errors.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -167,7 +168,7 @@ class AuthProvider with ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _errorMessage = 'Connection error: ${e.toString()}';
+      _errorMessage = AppErrors.connectionFailed;
       _isLoading = false;
       notifyListeners();
       return false;
@@ -243,7 +244,7 @@ class AuthProvider with ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _errorMessage = 'Connection error: ${e.toString()}';
+      _errorMessage = AppErrors.connectionFailed;
       _isLoading = false;
       notifyListeners();
       return false;
