@@ -400,41 +400,46 @@ class _MessageBubble extends StatelessWidget {
             child: Column(
               crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: isUser ? colorScheme.primary : colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        message.content,
-                        style: TextStyle(
-                          color: isUser ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
-                        ),
+                Builder(
+                  builder: (context) {
+                    final bubble = Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: isUser ? colorScheme.primary : colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      if (message.toolCalls != null && message.toolCalls!.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Wrap(
-                            spacing: 4,
-                            runSpacing: 4,
-                            children: message.toolCalls!.map((toolCall) {
-                              return Chip(
-                                label: Text(
-                                  toolCall.functionName,
-                                  style: const TextStyle(fontSize: 11),
-                                ),
-                                padding: EdgeInsets.zero,
-                                visualDensity: VisualDensity.compact,
-                              );
-                            }).toList(),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            message.content,
+                            style: TextStyle(
+                              color: isUser ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+                            ),
                           ),
-                        ),
-                    ],
-                  ),
+                          if (message.toolCalls != null && message.toolCalls!.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Wrap(
+                                spacing: 4,
+                                runSpacing: 4,
+                                children: message.toolCalls!.map((toolCall) {
+                                  return Chip(
+                                    label: Text(
+                                      toolCall.functionName,
+                                      style: const TextStyle(fontSize: 11),
+                                    ),
+                                    padding: EdgeInsets.zero,
+                                    visualDensity: VisualDensity.compact,
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                    return isUser ? bubble : SelectionArea(child: bubble);
+                  },
                 ),
                 const SizedBox(height: 4),
                 Text(
