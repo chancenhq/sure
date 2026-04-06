@@ -60,8 +60,8 @@ class Message {
       content: content,
       model: json['model'] as String?,
       status: json['status'] as String?,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
+      createdAt: DateTime.parse(json['created_at'] as String).toLocal(),
+      updatedAt: DateTime.parse(json['updated_at'] as String).toLocal(),
       toolCalls: json['tool_calls'] != null
           ? (json['tool_calls'] as List)
               .map((tc) => ToolCall.fromJson(tc as Map<String, dynamic>))
