@@ -7,7 +7,7 @@ class AssistantConfigurableTest < ActiveSupport::TestCase
     config = Assistant.config_for(chat)
 
     assert_not_empty config[:functions]
-    assert_includes config[:instructions], "You help users understand their financial data"
+    assert_includes config[:instructions], "Chancen International"
   end
 
   test "returns intro configuration without functions" do
@@ -15,7 +15,7 @@ class AssistantConfigurableTest < ActiveSupport::TestCase
 
     config = Assistant.config_for(chat)
 
-    assert_equal [], config[:functions]
-    assert_includes config[:instructions], "stage of life"
+    assert_equal [ Assistant::Function::SearchFamilyFiles ], config[:functions]
+    assert_includes config[:instructions], "Chancen International"
   end
 end
