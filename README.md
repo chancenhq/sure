@@ -4,14 +4,14 @@ Companion and Sure are both distributed under
 an [AGPLv3 license](https://github.com/we-promise/sure/blob/main/LICENSE).
 
 <!-- MOBILE_DOWNLOADS_START -->
-## Latest Mobile Release: v0.6.9.4
+## Latest Mobile Release: v0.6.9.6
 
-**Release page**: [mobile-v0.6.9.4](https://github.com/chancenhq/sure/releases/tag/mobile-v0.6.9.4)
+**Release page**: [mobile-v0.6.9.6](https://github.com/chancenhq/sure/releases/tag/mobile-v0.6.9.6)
 
 ### Direct Downloads
 
-- **Android Debug APK**: [sure-v0.6.9.4-debug.apk](https://github.com/chancenhq/sure/releases/download/mobile-v0.6.9.4/sure-v0.6.9.4-debug.apk)
-- **iOS Build (unsigned)**: [sure-v0.6.9.4-ios-unsigned.zip](https://github.com/chancenhq/sure/releases/download/mobile-v0.6.9.4/sure-v0.6.9.4-ios-unsigned.zip)
+- **Android Debug APK**: [sure-v0.6.9.6-debug.apk](https://github.com/chancenhq/sure/releases/download/mobile-v0.6.9.6/sure-v0.6.9.6-debug.apk)
+- **iOS Build (unsigned)**: [sure-v0.6.9.6-ios-unsigned.zip](https://github.com/chancenhq/sure/releases/download/mobile-v0.6.9.6/sure-v0.6.9.6-ios-unsigned.zip)
 
 > **Note**: These are builds intended for testing purposes. For production use, please build from source with proper signing credentials.
 <!-- MOBILE_DOWNLOADS_END -->
