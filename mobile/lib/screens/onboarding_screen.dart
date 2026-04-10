@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../app_config.dart';
 import '../providers/auth_provider.dart';
 import '../services/preferences_service.dart';
 
@@ -31,8 +32,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     {'name': 'Ghana',        'code': 'GH'},
   ];
 
-  static const _privacyUrl = 'https://chancen.com/privacy';
-  static const _termsUrl = 'https://chancen.com/terms';
   static const _consentVersion = '1.0';
 
   @override
@@ -84,7 +83,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _openUrl(String url) async {
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+      await launchUrl(uri, mode: LaunchMode.inAppWebView);
     }
   }
 
@@ -255,6 +254,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildConsentPage() {
     final colorScheme = Theme.of(context).colorScheme;
+    final disabledColor = Theme.of(context).disabledColor;
+    final bodyStyle = Theme.of(context).textTheme.bodyMedium;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -289,9 +290,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 value: _selectedCountryCode,
                 isExpanded: true,
                 items: _supportedCountries.map((country) {
+                  final isEnabled = country['code'] == 'KE';
                   return DropdownMenuItem<String>(
                     value: country['code'],
-                    child: Text(country['name']!),
+                    enabled: isEnabled,
+                    child: Text(
+                      country['name']!,
+                      style: bodyStyle?.copyWith(
+                        color: isEnabled ? null : disabledColor,
+                      ),
+                    ),
                   );
                 }).toList(),
                 onChanged: (code) {
@@ -315,12 +323,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               TextButton(
-                onPressed: () => _openUrl(_privacyUrl),
+                onPressed: () => _openUrl(AppConfig.privacyPolicyUrl),
                 child: const Text('Privacy Policy'),
               ),
               const SizedBox(width: 16),
               TextButton(
-                onPressed: () => _openUrl(_termsUrl),
+                onPressed: () => _openUrl(AppConfig.termsUrl),
                 child: const Text('Terms of Use'),
               ),
             ],
