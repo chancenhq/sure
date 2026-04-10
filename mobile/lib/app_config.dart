@@ -12,7 +12,7 @@ class AppConfig {
   static const String _allowedEnvEmails =
       String.fromEnvironment('ALLOWED_ENV_EMAILS');
 
-  static const String privacyPolicyUrl = 'https://chancen.com/privacy';
+  static const String privacyPolicyUrl = 'https://companion.chancen.tech/privacy';
   static const String termsUrl = 'https://companion.chancen.tech/terms';
 
   /// Returns true if the given email is allowed to switch environments.
