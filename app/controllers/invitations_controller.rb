@@ -37,7 +37,6 @@ class InvitationsController < ApplicationController
 
     if @invitation.nil?
       render :not_found, layout: "auth", status: :not_found
-      return
     elsif @invitation.pending?
       render :accept_choice, layout: "auth"
     else
