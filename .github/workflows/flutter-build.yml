@@ -89,19 +89,13 @@ jobs:
             flutter build apk --debug $DART_DEFINES
           fi
 
-      - name: Rename APK artifacts
-        run: |
-          APK_DIR=mobile/build/app/outputs/flutter-apk
-          [ -f "$APK_DIR/app-release.apk" ] && mv "$APK_DIR/app-release.apk" "$APK_DIR/companion-release.apk" || true
-          [ -f "$APK_DIR/app-debug.apk" ]   && mv "$APK_DIR/app-debug.apk"   "$APK_DIR/companion-debug.apk"   || true
-
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: companion-apk
+          name: app-release-apk
           path: |
-            mobile/build/app/outputs/flutter-apk/companion-release.apk
-            mobile/build/app/outputs/flutter-apk/companion-debug.apk
+            mobile/build/app/outputs/flutter-apk/app-release.apk
+            mobile/build/app/outputs/flutter-apk/app-debug.apk
           retention-days: 30
           if-no-files-found: ignore
 
@@ -112,18 +106,12 @@ jobs:
           ALLOWED_ENV_EMAILS: ${{ secrets.ALLOWED_ENV_EMAILS }}
         run: flutter build appbundle --release --dart-define=ALLOWED_ENV_EMAILS=${ALLOWED_ENV_EMAILS:-}
 
-      - name: Rename AAB artifact
-        if: steps.check_secrets.outputs.has_keystore == 'true'
-        run: |
-          AAB_DIR=mobile/build/app/outputs/bundle/release
-          [ -f "$AAB_DIR/app-release.aab" ] && mv "$AAB_DIR/app-release.aab" "$AAB_DIR/companion-release.aab" || true
-
       - name: Upload AAB artifact
         if: steps.check_secrets.outputs.has_keystore == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: companion-aab
-          path: mobile/build/app/outputs/bundle/release/companion-release.aab
+          name: app-release-aab
+          path: mobile/build/app/outputs/bundle/release/app-release.aab
           retention-days: 30
 
   build-ios:
