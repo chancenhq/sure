@@ -7,6 +7,7 @@ import '../providers/auth_provider.dart';
 import '../providers/transactions_provider.dart';
 import '../services/log_service.dart';
 import '../services/connectivity_service.dart';
+import '../utils/app_errors.dart';
 
 class TransactionFormScreen extends StatefulWidget {
   final Account account;
@@ -199,7 +200,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
+            content: const Text(AppErrors.transactionSaveFailed),
             backgroundColor: Colors.red,
           ),
         );

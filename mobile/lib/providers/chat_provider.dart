@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/chat.dart';
 import '../models/message.dart';
 import '../services/chat_service.dart';
+import '../utils/app_errors.dart';
 
 class ChatProvider with ChangeNotifier {
   final ChatService _chatService = ChatService();
@@ -51,7 +52,7 @@ class ChatProvider with ChangeNotifier {
         _errorMessage = result['error'] ?? 'Failed to fetch chats';
       }
     } catch (e) {
-      _errorMessage = 'Error: ${e.toString()}';
+      _errorMessage = AppErrors.chatListLoadFailed;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -80,7 +81,7 @@ class ChatProvider with ChangeNotifier {
         _errorMessage = result['error'] ?? 'Failed to fetch chat';
       }
     } catch (e) {
-      _errorMessage = 'Error: ${e.toString()}';
+      _errorMessage = AppErrors.chatLoadFailed;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -156,7 +157,7 @@ class ChatProvider with ChangeNotifier {
         return null;
       }
     } catch (e) {
-      _errorMessage = 'Error: ${e.toString()}';
+      _errorMessage = AppErrors.chatLoadFailed;
       _isLoading = false;
       notifyListeners();
       return null;
@@ -201,7 +202,7 @@ class ChatProvider with ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _errorMessage = 'Error: ${e.toString()}';
+      _errorMessage = AppErrors.messageSendFailed;
       return false;
     } finally {
       _isSendingMessage = false;
@@ -240,7 +241,7 @@ class ChatProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      _errorMessage = 'Error: ${e.toString()}';
+      _errorMessage = AppErrors.chatUpdateFailed;
       notifyListeners();
     }
   }
@@ -271,7 +272,7 @@ class ChatProvider with ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _errorMessage = 'Error: ${e.toString()}';
+      _errorMessage = AppErrors.chatDeleteFailed;
       notifyListeners();
       return false;
     }
@@ -306,6 +307,7 @@ class ChatProvider with ChangeNotifier {
     // Safety net: stop polling after max attempts to avoid infinite polling
     if (_pollCount > _maxPollAttempts) {
       _stopPolling();
+      _errorMessage = AppErrors.aiResponseTimeout;
       notifyListeners();
       return;
     }
@@ -352,7 +354,10 @@ class ChatProvider with ChangeNotifier {
         // keeps showing the thinking indicator without partial text.
       }
     } catch (e) {
-      debugPrint('Polling error: ${e.toString()}');
+      debugPrint('Polling error: $e');
+      _stopPolling();
+      _errorMessage = AppErrors.aiResponseTimeout;
+      notifyListeners();
     }
   }
 
