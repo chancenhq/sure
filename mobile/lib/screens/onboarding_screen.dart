@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../app_config.dart';
+import 'web_page_screen.dart';
 import '../providers/auth_provider.dart';
 import '../services/preferences_service.dart';
 
@@ -80,11 +80,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     widget.onComplete();
   }
 
-  Future<void> _openUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.inAppWebView);
-    }
+  void _openUrl(String url, String title) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => WebPageScreen(url: url, title: title),
+      ),
+    );
   }
 
   // ── Screen 1: Welcome ──
@@ -323,12 +325,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               TextButton(
-                onPressed: () => _openUrl(AppConfig.privacyPolicyUrl),
+                onPressed: () => _openUrl(AppConfig.privacyPolicyUrl, 'Privacy Policy'),
                 child: const Text('Privacy Policy'),
               ),
               const SizedBox(width: 16),
               TextButton(
-                onPressed: () => _openUrl(AppConfig.termsUrl),
+                onPressed: () => _openUrl(AppConfig.termsUrl, 'Terms of Use'),
                 child: const Text('Terms of Use'),
               ),
             ],
