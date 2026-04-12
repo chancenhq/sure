@@ -87,13 +87,23 @@ class Transaction::Search
                   )
                   .take
 
-        Totals.new(
-          count: result.transactions_count.to_i,
-          income_money: Money.new(result.income_total, family.currency),
-          expense_money: Money.new(result.expense_total, family.currency),
-          transfer_inflow_money: Money.new(result.transfer_inflow_total, family.currency),
-          transfer_outflow_money: Money.new(result.transfer_outflow_total, family.currency)
-        )
+        if result.nil?
+          Totals.new(
+            count: 0,
+            income_money: Money.new(0, family.currency),
+            expense_money: Money.new(0, family.currency),
+            transfer_inflow_money: Money.new(0, family.currency),
+            transfer_outflow_money: Money.new(0, family.currency)
+          )
+        else
+          Totals.new(
+            count: result.transactions_count.to_i,
+            income_money: Money.new(result.income_total, family.currency),
+            expense_money: Money.new(result.expense_total, family.currency),
+            transfer_inflow_money: Money.new(result.transfer_inflow_total, family.currency),
+            transfer_outflow_money: Money.new(result.transfer_outflow_total, family.currency)
+          )
+        end
       end
     end
   end
