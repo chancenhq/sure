@@ -1,7 +1,9 @@
 class Assistant::Responder
-  def initialize(message:, instructions:, function_tool_caller:, llm:)
+  def initialize(message:, instructions:, instructions_prompt_name: nil, instructions_prompt_version: nil, function_tool_caller:, llm:)
     @message = message
     @instructions = instructions
+    @instructions_prompt_name = instructions_prompt_name
+    @instructions_prompt_version = instructions_prompt_version
     @function_tool_caller = function_tool_caller
     @llm = llm
   end
@@ -44,7 +46,7 @@ class Assistant::Responder
   end
 
   private
-    attr_reader :message, :instructions, :function_tool_caller, :llm
+    attr_reader :message, :instructions, :instructions_prompt_name, :instructions_prompt_version, :function_tool_caller, :llm
 
     def handle_follow_up_response(response)
       streamer = proc do |chunk|
@@ -83,6 +85,8 @@ class Assistant::Responder
         previous_response_id: previous_response_id,
         session_id: chat_session_id,
         user_identifier: chat_user_identifier,
+        prompt_name: instructions_prompt_name,
+        prompt_version: instructions_prompt_version,
         family: message.chat&.user&.family
       )
 

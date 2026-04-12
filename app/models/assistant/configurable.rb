@@ -1,5 +1,7 @@
 module Assistant::Configurable
   extend ActiveSupport::Concern
+  LANGFUSE_DEFAULT_INSTRUCTIONS_PROMPT_NAME = "default_instructions".freeze
+  LANGFUSE_PROMPT_CACHE_TTL_NEVER = -1
 
   class_methods do
     def config_for(chat)
@@ -9,12 +11,18 @@ module Assistant::Configurable
       if chat.user.ui_layout_intro?
         {
           instructions: intro_instructions(preferred_currency, preferred_date_format),
-          functions: []
+          functions: [],
+          prompt_name: nil,
+          prompt_version: nil
         }
       else
+        instructions, prompt_name, prompt_version = default_instructions(preferred_currency, preferred_date_format)
+
         {
-          instructions: default_instructions(preferred_currency, preferred_date_format),
-          functions: default_functions
+          instructions: instructions,
+          functions: default_functions,
+          prompt_name: prompt_name,
+          prompt_version: prompt_version
         }
       end
     end
@@ -56,7 +64,7 @@ module Assistant::Configurable
       end
 
       def default_instructions(preferred_currency, preferred_date_format)
-        <<~PROMPT
+        fallback_instructions = <<~PROMPT
           ## Your identity
 
           You are a friendly financial assistant for an open source personal finance application called "Sure", which is short for "Sure Finances".
@@ -110,6 +118,57 @@ module Assistant::Configurable
           - If you suspect that you do not have enough data to 100% accurately answer, be transparent about it and state exactly what
             the data you're presenting represents and what context it is in (i.e. date range, account, etc.)
         PROMPT
+
+        langfuse_prompt = fetch_langfuse_default_instructions(
+          preferred_currency: preferred_currency,
+          preferred_date_format: preferred_date_format
+        )
+
+        return [ fallback_instructions, nil, nil ] if langfuse_prompt.blank?
+
+        [ langfuse_prompt[:instructions], LANGFUSE_DEFAULT_INSTRUCTIONS_PROMPT_NAME, langfuse_prompt[:version] ]
+      end
+
+      def fetch_langfuse_default_instructions(preferred_currency:, preferred_date_format:)
+        return unless langfuse_client
+
+        prompt = langfuse_client.get_prompt(
+          LANGFUSE_DEFAULT_INSTRUCTIONS_PROMPT_NAME,
+          cache_ttl_seconds: langfuse_prompt_cache_ttl_seconds
+        )
+        compiled_prompt = prompt.compile(
+          preferred_currency_symbol: preferred_currency.symbol,
+          preferred_currency_iso_code: preferred_currency.iso_code,
+          preferred_currency_default_precision: preferred_currency.default_precision,
+          preferred_currency_default_format: preferred_currency.default_format,
+          preferred_currency_separator: preferred_currency.separator,
+          preferred_currency_delimiter: preferred_currency.delimiter,
+          preferred_date_format: preferred_date_format,
+          current_date: Date.current
+        )
+        return unless compiled_prompt.is_a?(String) && compiled_prompt.present?
+
+        {
+          instructions: compiled_prompt,
+          version: prompt.version
+        }
+      rescue => e
+        Rails.logger.warn("Langfuse default_instructions prompt fetch failed: #{e.message}")
+        nil
+      end
+
+      def langfuse_client
+        return unless ENV["LANGFUSE_PUBLIC_KEY"].present? && ENV["LANGFUSE_SECRET_KEY"].present?
+
+        @langfuse_client ||= Langfuse.new
+      end
+
+      def langfuse_prompt_cache_ttl_seconds
+        configured_ttl = Setting.langfuse_prompt_cache_ttl_seconds.to_i
+
+        return 100.years.to_i if configured_ttl == LANGFUSE_PROMPT_CACHE_TTL_NEVER
+
+        configured_ttl
       end
   end
 end

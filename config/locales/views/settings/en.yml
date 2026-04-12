@@ -11,6 +11,16 @@ en:
         page_title: AI Prompts
         openai_label: OpenAI
         disable_ai: Disable AI Assistant
+        langfuse_cache:
+          title: Langfuse Prompt Cache
+          subtitle: Controls how often Sure refreshes the default instructions prompt from Langfuse
+          save: Save cache setting
+          options:
+            no_cache: No cache (0 seconds)
+            day: 24 hours
+            week: 1 week
+            month: 1 month
+            never: Never refresh (default)
         prompt_instructions: Prompt Instructions
         main_system_prompt:
           title: Main System Prompt
@@ -21,6 +31,8 @@ en:
         merchant_detector:
           title: Merchant Detector
           subtitle: AI identifies and enriches transaction data with merchant information
+      update:
+        success: Langfuse prompt cache setting updated.
     payments:
       show:
         page_title: Payments

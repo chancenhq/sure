@@ -21,6 +21,39 @@
 
     <div class="bg-container rounded-lg shadow-border-xs">
       <div class="space-y-4 p-4">
+        <div class="space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-gray-25 flex justify-center items-center">
+              <%= icon "clock" %>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-primary"><%= t(".langfuse_cache.title") %></p>
+              <p class="text-xs text-secondary"><%= t(".langfuse_cache.subtitle") %></p>
+            </div>
+          </div>
+
+          <div class="pl-12">
+            <%= form_with url: settings_ai_prompts_path, method: :patch, scope: :setting, class: "space-y-3" do |form| %>
+              <%= form.select :langfuse_prompt_cache_ttl_seconds,
+                              options_for_select([
+                                [ t(".langfuse_cache.options.no_cache"), 0 ],
+                                [ t(".langfuse_cache.options.day"), 86_400 ],
+                                [ t(".langfuse_cache.options.week"), 604_800 ],
+                                [ t(".langfuse_cache.options.month"), 2_592_000 ],
+                                [ t(".langfuse_cache.options.never"), -1 ]
+                              ], Setting.langfuse_prompt_cache_ttl_seconds),
+                              {},
+                              class: "block w-full max-w-md rounded-lg border border-primary bg-surface-default px-3 py-2 text-sm text-primary" %>
+
+              <div>
+                <%= render DS::Button.new(text: t(".langfuse_cache.save"), type: :submit) %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="border-t border-primary"></div>
+
         <!-- Main System Prompt Section -->
         <div class="space-y-3">
           <div class="flex items-center gap-3">
