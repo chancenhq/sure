@@ -211,6 +211,8 @@ class Provider::Openai < Provider
     previous_response_id: nil,
     session_id: nil,
     user_identifier: nil,
+    prompt_name: nil,
+    prompt_version: nil,
     family: nil
   )
     if custom_provider?
@@ -223,6 +225,8 @@ class Provider::Openai < Provider
         streamer: streamer,
         session_id: session_id,
         user_identifier: user_identifier,
+        prompt_name: prompt_name,
+        prompt_version: prompt_version,
         family: family
       )
     else
@@ -236,6 +240,8 @@ class Provider::Openai < Provider
         previous_response_id: previous_response_id,
         session_id: session_id,
         user_identifier: user_identifier,
+        prompt_name: prompt_name,
+        prompt_version: prompt_version,
         family: family
       )
     end
@@ -254,6 +260,8 @@ class Provider::Openai < Provider
       previous_response_id: nil,
       session_id: nil,
       user_identifier: nil,
+      prompt_name: nil,
+      prompt_version: nil,
       family: nil
     )
       with_provider_response do
@@ -304,7 +312,9 @@ class Provider::Openai < Provider
               output: response.messages.map(&:output_text).join("\n"),
               usage: usage,
               session_id: session_id,
-              user_identifier: user_identifier
+              user_identifier: user_identifier,
+              prompt_name: prompt_name,
+              prompt_version: prompt_version
             )
             record_llm_usage(family: family, model: model, operation: "chat", usage: usage)
             response
@@ -318,7 +328,9 @@ class Provider::Openai < Provider
               output: parsed.messages.map(&:output_text).join("\n"),
               usage: raw_response["usage"],
               session_id: session_id,
-              user_identifier: user_identifier
+              user_identifier: user_identifier,
+              prompt_name: prompt_name,
+              prompt_version: prompt_version
             )
             record_llm_usage(family: family, model: model, operation: "chat", usage: raw_response["usage"])
             parsed
@@ -330,7 +342,9 @@ class Provider::Openai < Provider
             input: input_payload,
             error: e,
             session_id: session_id,
-            user_identifier: user_identifier
+            user_identifier: user_identifier,
+            prompt_name: prompt_name,
+            prompt_version: prompt_version
           )
           record_llm_usage(family: family, model: model, operation: "chat", error: e)
           raise
@@ -347,6 +361,8 @@ class Provider::Openai < Provider
       streamer: nil,
       session_id: nil,
       user_identifier: nil,
+      prompt_name: nil,
+      prompt_version: nil,
       family: nil
     )
       with_provider_response do
@@ -377,7 +393,9 @@ class Provider::Openai < Provider
             output: parsed.messages.map(&:output_text).join("\n"),
             usage: raw_response["usage"],
             session_id: session_id,
-            user_identifier: user_identifier
+            user_identifier: user_identifier,
+            prompt_name: prompt_name,
+            prompt_version: prompt_version
           )
 
           record_llm_usage(family: family, model: model, operation: "chat", usage: raw_response["usage"])
@@ -404,7 +422,9 @@ class Provider::Openai < Provider
             input: messages,
             error: e,
             session_id: session_id,
-            user_identifier: user_identifier
+            user_identifier: user_identifier,
+            prompt_name: prompt_name,
+            prompt_version: prompt_version
           )
           record_llm_usage(family: family, model: model, operation: "chat", error: e)
           raise
@@ -511,7 +531,7 @@ class Provider::Openai < Provider
       nil
     end
 
-    def log_langfuse_generation(name:, model:, input:, output: nil, usage: nil, error: nil, session_id: nil, user_identifier: nil)
+    def log_langfuse_generation(name:, model:, input:, output: nil, usage: nil, error: nil, session_id: nil, user_identifier: nil, prompt_name: nil, prompt_version: nil)
       return unless langfuse_client
 
       trace = create_langfuse_trace(
@@ -524,7 +544,9 @@ class Provider::Openai < Provider
       generation = trace&.generation(
         name: name,
         model: model,
-        input: input
+        input: input,
+        version: prompt_version,
+        prompt: prompt_name
       )
 
       if error

@@ -10,6 +10,7 @@ class Setting < RailsSettings::Base
   field :openai_uri_base, type: :string, default: ENV["OPENAI_URI_BASE"]
   field :openai_model, type: :string, default: ENV["OPENAI_MODEL"]
   field :openai_json_mode, type: :string, default: ENV["LLM_JSON_MODE"]
+  field :langfuse_prompt_cache_ttl_seconds, type: :integer, default: ENV.fetch("LANGFUSE_PROMPT_CACHE_TTL_SECONDS", -1).to_i
   field :external_assistant_url, type: :string
   field :external_assistant_token, type: :string
   field :external_assistant_agent_id, type: :string

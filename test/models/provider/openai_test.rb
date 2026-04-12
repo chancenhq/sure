@@ -306,7 +306,13 @@ class Provider::OpenaiTest < ActiveSupport::TestCase
     @subject.stubs(:create_langfuse_trace).returns(trace)
 
     fake_client.expects(:trace).with(id: "trace_456", output: "hello")
-    trace.expects(:generation).returns(generation)
+    trace.expects(:generation).with(
+      name: "chat",
+      model: "gpt-4.1",
+      input: { prompt: "Hi" },
+      version: 7,
+      prompt: "default_instructions"
+    ).returns(generation)
     generation.expects(:end).with(output: "hello", usage: { "total_tokens" => 10 })
 
     @subject.send(
@@ -315,7 +321,9 @@ class Provider::OpenaiTest < ActiveSupport::TestCase
       model: "gpt-4.1",
       input: { prompt: "Hi" },
       output: "hello",
-      usage: { "total_tokens" => 10 }
+      usage: { "total_tokens" => 10 },
+      prompt_name: "default_instructions",
+      prompt_version: 7
     )
   end
 

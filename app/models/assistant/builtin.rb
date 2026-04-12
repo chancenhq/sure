@@ -7,14 +7,22 @@ class Assistant::Builtin < Assistant::Base
   class << self
     def for_chat(chat)
       config = config_for(chat)
-      new(chat, instructions: config[:instructions], functions: config[:functions])
+      new(
+        chat,
+        instructions: config[:instructions],
+        functions: config[:functions],
+        instructions_prompt_name: config[:prompt_name],
+        instructions_prompt_version: config[:prompt_version]
+      )
     end
   end
 
-  def initialize(chat, instructions: nil, functions: [])
+  def initialize(chat, instructions: nil, functions: [], instructions_prompt_name: nil, instructions_prompt_version: nil)
     super(chat)
     @instructions = instructions
     @functions = functions
+    @instructions_prompt_name = instructions_prompt_name
+    @instructions_prompt_version = instructions_prompt_version
   end
 
   def respond_to(message)
@@ -32,6 +40,8 @@ class Assistant::Builtin < Assistant::Base
     responder = Assistant::Responder.new(
       message: message,
       instructions: instructions,
+      instructions_prompt_name: instructions_prompt_name,
+      instructions_prompt_version: instructions_prompt_version,
       function_tool_caller: function_tool_caller,
       llm: llm_provider
     )
@@ -68,7 +78,7 @@ class Assistant::Builtin < Assistant::Base
 
   private
 
-    attr_reader :functions
+    attr_reader :functions, :instructions_prompt_name, :instructions_prompt_version
 
     def function_tool_caller
       @function_tool_caller ||= Assistant::FunctionToolCaller.new(
