@@ -25,6 +25,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isDeletingAccount = false;
   bool _biometricSupported = false;
   bool _biometricEnabled = false;
+  bool _isTogglingBiometric = false;
 
   @override
   void initState() {
@@ -37,23 +38,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadBiometricState() async {
     final supported = await BiometricService.instance.isDeviceSupported();
     final enabled = await PreferencesService.instance.getBiometricEnabled();
+    if (!supported && enabled) {
+      await PreferencesService.instance.setBiometricEnabled(false);
+    }
     if (mounted) {
       setState(() {
         _biometricSupported = supported;
-        _biometricEnabled = enabled;
+        _biometricEnabled = supported && enabled;
       });
     }
   }
 
   Future<void> _toggleBiometric(bool value) async {
-    final reason = value
-        ? 'Verify biometric to enable app lock'
-        : 'Verify biometric to disable app lock';
-    final success = await BiometricService.instance.authenticate(reason: reason);
-    if (!success) return;
-    await PreferencesService.instance.setBiometricEnabled(value);
-    if (mounted) {
-      setState(() => _biometricEnabled = value);
+    if (_isTogglingBiometric) return;
+    setState(() => _isTogglingBiometric = true);
+    try {
+      final reason = value
+          ? 'Verify biometric to enable app lock'
+          : 'Verify biometric to disable app lock';
+      final success = await BiometricService.instance.authenticate(reason: reason);
+      if (!mounted) return;
+      if (!success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Biometric authentication failed.')),
+        );
+        return;
+      }
+      await PreferencesService.instance.setBiometricEnabled(value);
+      if (mounted) setState(() => _biometricEnabled = value);
+    } finally {
+      if (mounted) setState(() => _isTogglingBiometric = false);
     }
   }
 
@@ -501,7 +515,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: const Text('Biometric Lock'),
               subtitle: const Text('Require biometric authentication when resuming the app'),
               value: _biometricEnabled,
-              onChanged: _toggleBiometric,
+              onChanged: _isTogglingBiometric ? null : _toggleBiometric,
             ),
           ],
 

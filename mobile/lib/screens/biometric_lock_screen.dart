@@ -26,7 +26,7 @@ class _BiometricLockScreenState extends State<BiometricLockScreen> {
   }
 
   Future<void> _authenticate() async {
-    if (_isAuthenticating) return;
+    if (!mounted || _isAuthenticating) return;
     setState(() => _isAuthenticating = true);
 
     final success = await BiometricService.instance.authenticate();
