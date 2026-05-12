@@ -6,6 +6,7 @@ import '../models/chat.dart';
 import '../providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
 import '../models/message.dart';
+import '../constants/suggested_questions.dart';
 import '../widgets/typing_indicator.dart';
 
 class _SendMessageIntent extends Intent {
@@ -83,6 +84,14 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
         curve: Curves.easeOut,
       );
     }
+  }
+
+  Future<void> _sendSuggestedQuestion(String question) async {
+    if (!mounted) return;
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+    if (chatProvider.isSendingMessage || chatProvider.isWaitingForResponse) return;
+    _messageController.text = question;
+    await _sendMessage();
   }
 
   Future<void> _loadChat({bool forceRefresh = false}) async {
@@ -315,26 +324,45 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
             );
           }
 
-          final messages = chatProvider.currentChat?.messages ?? [];
+          final allMessages = chatProvider.currentChat?.messages ?? [];
+          // While waiting for the AI response, hide the last (partial/streaming)
+          // assistant message so the typing indicator shows instead of partial content.
+          // The full response is revealed once polling detects stable content.
+          final messages = chatProvider.isWaitingForResponse
+              ? allMessages.where((m) {
+                  return !(m.isAssistant && m == allMessages.lastOrNull);
+                }).toList()
+              : allMessages;
+          final firstName =
+              Provider.of<AuthProvider>(context, listen: false).user?.firstName;
 
           return Column(
             children: [
               Expanded(
-                child: ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.all(16),
-                  itemCount: messages.length +
-                      (chatProvider.isWaitingForResponse ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    if (index == messages.length) {
-                      return const _TypingIndicatorBubble();
-                    }
-                    return _MessageBubble(
-                      message: messages[index],
-                      formatTime: _formatTime,
-                    );
-                  },
-                ),
+                child: messages.isEmpty &&
+                        !chatProvider.isLoading &&
+                        !chatProvider.isSendingMessage &&
+                        !chatProvider.isWaitingForResponse
+                    ? _EmptyState(
+                        firstName: firstName,
+                        isSending: false,
+                        onQuestionTap: _sendSuggestedQuestion,
+                      )
+                    : ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.all(16),
+                        itemCount: messages.length +
+                            (chatProvider.isWaitingForResponse ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index == messages.length) {
+                            return const _TypingIndicatorBubble();
+                          }
+                          return _MessageBubble(
+                            message: messages[index],
+                            formatTime: _formatTime,
+                          );
+                        },
+                      ),
               ),
 
               // Message input
@@ -359,7 +387,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                     actions: <Type, Action<Intent>>{
                       _SendMessageIntent: CallbackAction<_SendMessageIntent>(
                         onInvoke: (_) {
-                          if (!chatProvider.isSendingMessage) _sendMessage();
+                          if (!chatProvider.isSendingMessage && !chatProvider.isWaitingForResponse) _sendMessage();
                           return null;
                         },
                       ),
@@ -387,7 +415,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                         const SizedBox(width: 8),
                         IconButton(
                           icon: const Icon(Icons.send),
-                          onPressed: chatProvider.isSendingMessage
+                          onPressed: (chatProvider.isSendingMessage || chatProvider.isWaitingForResponse)
                               ? null
                               : _sendMessage,
                           color: colorScheme.primary,
@@ -402,6 +430,61 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
           );
         },
       ),
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  final String? firstName;
+  final bool isSending;
+  final void Function(String) onQuestionTap;
+
+  const _EmptyState({
+    required this.firstName,
+    required this.isSending,
+    required this.onQuestionTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final name = (firstName ?? '').trim();
+    final greeting =
+        name.isNotEmpty ? 'Hi $name, how can I help?' : 'How can I help?';
+
+    return ListView(
+      padding: const EdgeInsets.all(24),
+      children: [
+        const SizedBox(height: 32),
+        Text(
+          greeting,
+          style: Theme.of(context)
+              .textTheme
+              .headlineSmall
+              ?.copyWith(fontWeight: FontWeight.bold),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 32),
+        ...suggestedQuestions.map(
+          (q) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: OutlinedButton.icon(
+              onPressed: isSending ? null : () => onQuestionTap(q.text),
+              icon: Icon(q.icon, size: 20),
+              label: Text(q.text, textAlign: TextAlign.left),
+              style: OutlinedButton.styleFrom(
+                alignment: Alignment.centerLeft,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                foregroundColor: colorScheme.onSurface,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
