@@ -14,20 +14,7 @@ class RegistrationsController < ApplicationController
   end
 
   def create
-    if @invitation
-      @user.family = @invitation.family
-      @user.role = @invitation.role
-      @user.email = @invitation.email
-    elsif (default_family_id = Setting.invite_only_default_family_id).present? &&
-          Setting.onboarding_state == "invite_only" &&
-          (default_family = Family.find_by(id: default_family_id))
-      @user.family = default_family
-      @user.role = :member
-    else
-      family = Family.new
-      @user.family = family
-      @user.role = User.role_for_new_family_creator
-    end
+    assign_signup_family_and_role(@user, invitation: @invitation)
 
     if @user.save
       @invitation&.update!(accepted_at: Time.current)

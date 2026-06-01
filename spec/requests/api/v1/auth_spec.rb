@@ -17,7 +17,8 @@ RSpec.describe 'API V1 Auth', type: :request do
               email: { type: :string, format: :email, description: 'User email address' },
               password: { type: :string, description: 'Password (min 8 chars, mixed case, number, special char)' },
               first_name: { type: :string },
-              last_name: { type: :string }
+              last_name: { type: :string },
+              invitation: { type: :string, nullable: true, description: 'Pending invitation token; joins the invited family when valid' }
             },
             required: %w[email password]
           },
@@ -32,7 +33,8 @@ RSpec.describe 'API V1 Auth', type: :request do
             },
             required: %w[device_id device_name device_type os_version app_version]
           },
-          invite_code: { type: :string, nullable: true, description: 'Invite code (required when invites are enforced)' }
+          invite_code: { type: :string, nullable: true, description: 'Invite code (required when invites are enforced)' },
+          invitation: { type: :string, nullable: true, description: 'Pending invitation token; joins the invited family when valid' }
         },
         required: %w[user device]
       }
@@ -272,7 +274,7 @@ RSpec.describe 'API V1 Auth', type: :request do
       tags 'Auth'
       consumes 'application/json'
       produces 'application/json'
-      description 'Creates a new user and family from a previously issued linking code. Links the SSO identity via OidcIdentity, logs the JIT account creation via SsoAuditLog, and issues mobile OAuth tokens. The linking code must have allow_account_creation enabled.'
+      description 'Creates a new user from a previously issued linking code. The user joins a pending invitation family, the configured invite-only default family, or otherwise a new family. Links the SSO identity via OidcIdentity, logs the JIT account creation via SsoAuditLog, and issues mobile OAuth tokens. The linking code must have allow_account_creation enabled unless a pending invitation exists.'
       parameter name: :body, in: :body, required: true, schema: {
         type: :object,
         properties: {

@@ -12,6 +12,9 @@ module Api
       before_action :log_api_access, only: :enable_ai
 
       def signup
+        # invite_code_required? consults @invitation, so resolve it before checking invite-code requirements.
+        @invitation = pending_invitation_from_params
+
         # Check if invite code is required
         if invite_code_required? && params[:invite_code].blank?
           render json: { error: "Invite code is required" }, status: :forbidden
@@ -39,25 +42,27 @@ module Api
 
         user = User.new(user_signup_params)
 
-        # Create family for new user
-        # First user of an instance becomes super_admin
-        family = Family.new
-        user.family = family
-        user.role = User.role_for_new_family_creator
+        assign_signup_family_and_role(user, invitation: @invitation)
 
-        if user.save
-          # Claim invite code if provided
-          InviteCode.claim!(params[:invite_code]) if params[:invite_code].present?
+        token_response = nil
 
-          # Create device and OAuth token
-          begin
+        begin
+          ActiveRecord::Base.transaction do
+            unless user.save
+              raise ActiveRecord::Rollback
+            end
+
+            InviteCode.claim!(params[:invite_code]) if params[:invite_code].present?
+            @invitation&.update!(accepted_at: Time.current)
             device = MobileDevice.upsert_device!(user, device_params)
             token_response = device.issue_token!
-          rescue ActiveRecord::RecordInvalid => e
-            render json: { error: "Failed to register device: #{e.message}" }, status: :unprocessable_entity
-            return
           end
+        rescue ActiveRecord::RecordInvalid => e
+          render json: { error: "Failed to register device: #{e.message}" }, status: :unprocessable_entity
+          return
+        end
 
+        if user.persisted? && token_response.present?
           render json: token_response.merge(user: mobile_user_payload(user)), status: :created
         else
           render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
@@ -186,6 +191,11 @@ module Api
           return
         end
 
+        if invite_only_default_family_missing? && invitation.blank?
+          render json: { error: "Invite-only default family is unavailable. Please contact an administrator." }, status: :forbidden
+          return
+        end
+
         # Atomically claim the code before creating the user
         return render json: { error: "Linking code is invalid or expired" }, status: :unauthorized unless consume_linking_code!(linking_code)
 
@@ -196,17 +206,11 @@ module Api
           skip_password_validation: true
         )
 
-        if invitation.present?
-          # Accept the pending invitation: join the existing family
-          user.family_id = invitation.family_id
-          user.role = invitation.role
-        else
-          user.family = Family.new
-
-          provider_config = Rails.configuration.x.auth.sso_providers&.find { |p| p[:name] == cached[:provider] }
-          provider_default_role = provider_config&.dig(:settings, :default_role)
-          user.role = User.role_for_new_family_creator(fallback_role: provider_default_role || :admin)
-        end
+        assign_signup_family_and_role(
+          user,
+          invitation: invitation,
+          new_family_fallback_role: sso_provider_default_role(cached[:provider]) || :admin
+        )
 
         if user.save
           # Mark invitation as accepted if one was used
@@ -289,6 +293,12 @@ module Api
 
         def user_signup_params
           params.require(:user).permit(:email, :password, :first_name, :last_name)
+        end
+
+        def pending_invitation_from_params
+          token = params[:invitation]
+          token ||= params[:user][:invitation] if params[:user].present?
+          Invitation.pending.find_by(token: token)
         end
 
         def validate_password(password)

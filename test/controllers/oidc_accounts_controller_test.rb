@@ -2,7 +2,15 @@ require "test_helper"
 
 class OidcAccountsControllerTest < ActionController::TestCase
   setup do
+    ensure_tailwind_build
     @user = users(:family_admin)
+    @original_onboarding_state = Setting.onboarding_state
+    @original_invite_only_default_family_id = Setting.invite_only_default_family_id
+  end
+
+  teardown do
+    Setting.onboarding_state = @original_onboarding_state unless @original_onboarding_state.nil?
+    Setting.invite_only_default_family_id = @original_invite_only_default_family_id
   end
 
   def pending_auth
@@ -187,6 +195,72 @@ class OidcAccountsControllerTest < ActionController::TestCase
     assert_equal new_user_auth["uid"], oidc_identity.uid
   end
 
+  test "create_user uses provider default role for new family JIT users" do
+    Rails.configuration.x.auth.stubs(:sso_providers).returns([
+      { name: "openid_connect", settings: { default_role: "guest" } }
+    ])
+    session[:pending_oidc_auth] = new_user_auth
+
+    assert_difference([ "User.count", "OidcIdentity.count", "Family.count" ], 1) do
+      post :create_user
+    end
+
+    assert_redirected_to root_path
+    new_user = User.find_by!(email: new_user_auth["email"])
+    assert_equal "guest", new_user.role
+  end
+
+  test "create_user rejects stale invite-only default family" do
+    Setting.onboarding_state = "invite_only"
+    Setting.invite_only_default_family_id = SecureRandom.uuid
+    session[:pending_oidc_auth] = new_user_auth
+
+    assert_no_difference([ "User.count", "OidcIdentity.count", "Family.count" ]) do
+      post :create_user
+    end
+
+    assert_redirected_to new_session_path
+    assert_equal "Invite-only default family is unavailable. Please contact an administrator.", flash[:alert]
+  end
+
+  test "create_user joins configured invite-only default family as member" do
+    default_family = families(:empty)
+    Setting.onboarding_state = "invite_only"
+    Setting.invite_only_default_family_id = default_family.id.to_s
+    session[:pending_oidc_auth] = new_user_auth
+
+    assert_difference([ "User.count", "OidcIdentity.count" ], 1) do
+      assert_no_difference("Family.count") do
+        post :create_user
+      end
+    end
+
+    assert_redirected_to root_path
+    new_user = User.find_by!(email: new_user_auth["email"])
+    assert_equal default_family, new_user.family
+    assert_equal "member", new_user.role
+  end
+
+  test "create_user accepts pending invitation before invite-only default family" do
+    default_family = families(:empty)
+    invitation = invitations(:two)
+    Setting.onboarding_state = "invite_only"
+    Setting.invite_only_default_family_id = default_family.id.to_s
+    session[:pending_oidc_auth] = new_user_auth.merge("email" => invitation.email)
+
+    assert_difference([ "User.count", "OidcIdentity.count" ], 1) do
+      assert_no_difference("Family.count") do
+        post :create_user
+      end
+    end
+
+    assert_redirected_to root_path
+    new_user = User.find_by!(email: invitation.email)
+    assert_equal invitation.family, new_user.family
+    assert_equal invitation.role, new_user.role
+    assert_not_nil invitation.reload.accepted_at
+  end
+
   test "create_user uses form params for name when provided" do
     session[:pending_oidc_auth] = new_user_auth
 
@@ -257,4 +331,12 @@ class OidcAccountsControllerTest < ActionController::TestCase
       password: "anypassword"
     ), "SSO-only user should not authenticate with password"
   end
+
+  private
+
+    def ensure_tailwind_build
+      tailwind_build = Rails.root.join("app/assets/builds/tailwind.css")
+      FileUtils.mkdir_p(tailwind_build.dirname)
+      File.write(tailwind_build, "/* test */") unless tailwind_build.exist?
+    end
 end

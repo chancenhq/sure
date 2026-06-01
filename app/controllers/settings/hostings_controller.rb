@@ -46,8 +46,7 @@ class Settings::HostingsController < ApplicationController
     end
 
     if hosting_params.key?(:invite_only_default_family_id)
-      value = hosting_params[:invite_only_default_family_id].presence
-      Setting.invite_only_default_family_id = value
+      Setting.invite_only_default_family_id = invite_only_default_family_id_param
     end
 
     if hosting_params.key?(:brand_fetch_client_id)
@@ -200,6 +199,13 @@ class Settings::HostingsController < ApplicationController
     def hosting_params
       return ActionController::Parameters.new unless params.key?(:setting)
       params.require(:setting).permit(:onboarding_state, :require_email_confirmation, :invite_only_default_family_id, :brand_fetch_client_id, :brand_fetch_high_res_logos, :twelve_data_api_key, :tiingo_api_key, :eodhd_api_key, :alpha_vantage_api_key, :openai_access_token, :openai_uri_base, :openai_model, :openai_json_mode, :exchange_rate_provider, :securities_provider, :syncs_include_pending, :auto_sync_enabled, :auto_sync_time, :external_assistant_url, :external_assistant_token, :external_assistant_agent_id, securities_providers: [])
+    end
+
+    def invite_only_default_family_id_param
+      value = hosting_params[:invite_only_default_family_id].presence
+      return unless value.present?
+
+      Family.exists?(id: value) ? value : nil
     end
 
     def update_assistant_type

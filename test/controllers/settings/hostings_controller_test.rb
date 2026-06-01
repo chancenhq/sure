@@ -5,6 +5,7 @@ class Settings::HostingsControllerTest < ActionDispatch::IntegrationTest
   include ProviderTestHelper
 
   setup do
+    ensure_tailwind_build
     sign_in users(:family_admin)
 
     @provider = mock
@@ -314,4 +315,39 @@ class Settings::HostingsControllerTest < ActionDispatch::IntegrationTest
   ensure
     Setting.securities_providers = ""
   end
+
+  test "can update invite-only default family when it exists" do
+    sign_in users(:sure_support_staff)
+    family = families(:empty)
+
+    with_self_hosting do
+      patch settings_hosting_url, params: { setting: { invite_only_default_family_id: family.id.to_s } }
+
+      assert_redirected_to settings_hosting_url
+      assert_equal family.id.to_s, Setting.invite_only_default_family_id
+    end
+  ensure
+    Setting.invite_only_default_family_id = nil
+  end
+
+  test "clears invite-only default family when submitted family is stale" do
+    sign_in users(:sure_support_staff)
+
+    with_self_hosting do
+      patch settings_hosting_url, params: { setting: { invite_only_default_family_id: SecureRandom.uuid } }
+
+      assert_redirected_to settings_hosting_url
+      assert_nil Setting.invite_only_default_family_id
+    end
+  ensure
+    Setting.invite_only_default_family_id = nil
+  end
+
+  private
+
+    def ensure_tailwind_build
+      tailwind_build = Rails.root.join("app/assets/builds/tailwind.css")
+      FileUtils.mkdir_p(tailwind_build.dirname)
+      File.write(tailwind_build, "/* test */") unless tailwind_build.exist?
+    end
 end
