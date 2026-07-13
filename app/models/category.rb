@@ -279,7 +279,7 @@ class Category < ApplicationRecord
             classification: "expense",
             children: [
               { name: "Clothes" },
-              { name: "Accesories" },
+              { name: "Accessories" },
               { name: "Electronics and software" },
               { name: "Online shopping" },
               { name: "Other" },
