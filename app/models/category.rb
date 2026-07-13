@@ -10,7 +10,7 @@ class Category < ApplicationRecord
 
   validates :name, :color, :lucide_icon, :family, presence: true
   validates :color, format: { with: /\A#[0-9A-Fa-f]{6}\z/ }
-  validates :name, uniqueness: { scope: :family_id }
+  validates :name, uniqueness: { scope: [ :family_id, :parent_id ] }
 
   validate :category_level_limit
 
@@ -139,11 +139,8 @@ class Category < ApplicationRecord
     end
 
     def bootstrap!
-      default_categories.each do |name, color, icon|
-        find_or_create_by!(name: name) do |category|
-          category.color = color
-          category.lucide_icon = icon
-        end
+      default_category_definitions.each_with_index do |definition, index|
+        seed_category(definition, parent: nil, index: index)
       end
     end
 
@@ -195,31 +192,197 @@ class Category < ApplicationRecord
     end
 
     private
-      def default_categories
+      def default_category_definitions
         [
-          [ "Income", "#22c55e", "circle-dollar-sign" ],
-          [ "Food & Drink", "#f97316", "utensils" ],
-          [ "Groceries", "#407706", "shopping-bag" ],
-          [ "Shopping", "#3b82f6", "shopping-cart" ],
-          [ "Transportation", "#0ea5e9", "bus" ],
-          [ "Travel", "#2563eb", "plane" ],
-          [ "Entertainment", "#a855f7", "drama" ],
-          [ "Healthcare", "#4da568", "pill" ],
-          [ "Personal Care", "#14b8a6", "scissors" ],
-          [ "Home Improvement", "#d97706", "hammer" ],
-          [ "Mortgage / Rent", "#b45309", "home" ],
-          [ "Utilities", "#eab308", "lightbulb" ],
-          [ "Subscriptions", "#6366f1", "wifi" ],
-          [ "Insurance", "#0284c7", "shield" ],
-          [ "Sports & Fitness", "#10b981", "dumbbell" ],
-          [ "Gifts & Donations", "#61c9ea", "hand-helping" ],
-          [ "Taxes", "#dc2626", "landmark" ],
-          [ "Loan Payments", "#e11d48", "credit-card" ],
-          [ "Services", "#7c3aed", "briefcase" ],
-          [ "Fees", "#6b7280", "receipt" ],
-          [ "Savings & Investments", "#059669", "piggy-bank" ],
-          [ investment_contributions_name, "#0d9488", "trending-up" ]
+          {
+            name: "Income",
+            classification: "income",
+            children: [
+              { name: "Salary" },
+              { name: "Pension" },
+              { name: "Reimbursements" },
+              { name: "Reimbursements lunch Martin" },
+              { name: "Other" },
+              { name: "Rental income" },
+              { name: "Cash deposit" },
+              { name: "Investment income" },
+              { name: "Tax Returns" }
+            ]
+          },
+          {
+            name: "Other income",
+            classification: "income",
+            children: [
+              { name: "Gifts and donation" },
+              { name: "Mortgage" },
+              { name: "Commercial gesture" }
+            ]
+          },
+          {
+            name: "Uncategorized",
+            classification: "expense",
+            children: [
+              { name: "Uncategorized" }
+            ]
+          },
+          {
+            name: "Credit from own account",
+            classification: "income",
+            children: [
+              { name: "Savings" },
+              { name: "Current" },
+              { name: "Investment" }
+            ]
+          },
+          {
+            name: "Fixed expenses",
+            classification: "expense",
+            children: [
+              { name: "Housing" },
+              { name: "House cleaning" },
+              { name: "Education" },
+              { name: "Daycare" },
+              { name: "Insurance" },
+              { name: "Gas" },
+              { name: "Loans" },
+              { name: "Other" },
+              { name: "Internet/tv/mobile" },
+              { name: "Electricity" },
+              { name: "Utilities" },
+              { name: "Water" },
+              { name: "Pocket money" }
+            ]
+          },
+          {
+            name: "Everyday essentials",
+            classification: "expense",
+            children: [
+              { name: "Supermarket" },
+              { name: "House and garden" },
+              { name: "Pets" },
+              { name: "Other" }
+            ]
+          },
+          {
+            name: "Restaurants & bars",
+            classification: "expense",
+            children: [
+              { name: "Bars and cafes" },
+              { name: "Snacks" },
+              { name: "Lunch" },
+              { name: "Restaurant" },
+              { name: "Other" }
+            ]
+          },
+          {
+            name: "Shopping",
+            classification: "expense",
+            children: [
+              { name: "Clothes" },
+              { name: "Accesories" },
+              { name: "Electronics and software" },
+              { name: "Online shopping" },
+              { name: "Other" },
+              { name: "Gifts" }
+            ]
+          },
+          {
+            name: "Transport",
+            classification: "expense",
+            children: [
+              { name: "Car" },
+              { name: "Fuel" },
+              { name: "Parking" },
+              { name: "Public transport" },
+              { name: "Flights" },
+              { name: "Taxi" },
+              { name: "Bicycle" },
+              { name: "Other" }
+            ]
+          },
+          {
+            name: "Well-being",
+            classification: "expense",
+            children: [
+              { name: "Hospitals and pharmacies" },
+              { name: "Beauty care" },
+              { name: "Wellness" },
+              { name: "Other" }
+            ]
+          },
+          {
+            name: "Leisure and hobbies",
+            classification: "expense",
+            children: [
+              { name: "Events" },
+              { name: "Sports" },
+              { name: "Leisure activities" },
+              { name: "Holidays" },
+              { name: "Books and magazines" },
+              { name: "Games" },
+              { name: "Music and theater" },
+              { name: "Movies" },
+              { name: "Lottery" },
+              { name: "Other" }
+            ]
+          },
+          {
+            name: "Other expenses",
+            classification: "expense",
+            children: [
+              { name: "Cash" },
+              { name: "Depanneur (convenience store)" },
+              { name: "Charity" },
+              { name: "Taxes" },
+              { name: "Extra loan repayment" },
+              { name: "Savings" },
+              { name: "Public services" }
+            ]
+          },
+          {
+            name: "Debit to own account",
+            classification: "expense",
+            children: [
+              { name: "Savings" },
+              { name: "Current account" },
+              { name: "Investment account" },
+              { name: "Other" }
+            ]
+          }
         ]
+      end
+
+      def seed_category(definition, parent:, index:)
+        category = create_or_update_category!(
+          name: definition[:name],
+          parent: parent,
+          color: color_for(definition[:name], index),
+          icon: suggested_icon(definition[:name]),
+          classification: definition[:classification] || parent&.classification_unused || "expense"
+        )
+
+        Array(definition[:children]).each_with_index do |child_definition, child_index|
+          seed_category(child_definition, parent: category, index: child_index)
+        end
+      end
+
+      def create_or_update_category!(name:, parent:, color:, icon:, classification:)
+        category = where(name: name, parent_id: parent&.id).first || new
+
+        category.assign_attributes(
+          name: name,
+          color: color,
+          lucide_icon: icon,
+          parent: parent,
+          classification_unused: classification
+        )
+
+        category.save!
+        category
+      end
+
+      def color_for(name, index)
+        Category::COLORS[(name.to_s.bytes.sum + index) % Category::COLORS.length]
       end
   end
 

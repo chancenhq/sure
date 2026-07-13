@@ -41,6 +41,25 @@ class CategoryTest < ActiveSupport::TestCase
     assert_equal names, names.uniq  # No duplicates
   end
 
+  test "bootstrap creates the requested default income and expense categories" do
+    @family.categories.where(name: [ "Income", "Salary", "Other income", "Uncategorized", "Credit from own account", "Fixed expenses", "Supermarket", "Transport", "Well-being", "Other expenses", "Debit to own account" ]).destroy_all
+
+    @family.categories.bootstrap!
+
+    income = @family.categories.find_by!(name: "Income")
+    salary = @family.categories.find_by!(name: "Salary")
+    supermarket = @family.categories.find_by!(name: "Supermarket")
+    fixed_expenses = @family.categories.find_by!(name: "Fixed expenses")
+    everyday_essentials = @family.categories.find_by!(name: "Everyday essentials")
+    debit_to_own_account = @family.categories.find_by!(name: "Debit to own account")
+
+    assert_equal income, salary.parent
+    assert_equal "income", income.reload.classification_unused
+    assert_equal "expense", fixed_expenses.reload.classification_unused
+    assert_equal everyday_essentials, supermarket.parent
+    assert_equal "expense", debit_to_own_account.reload.classification_unused
+  end
+
   test "should accept valid 6-digit hex colors" do
     [ "#FFFFFF", "#000000", "#123456", "#ABCDEF", "#abcdef" ].each do |color|
       category = Category.new(name: "Category #{color}", color: color, lucide_icon: "shapes", family: @family)
