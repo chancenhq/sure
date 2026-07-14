@@ -26,7 +26,8 @@ class Family::AutoCategorizer
     result = llm_provider.auto_categorize(
       transactions: transactions_input,
       user_categories: categories_input,
-      family: family
+      family: family,
+      category_examples: category_examples_input
     )
 
     unless result.success?
@@ -76,14 +77,49 @@ class Family::AutoCategorizer
 
     def transactions_input
       scope.map do |transaction|
+        name = transaction.entry.name.presence
+        notes = transaction.entry.notes.presence
+        description = [ name, notes ].compact.reject(&:empty?).join(" | ")
+
         {
           id: transaction.id,
           amount: transaction.entry.amount.abs,
           classification: transaction.entry.classification,
-          description: [ transaction.entry.name, transaction.entry.notes ].compact.reject(&:empty?).join(" "),
+          name: name,
+          description: description,
+          notes: notes,
           merchant: transaction.merchant&.name
         }
       end
+    end
+
+    def category_examples_input
+      target_dates = scope.map { |transaction| transaction.entry.date }.compact
+      return [] if target_dates.empty?
+
+      earliest_date = target_dates.min - 3.months
+      latest_date = target_dates.max + 3.months
+
+      candidate_transactions = family.transactions
+        .includes(:category, :merchant, :entry)
+        .where.not(category_id: nil)
+        .where.not(transactions: { kind: Transaction::TRANSFER_KINDS })
+        .where(entries: { date: earliest_date..latest_date })
+        .to_a
+
+      candidate_transactions
+        .sort_by { |transaction| [ target_dates.map { |date| (transaction.entry.date - date).abs }.min, transaction.entry.date ] }
+        .first(20)
+        .map do |transaction|
+          {
+            transaction_id: transaction.id,
+            category_name: transaction.category&.name,
+            description: [ transaction.entry.name, transaction.entry.notes ].compact.reject(&:empty?).join(" | "),
+            merchant: transaction.merchant&.name,
+            amount: transaction.entry.amount.abs,
+            classification: transaction.entry.classification
+          }
+        end
     end
 
     def scope

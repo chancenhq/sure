@@ -14,9 +14,9 @@ class Provider::Openai::AutoCategorizer
   # This is a heuristic to detect when strict JSON mode is breaking the model's ability to reason
   AUTO_MODE_NULL_THRESHOLD = 0.5
 
-  attr_reader :client, :model, :transactions, :user_categories, :custom_provider, :langfuse_trace, :family, :json_mode
+  attr_reader :client, :model, :transactions, :user_categories, :custom_provider, :langfuse_trace, :family, :json_mode, :category_examples
 
-  def initialize(client, model: "", transactions: [], user_categories: [], custom_provider: false, langfuse_trace: nil, family: nil, json_mode: nil)
+  def initialize(client, model: "", transactions: [], user_categories: [], custom_provider: false, langfuse_trace: nil, family: nil, json_mode: nil, category_examples: [])
     @client = client
     @model = model
     @transactions = transactions
@@ -25,6 +25,7 @@ class Provider::Openai::AutoCategorizer
     @langfuse_trace = langfuse_trace
     @family = family
     @json_mode = json_mode || default_json_mode
+    @category_examples = category_examples
   end
 
   VALID_JSON_MODES = [ JSON_MODE_STRICT, JSON_MODE_OBJECT, JSON_MODE_NONE, JSON_MODE_AUTO ].freeze
@@ -81,12 +82,10 @@ class Provider::Openai::AutoCategorizer
       5. Return "null" if the description is generic/ambiguous (e.g., "POS DEBIT", "ACH WITHDRAWAL", "CHECK #1234")
       6. Prefer MORE SPECIFIC subcategories over general parent categories when available
 
-      CATEGORY HIERARCHY NOTES:
-      - Use "Restaurants" for sit-down restaurants, "Fast Food" for quick service chains
-      - Use "Coffee Shops" for coffee places, "Food & Drink" only when type is unclear
-      - Use "Shopping" for general retail, big-box stores, and online marketplaces
-      - Use "Groceries" for dedicated grocery stores ONLY
-      - For income: use "Salary" for payroll/employer deposits, "Income" for generic income sources
+      CONTEXT AROUND TRANSACTIONS:
+      - We're looking at Belgian market transactions done between own accounts, to pay rent, to shop, to pay bills, to pay for services, to pay for subscriptions, to pay for food and drinks, to pay for transportation, to pay for travel, to pay for entertainment, to pay for health and wellness, to pay for education, to pay for gifts and donations, to pay for taxes and fees, to pay for insurance, to receive salary or other income.
+      - Some of the transactions will be card transactions, and not have much detail except the Merchant name, usually the company name, which doesn't indicate much in itself, without a seach on the web, using the name, then the address to derive the business type from google maps.
+      - Typical places to look to categorize 
 
       Output JSON format only (no markdown, no explanation):
       {"categorizations": [{"transaction_id": "...", "category_name": "..."}]}
@@ -121,7 +120,8 @@ class Provider::Openai::AutoCategorizer
       span = langfuse_trace&.span(name: "auto_categorize_api_call", input: {
         model: model.presence || Provider::Openai::DEFAULT_MODEL,
         transactions: transactions,
-        user_categories: user_categories
+        user_categories: user_categories,
+        category_examples: category_examples
       })
 
       response = client.responses.create(parameters: {
@@ -206,7 +206,8 @@ class Provider::Openai::AutoCategorizer
         model: model.presence || Provider::Openai::DEFAULT_MODEL,
         transactions: transactions,
         user_categories: user_categories,
-        json_mode: mode
+        json_mode: mode,
+        category_examples: category_examples
       })
 
       # Build parameters with configurable JSON response format
@@ -495,7 +496,13 @@ class Provider::Openai::AutoCategorizer
         #{user_categories.to_json}
         ```
 
-        Use the available categories to auto-categorize the following transactions:
+        Here are some already-categorized examples from the family to use as context:
+
+        ```json
+        #{category_examples.to_json}
+        ```
+
+        Use the available categories and the examples to auto-categorize the following transactions:
 
         ```json
         #{transactions.to_json}
@@ -509,11 +516,15 @@ class Provider::Openai::AutoCategorizer
       <<~MESSAGE.strip_heredoc
         AVAILABLE CATEGORIES: #{user_categories.map { |c| c[:name] }.join(", ")}
 
+        CATEGORY EXAMPLES:
+        #{format_category_examples}
+
         TRANSACTIONS TO CATEGORIZE:
         #{format_transactions_simply}
 
         CATEGORIZATION GUIDELINES:
         - Prefer specific subcategories over general parent categories when confident
+        - Use the category examples as hints for similar merchants or descriptions when they are relevant
         - Food delivery services should be categorized based on the underlying merchant type
         - Square payments (SQ *) should be inferred from the merchant name after the prefix
         - Warehouse/club stores should be categorized based on their primary purpose
@@ -534,8 +545,21 @@ class Provider::Openai::AutoCategorizer
     # Format transactions in a simpler, more readable way for smaller LLMs
     def format_transactions_simply
       transactions.map do |t|
-        description = t[:description].presence || t[:merchant].presence || ""
+        name = t[:name].presence || t[:description].presence || ""
+        notes = t[:notes].presence
+        merchant = t[:merchant].presence
+        details = [ name, notes, merchant ].compact.reject(&:empty?)
+        description = details.join(" | ")
         "- ID: #{t[:id]}, Amount: #{t[:amount]}, Type: #{t[:classification]}, Description: \"#{description}\""
+      end.join("\n")
+    end
+
+    def format_category_examples
+      return "None" if category_examples.blank?
+
+      category_examples.map do |example|
+        description = [ example[:description], example[:merchant] ].compact.reject(&:empty?).join(" | ")
+        "- #{example[:category_name]}: #{description}"
       end.join("\n")
     end
 end

@@ -268,6 +268,7 @@ class Category < ApplicationRecord
             classification: "expense",
             children: [
               { name: "Bars and cafes" },
+              { name: "Bakeries" },
               { name: "Snacks" },
               { name: "Lunch" },
               { name: "Restaurant" },
