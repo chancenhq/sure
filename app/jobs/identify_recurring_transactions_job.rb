@@ -43,19 +43,29 @@ class IdentifyRecurringTransactionsJob < ApplicationJob
     end
 
     def family_has_incomplete_syncs?(family)
-      # Check family's own syncs
-      return true if family.syncs.incomplete.exists?
+      fid = family.id
 
-      # Check all provider items' syncs
-      return true if family.plaid_items.joins(:syncs).merge(Sync.incomplete).exists? if family.respond_to?(:plaid_items)
-      return true if family.simplefin_items.joins(:syncs).merge(Sync.incomplete).exists? if family.respond_to?(:simplefin_items)
-      return true if family.lunchflow_items.joins(:syncs).merge(Sync.incomplete).exists? if family.respond_to?(:lunchflow_items)
-      return true if family.enable_banking_items.joins(:syncs).merge(Sync.incomplete).exists? if family.respond_to?(:enable_banking_items)
+      # Item classes that belong to a family via family_id
+      item_classes = [
+        PlaidItem, SimplefinItem, LunchflowItem, EnableBankingItem,
+        SophtronItem, CoinstatsItem, MercuryItem, BinanceItem,
+        CoinbaseItem, SnaptradeItem, IndexaCapitalItem
+      ].select { |klass| klass.column_names.include?("family_id") }
 
-      # Check accounts' syncs
-      return true if family.accounts.joins(:syncs).merge(Sync.incomplete).exists?
+      # Build a single query covering Family, all provider item types, and Account
+      query = Sync.incomplete.where(syncable_type: "Family", syncable_id: fid)
 
-      false
+      item_classes.each do |klass|
+        query = query.or(
+          Sync.incomplete.where(syncable_type: klass.name, syncable_id: klass.where(family_id: fid).select(:id))
+        )
+      end
+
+      query = query.or(
+        Sync.incomplete.where(syncable_type: "Account", syncable_id: Account.where(family_id: fid).select(:id))
+      )
+
+      query.exists?
     end
 
     def with_advisory_lock(family_id)
