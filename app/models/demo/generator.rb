@@ -355,10 +355,12 @@ class Demo::Generator
       analysis_period = analysis_start..(current_month - 1.day)
 
       # Fetch expense transactions in the analysis period (positive amounts = expenses)
-      txns = Entry.joins("INNER JOIN transactions ON transactions.id = entries.entryable_id")
-                  .joins("INNER JOIN categories ON categories.id = transactions.category_id")
-                  .where(entries: { entryable_type: "Transaction", date: analysis_period })
-                  .where("entries.amount > 0")
+      # Scoped to this family's entries only (via accounts) to prevent cross-family FK violations
+      txns = family.entries
+                   .joins("INNER JOIN transactions ON transactions.id = entries.entryable_id")
+                   .joins("INNER JOIN categories ON categories.id = transactions.category_id")
+                   .where(entries: { entryable_type: "Transaction", date: analysis_period })
+                   .where("entries.amount > 0")
 
       spend_per_cat = txns.group("categories.id").sum("entries.amount")
 
@@ -373,7 +375,9 @@ class Demo::Generator
       spend_per_cat.each do |cat_id, total|
         avg = total / 3.0
         rounded = ((avg / 25.0).round) * 25
-        category = Category.find(cat_id)
+        category = family.categories.find_by(id: cat_id)
+        next if category.nil? # skip if category was deleted by a concurrent refresh
+
         budget.budget_categories.find_or_create_by!(category: category) do |bc|
           bc.budgeted_spending = rounded
           bc.currency = "USD"
